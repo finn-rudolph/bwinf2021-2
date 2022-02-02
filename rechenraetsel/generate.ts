@@ -56,10 +56,13 @@ const nextDigit = (
 ): number => {
 	let digit = randomInt(10);
 	while (
+		// Ensure integral result
+		(operator === "/" && (digit === 0 || result % digit !== 0)) ||
+		// Ensure explicit result
 		forbidden.includes(digit) ||
-		(operator == "/" && result % digit != 0) ||
-		((operator == "+" || operator == "-") && digit == 0) ||
-		((operator == "*" || operator == "/") && digit == 1)
+		((operator === "+" || operator === "-") && digit === 0) ||
+		((operator === "*" || operator === "/") && digit === 1) ||
+		((operator === "+" || operator === "*") && result === 2 && digit === 2)
 	)
 		digit = randomInt(10);
 
