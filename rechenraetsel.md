@@ -78,4 +78,4 @@ Wenn also $/$ als zufälliger Operator ausgewählt wurde, wird der Rest der Divi
 
 ## Literaturverzeichnis
 
-- Sannemo, J. (2018). _Principles of Algorithmic Problem Solving_. https://www.csc.kth.se/~jsannemo/slask/main.pdf Aufrufdatum: 23.12.2021
+- Sannemo, J. (2018). _Principles of Algorithmic Problem Solving_. KTH Royal Institute of Technology. https://www.csc.kth.se/~jsannemo/slask/main.pdf Aufrufdatum: 23.12.2021
