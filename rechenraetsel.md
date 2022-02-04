@@ -7,21 +7,25 @@
 
 Im ersten Abschnitt werde ich die Anforderungen an ein generiertes Rechenrätsel halbformal präzisieren. Der zweite Abschnitt stellt ein Konstruktionsverfahren vor, das diese Anforderungen alle gleichzeitig erfüllt.
 
-Die Aufgabe ist es, ein Wort der formalen Sprache algebraischer Gleichungen zu erzeugen, wobei Rechenoperatoren durch "o" ersetzt werden. Das Alphabet $\Sigma$ dieser Sprache ist:
+### Rechenrätsel als formale Sprache
+
+Die Aufgabe ist es, ein Wort der formalen Sprache algebraischer Gleichungen zu erzeugen, wobei Rechenoperatoren durch "$\circ$" ersetzt werden. Das Alphabet $\Sigma$ dieser Sprache ist:
 $$
 \Sigma = \verb |{"0", "1", "2", "3", "4", "5",| \\ 
 \verb |"6", "7", "8", "9", "o", " "}| \\
 $$
 Die Grammatik, in der erweiterten Backus-Naur-Form notiert, sieht folgendermaßen aus:
 $$
-\verb|Rechenrätsel = z {" o " z " "} " = " E;| \\
-\verb+z = "0" | "1" | "2" | "3" | "4"+\\ 
-\verb+| "5" | "6" | "7" | "8" | "9";+\\
-\verb+E = z {z};+
+\verb+Rechenrätsel = ("0" | N) {" o " ("0" | N) " "} " = " E;+ \\
+\verb+N = 1" | "2" | "3" | "4" | "5" +\\ 
+\verb+| "6" | "7" | "8" | "9";+\\
+\verb+E = N {"0" | N};+
 $$
-Um die weiteren Bedingungen an ein Rechenrätsel aufstellen zu können, ist es hilfreich, die Ziffern und Operatoren zu nummerien. Daher werde ich mich auf die folgende Darstellungsweise beziehen, wobei $z_i \in \N_0 \and z_i \leq 9$, für jedes $1 \leq i \leq n $ und $E \in \N$.
+### Anforderungen an ein Rechenrätsel
+
+Um die weiteren Bedingungen für ein gültiges Rechenrätsel aufstellen zu können, ist es hilfreich, die Ziffern und Operatoren zu nummerien. Daher werde ich mich auf die folgende Darstellungsweise beziehen, wobei $z_i \in \N_0 \and z_i \leq 9$, für jedes $1 \leq i \leq n $ und $E \in \N$. $n$ ist die gewünschte Operatorenzahl.
 $$
-z_1 \space \circ_1 \space z_2 \space \circ_2 \dots \circ_{n-1} \space z_n = E
+z_1 \space \circ_1 \space z_2 \space \circ_2 \dots \circ_{n} \space z_{n+1} = E
 $$
 Es muss *genau eine* Möglichkeit geben, jedes $\circ_i$ mit einem Operator $\in \{+,-,*,/\}$ zu ersetzen, sodass eine gültige algebraische Gleichung entsteht.
 
@@ -31,6 +35,8 @@ E_i \equiv 0 \space (\bmod z_{i+1})
 $$
 
 ## Lösungsidee
+
+Ich beziehe mich hier auf die Erstellung einer Gleichung mit eingesetzen Operatoren, weil diese danach einfach durch "$\circ$" ersetzt werden können.
 
 ### Prinzip des Lösungsverfahrens
 
@@ -58,6 +64,8 @@ $$
 $$
 Das heißt: Wenn an irgendeinem Punkt zwei gleiche Zahlen oder Operatoren direkt aufeinander folgen, oder nur durch eine Zahl oder Operator getrennt sind, ist das der zentrale Baustein eines jeden größeren symmetrischen Terms. Durch das Ausschließen eines solchen zentralen Bausteins wird jede Form von Symmetrie vermieden. Und das ist leicht machbar: Bei der zufälligen Auswahl einer Ziffer und eines Operators werden die letzten zwei gebrauchten nicht in Betracht gezogen.
 
+##### Uneindeutigkeit durch komplementäre Operatoren vor gleichen Termen
+
 ##### Spezialfälle für Uneindeutigkeit
 
 Einige Ziffern liefern bei unterschiedlichen Operatoren dennoch das gleiche Ergebnis, z. B. $2 \cdot 2 = 2 + 2$. Beim Auftreten von folgenden Kombinationen generierter Ziffern und Operatoren wird eine neue zufällige Ziffer generiert:
@@ -70,9 +78,31 @@ Einige Ziffern liefern bei unterschiedlichen Operatoren dennoch das gleiche Erge
 
 #### Punkt vor Strich
 
+Um die Operatorenrangfolge zu beachten, verwende ich ein selbst entwickeltes Konzept von *Zwischenergebnissen auf jedem Operatorenrang*. Es löst das Problem, dass Ausdrücke von Operatoren zweiten Rangs ($*,/$) nicht zuerst zusammengefasst werden, bevor das Endergebnis aktualisiert wird.
+
+Um das Ergebnis einer Kette von Zahlen, die durch höherrangige Operatoren verknüpft sind, zuerst auswerten zu können, wird ein Teilergebnis nur für diese Kette eingeführt. Diese wird separat aktualisiert, bis die Folge von $*,/$ endet. Dann wird ihr Ergebnis mit vorgehenden $+$ oder $-$ Operator verknüpft.
+
+Es folgt, dass ständig ein Zwischenergebnis $e_{r}$ und der zuletzt vorgekommene Operator $o_{r}$ für jeden Operatorenrang $r$ (in diesem Fall nur zwei) gespeichtert werden muss. Ein Ergebnis niedrigeren Operatorenrangs wird erst aktualisiert, wenn wieder ein Operator seines Rangs auftritt. Das Endergebnis wird durch absteigende Verknüpfung aller Zwischenergebnisse der Operatorenränge erreicht.
+
+Dieses Konzept soll nun an einem Beispiel mit einigen Iterationsschritten verdeutlicht werden, wobei $1$ der Operatorenrang von $+,-$ und $2$ der Operatorenrang von $*,/$ ist.
+
+$$
+3 \hspace{70pt} e_1 = \text{undef}; o_1 = \text{undef}; e_2 = 3; o_2 = \text{undef} \\
+
+3 + 9 \hspace{70pt} e_1 = 3; o_1 = +; e_2 = 9; o_2 = \text{undef}; \\
+
+3 + 9 * 4 \hspace{70pt} e_1 = 3; o_1 = +; e_2 = 36; o_2 = *; \\
+
+3 + 9 * 4 / 6 \hspace{70pt} e_1 = 3; o_1 = +; e_2 = 6; o_2 = /;  \\
+
+3 + 9 * 4 / 6 - 1 \hspace{70pt} e_1 = 9; o_1 = -; e_2 = 1; o_2 = \text{undef}; \\
+
+\\
+\text{Endergebnis: } e_1 - e_2 = 9 - 1 = 8
+$$
 #### Zwischenergebnisse $\in \Z$
 
-Nicht-ganzzahlige Zwischenergebnisse können nur bei Division entstehen. Sie entstehen genauer nur dann, wenn beim Konstruktionsschritt $i$ die aktuelle rechte Seite der Gleichung $E_i$ inkongruent zu $0$ ist, modulo der gerade zufällig ausgewählten Ziffer $z_{i+1}$. Diese Bedingung wurde bereits in $(4)$ beschrieben.
+Nicht-ganzzahlige Zwischenergebnisse können nur bei Division entstehen. Sie entstehen genauer nur dann, wenn beim Konstruktionsschritt $i$ die aktuelle rechte Seite der Gleichung $E_i$ inkongruent zu $0$ ist, modulo der gerade zufällig ausgewählten Ziffer $z_{i+1}$. Diese Bedingung wurde bereits in *[Anforderungen an ein Rechenrätsel](#Anforderungen an ein Rechenrätsel)* beschrieben.
 
 Wenn also $/$ als zufälliger Operator ausgewählt wurde, wird der Rest der Division von $E_i$ und $z_{i+1}$ überprüft und gegebenenfalls eine neue zufällige Ziffer gewählt.
 
