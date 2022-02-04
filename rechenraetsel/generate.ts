@@ -2,8 +2,8 @@ export const generateEquation = (
 	n: number,
 	operators: Array<string>
 ): string => {
-	const lastOperators: Array<string | undefined> = [undefined, undefined];
-	const lastDigits: Array<number | undefined> = [undefined, undefined];
+	const lastOperators: Array<string | undefined> = new Array(2);
+	const lastDigits: Array<number | undefined> = new Array(2);
 
 	const rankRes: Array<number> = new Array(2);
 	const rankOp: Array<string> = new Array(2);
@@ -12,8 +12,12 @@ export const generateEquation = (
 	let leftTerm = rankRes[1].toString();
 
 	for (let i = 1; i <= n; i++) {
-		const operator = nextOperator(operators, lastOperators);
-		const digit = nextDigit(lastDigits, operator, rankRes);
+		let digit: number | undefined, operator: string;
+
+		do {
+			operator = randomOp(operators, lastOperators);
+			digit = randomDg(lastDigits, operator, rankRes);
+		} while (digit === undefined);
 
 		switch (operator) {
 			case "+":
@@ -43,13 +47,15 @@ export const generateEquation = (
 export const mystify = (equation: string) =>
 	equation.replace(/(\+|-|\*|\/)/g, "o");
 
-const nextOperator = (
+const randomOp = (
 	operators: Array<string>,
 	forbidden: Array<string | undefined>
 ): string => {
-	let operator = operators[randomInt(operators.length)];
-	while (forbidden.includes(operator))
+	let operator: string;
+
+	do {
 		operator = operators[randomInt(operators.length)];
+	} while (forbidden.includes(operator));
 
 	forbidden.unshift(operator);
 	forbidden.pop();
@@ -57,13 +63,18 @@ const nextOperator = (
 	return operator;
 };
 
-const nextDigit = (
+const randomDg = (
 	forbidden: Array<number | undefined>,
 	operator: string,
 	rankRes: Array<number>
-): number => {
-	let digit = randomInt(10);
-	while (
+): number | undefined => {
+	let digit: number;
+	const digits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+	do {
+		[digit] = digits.splice(randomInt(digits.length), 1);
+		if (digits.length === 0) return undefined;
+	} while (
 		// Ensure integral result
 		(operator === "/" && (digit === 0 || rankRes[1] % digit !== 0)) ||
 		// Ensure explicit result
@@ -73,8 +84,7 @@ const nextDigit = (
 		((operator === "+" || operator === "*") &&
 			digit === 2 &&
 			rankRes[1] === 2)
-	)
-		digit = randomInt(10);
+	);
 
 	forbidden.unshift(digit);
 	forbidden.pop();
@@ -83,7 +93,7 @@ const nextDigit = (
 };
 
 const applyOp = (a: number | undefined, b: number, op: string): number => {
-	if (a == undefined) return b;
+	if (a === undefined) return b;
 	switch (op) {
 		case "+":
 			return a + b;
