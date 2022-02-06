@@ -1,42 +1,36 @@
+import { AdjMatrix, AdjMapWeighted } from "./types.ts";
+
 // Edge weight is not implemented yet for the Adjacency Map.
-const toAdjacencyMap = (
+export const toAdjacencyMap = (
 	file: string
-): [number, number, Map<number, Set<number>>] => {
+): [number, number, AdjMapWeighted] => {
 	const [size, ...edges] = file.split(/\r\n|\n/);
 	const [n, m] = size.split(" ").map((x) => Number(x));
 
-	const adjMap: Map<number, Set<number>> = new Map();
+	const adjMap: AdjMapWeighted = new Array(n)
+		.fill(undefined)
+		.map(() => new Map());
 
 	for (let i = 0; i < edges.length; i++) {
-		const [vertex1, vertex2, _weight] = edges[i]
-			.split(" ")
-			.map((x) => Number(x));
-
-		if (!adjMap.has(vertex1)) adjMap.set(vertex1, new Set());
-		adjMap.get(vertex1)?.add(vertex2);
-
-		if (!adjMap.has(vertex2)) adjMap.set(vertex2, new Set());
-		adjMap.get(vertex2)?.add(vertex1);
+		const [v1, v2, w] = edges[i].split(" ").map((x) => Number(x));
+		adjMap[v1].set(v2, w);
+		adjMap[v2].set(v1, w);
 	}
 	return [n, m, adjMap];
 };
 
-const toAdjacencyMatrix = (
+export const toAdjacencyMatrix = (
 	file: string
-): [number, number, Array<Array<number>>] => {
+): [number, number, AdjMatrix] => {
 	const [size, ...edges] = file.split(/\r\n|\n/);
 	const [n, m] = size.split(" ").map((x) => Number(x));
 
-	const adjMatrix: Array<Array<number>> = [...Array(n)].map(() =>
-		new Array(n).fill(0)
-	);
+	const adjMatrix: AdjMatrix = [...Array(n)].map(() => new Array(n).fill(0));
 
 	for (let i = 0; i < edges.length; i++) {
-		const [vertex1, vertex2, weight] = edges[i]
-			.split(" ")
-			.map((x) => Number(x));
-		adjMatrix[vertex1][vertex2] = weight;
-		adjMatrix[vertex2][vertex1] = weight;
+		const [v1, v2, w] = edges[i].split(" ").map((x) => Number(x));
+		adjMatrix[v1][v2] = w;
+		adjMatrix[v2][v1] = w;
 	}
 	return [n, m, adjMatrix];
 };
