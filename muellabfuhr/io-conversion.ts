@@ -1,4 +1,4 @@
-import { AdjMatrix, AdjMapWeighted } from "./types.ts";
+import { AdjMatrix, AdjMapWeighted, AdjMap } from "./types.ts";
 
 // Edge weight is not implemented yet for the Adjacency Map.
 export const toAdjacencyMap = (
@@ -33,4 +33,25 @@ export const toAdjacencyMatrix = (
 		adjMatrix[v2][v1] = w;
 	}
 	return [n, m, adjMatrix];
+};
+
+export const invertGraph = (
+	adjMap: AdjMapWeighted,
+	m: number
+): [AdjMap, Array<number>] => {
+	const edgeAdjMap: AdjMap = new Array(m)
+		.fill(undefined)
+		.map(() => new Set());
+
+	// corresponds to vertex weights in the inverse graph
+	const edgeWeights: Array<number> = new Array(m);
+
+	for (const v1 in adjMap) {
+		for (const [v2, w] of adjMap[v1]) {
+			edgeAdjMap[v1].add(v2);
+			edgeAdjMap[v2].add(Number(v1));
+			edgeWeights[w] = m;
+		}
+	}
+	return [edgeAdjMap, edgeWeights];
 };
