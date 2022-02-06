@@ -12,8 +12,19 @@ export const savings = (adjMap: AdjMapWeighted): Array<Route> => {
 		preMatrix[i] = predecessors;
 	}
 
-	console.log(dMatrix);
+	for (let i = 1; i < adjMap.length; i++) {
+		const route: Route = { vertices: [i], length: 2 * dMatrix[0][i] };
 
+		let curr = preMatrix[0][i];
+		while (preMatrix[curr] !== undefined) {
+			route.vertices.push(curr);
+			route.vertices.unshift(curr);
+			curr = preMatrix[0][curr];
+		}
+
+		routes.push(route);
+		console.log(route.vertices);
+	}
 	return [];
 };
 
