@@ -11,7 +11,7 @@ export const toAdjacencyMap = (
 		.fill(undefined)
 		.map(() => new Map());
 
-	for (let i = 0; i < edges.length; i++) {
+	for (let i = 0; i < edges.length && edges[i] !== ""; i++) {
 		const [v1, v2, w] = edges[i].split(" ").map((x) => Number(x));
 		adjMap[v1].set(v2, w);
 		adjMap[v2].set(v1, w);
@@ -27,7 +27,7 @@ export const toAdjacencyMatrix = (
 
 	const adjMatrix: AdjMatrix = [...Array(n)].map(() => new Array(n).fill(0));
 
-	for (let i = 0; i < edges.length; i++) {
+	for (let i = 0; i < edges.length && edges[i] !== ""; i++) {
 		const [v1, v2, w] = edges[i].split(" ").map((x) => Number(x));
 		adjMatrix[v1][v2] = w;
 		adjMatrix[v2][v1] = w;
@@ -43,7 +43,7 @@ export const invertGraph = (
 		.fill(undefined)
 		.map(() => new Set());
 
-	// corresponds to vertex weights in the inverse graph
+	// Correspond to vertex weights in the inverse graph
 	const edgeWeights: Array<number> = new Array(m);
 
 	for (const v1 in adjMap) {
