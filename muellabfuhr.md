@@ -5,6 +5,26 @@
 
 ## Problembeschreibung
 
+Der Stadtplan kann als Graph gesehen werden, wobei Kreuzungen Knoten und Straßen Kanten entsprechen. Dieser Graph besitzt folgende Eigenschaften: Seine Kanten sind mit der Länge der zugehörigen Straßen gewichtet, außerdem sind sie ungerichtet. Der Graph kann Zyklen enthalten. Auch erfüllen einige Beispiele das Kriterium für Planarität eines Graphen nicht, das aus dem Eulerschen Polyedersatz hervorgeht:
+$$
+|E| \leq 3|V| - 6
+$$
+Z. B. besitzt `muellabfuhr8.txt` $3453$ Kanten, was größer als $3|V| - 6$, wobei $|V| = 1000$. Des weiteren ist der Graph nicht immer metrisch, denn z. B. erfüllen die Kanten zwischen den Knoten $0, 3, 5$ in `muellabfuhr5.txt` die Dreiecksungleichung nicht.
+
+Das Ziel ist es, fünf geschlossene Kantenzüge $Z_1, Z_2, ... Z_ 5$ zu finden. Der Begriff *Kantenzug* wird mehrdeutig verwendet, daher die folgende Definition.
+
+**Definition Kantenzug**: Ein Kantenzug ist eine Folge von Kanten $e_1, e_2, \dots e_n$, wobei $e_i = (a_i, b_i)$ und $b_i = a_{i+1}$. Bei einem geschlossenen Kantenzug gilt $a_1 = b_n$.
+
+Bei jedem der Kantenzüge muss $a_1 = v_0$, der Zentrumsknoten, sein. Gemeinsam müssen alle Kanten des Graphen abgedeckt werden, wobei der längste Zyklus möglichst günstig sein soll:
+$$
+\text{minimiere} \space \max _{i=1} ^5 \sum _{e \in Z_i} w(e)
+$$
+
+$e$ steht für eine Kante, deren Kosten durch die Kostenfunktion $w$ angegeben werden. Die Bedingung gilt, dass jede Kante durchlaufen wird:
+$$
+\bigcup _{i=1} ^5 Z_i = E
+$$
+
 ## Literaturverzeichnis
 
 1. Sannemo, J. (2018). _Principles of Algorithmic Problem Solving_. KTH Royal Institute of Technology. https://www.csc.kth.se/~jsannemo/slask/main.pdf
@@ -22,3 +42,5 @@
 13. Moler, C. (2011) _Google Page Rank_. Mathworks. https://www.mathworks.com/content/dam/mathworks/mathworks-dot-com/moler/exm/chapters/pagerank.pdf
 14. Berkeley University of California (o. D.). _Savings Algorithm_. University of California, Berkeley. http://courses.ieor.berkeley.edu/ieor151/lecture_notes/ieor151_lec18.pdf
 15. Laporte, G. (1991). _The Vehicle Routing Problem: An Overview of exact and approximate Algorithms_. https://staff.fmi.uvt.ro/~daniela.zaharie/ma2017/projects/applications/VehicleRouting/VRP_Laporte_review.pdf
+16. Saunders, S. (1999). *A Comparison of Data Structures for Dijkstra's Single Source Shortest Path Algorithm*. University of Canterbury. https://www.cosc.canterbury.ac.nz/research/reports/HonsReps/1999/hons_9907.pdf
+17. Mayer, T. (2019). *Automatisierte Auswahl von Algorithmen für das dynamische Fahrzeugwegeplanungsproblem* (Dissertation, Informatik). https://athene-forschung.unibw.de/download/130767/130767.pdf
