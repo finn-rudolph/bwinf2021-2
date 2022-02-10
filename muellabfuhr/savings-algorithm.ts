@@ -56,25 +56,17 @@ export const savings = (adjMap: AdjMapWeighted): Set<Route> => {
 			};
 
 			if (sav.vertex1 === route1.vertices[1]) {
+				newRoute.vertices.push(...route2.vertices.slice(0, -1));
 				newRoute.vertices.push(...route1.vertices.slice(1));
 			} else {
-				newRoute.vertices.unshift(
-					...route1.vertices.slice(0, route1.vertices.length - 1)
-				);
-			}
-			if (sav.vertex2 === route2.vertices[1]) {
+				newRoute.vertices.push(...route1.vertices.slice(0, -1));
 				newRoute.vertices.push(...route2.vertices.slice(1));
-			} else {
-				newRoute.vertices.unshift(
-					...route2.vertices.slice(0, route2.vertices.length - 1)
-				);
 			}
 
 			routes.delete(route1);
 			routes.delete(route2);
 			routes.add(newRoute);
-			belonging.set(sav.vertex1, newRoute);
-			belonging.set(sav.vertex2, newRoute);
+			for (const v of newRoute.vertices) belonging.set(v, newRoute);
 		}
 	}
 
