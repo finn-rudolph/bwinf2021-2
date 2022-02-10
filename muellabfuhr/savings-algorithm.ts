@@ -4,17 +4,17 @@ import { BinaryHeap } from "./data-structures.ts";
 export const savings = (adjMap: AdjMapWeighted): Set<Route> => {
 	const routes: Set<Route> = new Set();
 	const belonging: Map<number, Route> = new Map();
-	const dMatrix = new Array(adjMap.length);
+	const disMatrix = new Array(adjMap.length);
 	const preMatrix = new Array(adjMap.length);
 
 	for (let i = 0; i < adjMap.length; i++) {
 		const [distances, predecessors] = dijkstra(adjMap, i);
-		dMatrix[i] = distances;
+		disMatrix[i] = distances;
 		preMatrix[i] = predecessors;
 	}
 
 	for (let i = 1; i < adjMap.length; i++) {
-		const route: Route = { vertices: [0, i, 0], cost: 2 * dMatrix[0][i] };
+		const route: Route = { vertices: [0, i, 0], cost: 2 * disMatrix[0][i] };
 		routes.add(route);
 		belonging.set(i, route);
 	}
@@ -31,7 +31,8 @@ export const savings = (adjMap: AdjMapWeighted): Set<Route> => {
 				savings.insert({
 					vertex1: i,
 					vertex2: j,
-					reduction: dMatrix[0][i] + dMatrix[0][j] - dMatrix[i][j]
+					reduction:
+						disMatrix[0][i] + disMatrix[0][j] - disMatrix[i][j]
 				});
 			}
 		}
@@ -56,11 +57,15 @@ export const savings = (adjMap: AdjMapWeighted): Set<Route> => {
 			};
 
 			if (sav.vertex1 === route1.vertices[1]) {
-				newRoute.vertices.push(...route2.vertices.slice(0, -1));
-				newRoute.vertices.push(...route1.vertices.slice(1));
+				newRoute.vertices.push(
+					...route2.vertices.slice(0, -1),
+					...route1.vertices.slice(1)
+				);
 			} else {
-				newRoute.vertices.push(...route1.vertices.slice(0, -1));
-				newRoute.vertices.push(...route2.vertices.slice(1));
+				newRoute.vertices.push(
+					...route1.vertices.slice(0, -1),
+					...route2.vertices.slice(1)
+				);
 			}
 
 			routes.delete(route1);
@@ -79,19 +84,21 @@ const traceBackRoutes = (
 ): Set<Route> => {
 	const traced: Set<Route> = new Set();
 	for (const route of routes) {
-		const expanded: Route = {
+		const realRoute: Route = {
 			cost: route.cost,
 			vertices: []
 		};
-		expanded.vertices.push(route.vertices[0]);
+		realRoute.vertices.push(route.vertices[0]);
+
 		for (let i = 0; i < route.vertices.length - 1; i++) {
 			let curr = preMatrix[route.vertices[i + 1]][route.vertices[i]];
+
 			while (curr !== undefined) {
-				expanded.vertices.push(curr);
+				realRoute.vertices.push(curr);
 				curr = preMatrix[route.vertices[i + 1]][curr];
 			}
 		}
-		traced.add(expanded);
+		traced.add(realRoute);
 	}
 	return traced;
 };
@@ -104,29 +111,32 @@ export const dijkstra = (
 		.fill(0)
 		.map((_v, i) => {
 			return {
-				v: i,
-				d: Infinity,
+				vertex: i,
+				dis: Infinity,
 				pre: undefined,
-				vis: false
+				visited: false
 			};
 		});
-	vertices[start].d = 0;
+	vertices[start].dis = 0;
 
-	const toBeProcessed = new BinaryHeap<DijkstraVertex>(
-		(a, b) => a.d <= b.d,
+	const queue = new BinaryHeap<DijkstraVertex>(
+		(a, b) => a.dis <= b.dis,
 		[vertices[start]]
 	);
 
-	while (toBeProcessed.length() !== 0) {
-		const { v: curr, d: currD } = toBeProcessed.top();
-		toBeProcessed.pop();
-		vertices[curr].vis = true;
+	while (queue.length() !== 0) {
+		const { vertex: curr, dis: currDis } = queue.top();
+		queue.pop();
+		vertices[curr].visited = true;
 
-		for (const [neighbor, w] of adjMap[curr]) {
-			if (!vertices[neighbor].vis && vertices[neighbor].d > currD + w) {
-				vertices[neighbor].d = currD + w;
+		for (const [neighbor, cost] of adjMap[curr]) {
+			if (
+				!vertices[neighbor].visited &&
+				vertices[neighbor].dis > currDis + cost
+			) {
+				vertices[neighbor].dis = currDis + cost;
 				vertices[neighbor].pre = curr;
-				toBeProcessed.insert(vertices[neighbor]);
+				queue.insert(vertices[neighbor]);
 			}
 		}
 	}
@@ -134,7 +144,7 @@ export const dijkstra = (
 	const predecessors: Array<number | undefined> = [];
 
 	for (let i = 0; i < vertices.length; i++) {
-		distances.push(vertices[i].d);
+		distances.push(vertices[i].dis);
 		predecessors.push(vertices[i].pre);
 	}
 	return [distances, predecessors];

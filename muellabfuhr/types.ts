@@ -5,8 +5,8 @@ export type AdjMap = Array<Set<number>>;
 export type Route = { vertices: Array<number>; cost: number };
 
 export type DijkstraVertex = {
-	v: number;
-	d: number;
+	vertex: number;
+	dis: number;
 	pre: number | undefined;
-	vis: boolean;
+	visited: boolean;
 };
