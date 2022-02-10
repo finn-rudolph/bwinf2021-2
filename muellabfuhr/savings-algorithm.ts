@@ -69,9 +69,31 @@ export const savings = (adjMap: AdjMapWeighted): Set<Route> => {
 			for (const v of newRoute.vertices) belonging.set(v, newRoute);
 		}
 	}
+	const tracedRoutes = traceBackRoutes(routes, preMatrix);
+	return tracedRoutes;
+};
 
-	console.log("Routes:\n", routes);
-	return routes;
+const traceBackRoutes = (
+	routes: Set<Route>,
+	preMatrix: Array<Array<number | undefined>>
+): Set<Route> => {
+	const traced: Set<Route> = new Set();
+	for (const route of routes) {
+		const expanded: Route = {
+			cost: route.cost,
+			vertices: []
+		};
+		expanded.vertices.push(route.vertices[0]);
+		for (let i = 0; i < route.vertices.length - 1; i++) {
+			let curr = preMatrix[route.vertices[i + 1]][route.vertices[i]];
+			while (curr !== undefined) {
+				expanded.vertices.push(curr);
+				curr = preMatrix[route.vertices[i + 1]][curr];
+			}
+		}
+		traced.add(expanded);
+	}
+	return traced;
 };
 
 export const dijkstra = (
