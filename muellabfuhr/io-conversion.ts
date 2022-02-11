@@ -35,23 +35,43 @@ export const toAdjacencyMatrix = (
 	return [n, m, adjMatrix];
 };
 
-export const invertGraph = (
-	adjMap: AdjMapWeighted,
-	m: number
-): [AdjMap, Array<number>] => {
+export const invertGraph = (adjMap: AdjMapWeighted, m: number) => {
 	const edgeAdjMap: AdjMap = new Array(m)
 		.fill(undefined)
 		.map(() => new Set());
 
+	const belongingIndices: Array<Map<number, number>> = new Array(
+		adjMap.length
+	)
+		.fill(undefined)
+		.map(() => new Map());
+
+	const belongingEdges: Array<{ a: number; b: number }> = new Array(m);
+
 	// Correspond to vertex weights in the inverse graph
 	const edgeWeights: Array<number> = new Array(m);
 
+	let i = 0;
 	for (const v1 in adjMap) {
 		for (const [v2, w] of adjMap[v1]) {
-			edgeAdjMap[v1].add(v2);
-			edgeAdjMap[v2].add(Number(v1));
-			edgeWeights[w] = m;
+			if (v2 > Number(v1)) {
+				belongingIndices[v1].set(v2, i);
+				belongingIndices[v2].set(Number(v1), i);
+				belongingEdges[i] = { a: Number(v1), b: v2 };
+				edgeWeights[i] = w;
+				i += 1;
+			}
 		}
 	}
-	return [edgeAdjMap, edgeWeights];
+
+	for (const v1 in adjMap) {
+		for (const [v2, _w] of adjMap[v1]) {
+			for (const [u, _w] of adjMap[v1]) {
+				edgeAdjMap[belongingIndices[v1].get(v2)!].add(
+					belongingIndices[v1].get(u)!
+				);
+			}
+		}
+	}
+	return [edgeAdjMap, edgeWeights, belongingIndices, belongingEdges];
 };
