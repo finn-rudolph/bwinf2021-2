@@ -1,14 +1,17 @@
 import { AdjMapWeighted, Route, DijkstraVertex } from "./types.ts";
 import { BinaryHeap } from "./data-structures.ts";
 
-export const savings = (adjMap: AdjMapWeighted): Set<Route> => {
+export const savings = (
+	adjMap: AdjMapWeighted,
+	vertexWeights?: Array<number>
+): Set<Route> => {
 	const routes: Set<Route> = new Set();
 	const belonging: Map<number, Route> = new Map();
 	const disMatrix = new Array(adjMap.length);
 	const preMatrix = new Array(adjMap.length);
 
 	for (let i = 0; i < adjMap.length; i++) {
-		const [distances, predecessors] = dijkstra(adjMap, i);
+		const [distances, predecessors] = dijkstra(adjMap, i, vertexWeights);
 		disMatrix[i] = distances;
 		preMatrix[i] = predecessors;
 	}
@@ -105,7 +108,8 @@ const traceBackRoutes = (
 
 export const dijkstra = (
 	adjMap: AdjMapWeighted,
-	start: number
+	start: number,
+	vertexWeights = new Array(adjMap.length).fill(0)
 ): [Array<number | undefined>, Array<number | undefined>] => {
 	const vertices: Array<DijkstraVertex> = new Array(adjMap.length)
 		.fill(0)
@@ -117,7 +121,7 @@ export const dijkstra = (
 				visited: false
 			};
 		});
-	vertices[start].dis = 0;
+	vertices[start].dis = vertexWeights[start];
 
 	const queue = new BinaryHeap<DijkstraVertex>(
 		(a, b) => a.dis <= b.dis,
@@ -132,9 +136,11 @@ export const dijkstra = (
 		for (const [neighbor, cost] of adjMap[curr]) {
 			if (
 				!vertices[neighbor].visited &&
-				vertices[neighbor].dis > currDis + cost
+				vertices[neighbor].dis >
+					currDis + cost + vertexWeights[neighbor]
 			) {
-				vertices[neighbor].dis = currDis + cost;
+				vertices[neighbor].dis =
+					currDis + cost + vertexWeights[neighbor];
 				vertices[neighbor].pre = curr;
 				queue.insert(vertices[neighbor]);
 			}
