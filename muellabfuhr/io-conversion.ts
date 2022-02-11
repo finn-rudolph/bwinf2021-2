@@ -1,6 +1,5 @@
-import { AdjMatrix, AdjMapWeighted } from "./types.ts";
+import { AdjMatrix, AdjMapWeighted, Route } from "./types.ts";
 
-// Edge weight is not implemented yet for the Adjacency Map.
 export const toAdjacencyMap = (
 	file: string
 ): [number, number, AdjMapWeighted] => {
@@ -86,26 +85,47 @@ export const invertGraph = (
 	return [edgeAdjMap, edgeWeights, belongingEdges];
 };
 
-export const revertWalk = (
-	walk: Array<number>,
+export const revertWalks = (
+	walks: Set<Route>,
 	belongingEdges: Array<{ a: number; b: number }>,
 	adjMap: AdjMapWeighted
-): Array<number> => {
-	const orig: Array<number> = [0, belongingEdges[walk[1]].b];
+): Array<Route> => {
+	const reverted = [];
+	for (const walk of walks) {
+		const orig: Array<number> = [0, belongingEdges[walk.vertices[1]].b];
 
-	for (let i = 2; i < walk.length - 1; i++) {
-		const { a: a, b: b } = belongingEdges[walk[i]];
+		for (let i = 2; i < walk.vertices.length - 1; i++) {
+			const { a: a, b: b } = belongingEdges[walk.vertices[i]];
 
-		if (orig[orig.length - 1] === a) {
-			orig.push(b);
-		} else if (orig[orig.length - 1] === b) {
-			orig.push(a);
-		} else if (adjMap[orig[orig.length - 1]].has(a)) {
-			orig.push(a, b);
-		} else if (adjMap[orig[orig.length - 1]].has(b)) {
-			orig.push(b, a);
+			if (orig[orig.length - 1] === a) {
+				orig.push(b);
+			} else if (orig[orig.length - 1] === b) {
+				orig.push(a);
+			} else if (adjMap[orig[orig.length - 1]].has(a)) {
+				orig.push(a, b);
+			} else if (adjMap[orig[orig.length - 1]].has(b)) {
+				orig.push(b, a);
+			}
 		}
+		if (orig[orig.length - 1] !== 0) orig.push(0);
+		reverted.push({ cost: walk.cost, vertices: orig });
 	}
-	if (orig[orig.length - 1] !== 0) orig.push(0);
-	return orig;
+	return reverted;
+};
+
+export const formatOutput = (routes: Array<Route>): string => {
+	let result = "\n";
+	let day = 1;
+	let maxCost = 0;
+
+	for (const route of routes) {
+		result += `Tag ${day}: ${route.vertices.join(" -> ")} Länge: ${
+			route.cost
+		}\n`;
+		day += 1;
+		maxCost = Math.max(route.cost, maxCost);
+	}
+
+	result += `\nMaximale Tourenlänge: ${maxCost}`;
+	return result;
 };
