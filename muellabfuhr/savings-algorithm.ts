@@ -1,41 +1,50 @@
 import { AdjMapWeighted, Route, DijkstraVertex } from "./types.ts";
 import { BinaryHeap } from "./data-structures.ts";
 
-export const savings = (
-	adjMap: AdjMapWeighted,
-	vertexWeights?: Array<number>
-): Set<Route> => {
-	const routes: Set<Route> = new Set();
-	const belonging: Map<number, Route> = new Map();
-	const disMatrix = new Array(adjMap.length);
-	const preMatrix = new Array(adjMap.length);
+export const savings = (adjMap: AdjMapWeighted, m: number): Set<Route> => {
+	const routes: Array<Route> = [];
+	const belonging: Array<Map<number, Route>> = new Array(m)
+		.fill(undefined)
+		.map(() => new Map());
+	const dis = new Array(adjMap.length);
+	const pre = new Array(adjMap.length);
 
 	for (let i = 0; i < adjMap.length; i++) {
-		const [distances, predecessors] = dijkstra(adjMap, i, vertexWeights);
-		disMatrix[i] = distances;
-		preMatrix[i] = predecessors;
+		const [distances, predecessors] = dijkstra(adjMap, i);
+		dis[i] = distances;
+		pre[i] = predecessors;
 	}
 
-	for (let i = 1; i < adjMap.length; i++) {
-		const route: Route = { vertices: [0, i, 0], cost: 2 * disMatrix[0][i] };
-		routes.add(route);
-		belonging.set(i, route);
+	for (let i = 0; i < adjMap.length; i++) {
+		for (const [j, w] of adjMap[i]) {
+			const route: Route = {
+				vertices: [0, i, j, 0],
+				cost: dis[0][i] + w + dis[0][j]
+			};
+
+			routes.push(route);
+			belonging[i].set(j, route);
+			belonging[j].set(i, route);
+		}
 	}
 
 	const savings = new BinaryHeap<{
-		vertex1: number;
-		vertex2: number;
+		vertices: [number, number, number, number];
 		reduction: number;
 	}>((a, b) => a.reduction >= b.reduction);
 
-	for (let i = 1; i < adjMap.length; i++) {
-		for (let j = i + 1; j < adjMap.length; j++) {
-			if (i !== j) {
+	for (let i = 0; i < routes.length; i++) {
+		for (let j = i + 1; j < routes.length; j++) {
+			for (let p = 0; p < 4; p++) {
+				const [a1, b1, a2, b2] = [
+					routes[i].vertices[(p % 2) + 1],
+					routes[i].vertices[(p % 2) + 2],
+					routes[j].vertices[Math.floor(p / 2) + 1],
+					routes[j].vertices[Math.floor(p / 2) + 2]
+				];
 				savings.insert({
-					vertex1: i,
-					vertex2: j,
-					reduction:
-						disMatrix[0][i] + disMatrix[0][j] - disMatrix[i][j]
+					vertices: [a1, b1, a2, b2],
+					reduction: dis[0][b1] + dis[0][a2] - dis[b1][a2]
 				});
 			}
 		}
@@ -77,7 +86,7 @@ export const savings = (
 			for (const v of newRoute.vertices) belonging.set(v, newRoute);
 		}
 	}
-	const tracedRoutes = traceBackRoutes(routes, preMatrix);
+	const tracedRoutes = traceBackRoutes(routes, pre);
 	return tracedRoutes;
 };
 
@@ -108,8 +117,7 @@ const traceBackRoutes = (
 
 export const dijkstra = (
 	adjMap: AdjMapWeighted,
-	start: number,
-	vertexWeights = new Array(adjMap.length).fill(0)
+	start: number
 ): [Array<number | undefined>, Array<number | undefined>] => {
 	const vertices: Array<DijkstraVertex> = new Array(adjMap.length)
 		.fill(0)
@@ -121,7 +129,7 @@ export const dijkstra = (
 				visited: false
 			};
 		});
-	vertices[start].dis = vertexWeights[start];
+	vertices[start].dis = 0;
 
 	const queue = new BinaryHeap<DijkstraVertex>(
 		(a, b) => a.dis <= b.dis,
@@ -136,11 +144,9 @@ export const dijkstra = (
 		for (const [neighbor, cost] of adjMap[curr]) {
 			if (
 				!vertices[neighbor].visited &&
-				vertices[neighbor].dis >
-					currDis + cost + vertexWeights[neighbor]
+				vertices[neighbor].dis > currDis + cost
 			) {
-				vertices[neighbor].dis =
-					currDis + cost + vertexWeights[neighbor];
+				vertices[neighbor].dis = currDis + cost;
 				vertices[neighbor].pre = curr;
 				queue.insert(vertices[neighbor]);
 			}
