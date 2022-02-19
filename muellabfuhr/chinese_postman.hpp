@@ -1,10 +1,12 @@
 #include <bits/stdc++.h>
+#include "types.hpp"
 using namespace std;
 
-typedef vector<map<int, int>> adj_map;
+vector<int> postman(adj_map &graph);
 
-set<vector<int>> fhk(adj_map &graph);
-
-adj_map create_odds_graph(adj_map &graph, vector<vector<int>> &dis);
+pair<map_2d, pair<int, int>> create_odds_graph(
+    adj_map &graph, 
+    vector<vector<int>> &dis
+);
 
 vector<vector<int>> dijkstra(adj_map &graph, int start);

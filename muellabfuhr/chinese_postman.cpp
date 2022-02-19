@@ -1,45 +1,63 @@
-#include <bits/stdc++.h>
 #include "chinese_postman.hpp"
-using namespace std;
+#include "perfect_matching.hpp"
 
 vector<int> postman(adj_map &graph) {
     vector<vector<int>> dis, pre;
     for (int i = 0; i < graph.size(); i++) {
-        vector<vector<int>> shortetstPaths = dijkstra(graph, i);
-        dis.push_back(shortetstPaths[0]);
-        pre.push_back(shortetstPaths[1]);
+        vector<vector<int>> shortetst_paths = dijkstra(graph, i);
+        dis.push_back(shortetst_paths[0]);
+        pre.push_back(shortetst_paths[1]);
     }
 
-    adj_map odds_graph = create_odds_graph(graph, dis);
+    map_2d odds_graph; pair<int, int> largest_edge;
+    tie(odds_graph, largest_edge) = create_odds_graph(graph, dis);
+
+    set<pair<int, int>> matching = perfect_matching(odds_graph, largest_edge);
+    for (auto it = matching.begin(); it != matching.end(); it++) {
+        cout << (*it).first << " " << (*it).second << "\n";
+    }
 }
 
-adj_map create_odds_graph(adj_map &graph, vector<vector<int>> &dis) {
-    vector<int> odds;
+pair<map_2d, pair<int, int>> create_odds_graph(
+    adj_map &graph, 
+    vector<vector<int>> &dis
+) {
+    set<int> odds;
     for (int i = 0; i < graph.size(); i++) {
         if (graph[i].size() % 2 == 1) {
-            odds.push_back(i);
+            odds.insert(i);
         }
     }
 
-    adj_map odds_graph(graph.size());
-    for (int i = 0; i < odds.size(); i++) {
-        for (int j = i + 1; j < odds.size(); j++) {
-            odds_graph[i][j] = odds_graph[j][i] = dis[i][j];
+    map_2d odds_graph;
+    int max_cost = 0;
+    pair<int, int> largest_edge;
+
+    for (auto it = odds.begin(); it != odds.end(); it++) {
+        for (auto jt = it; jt != odds.end(); jt++) {
+            if (*it != *jt) {
+                odds_graph[*it][*jt] = odds_graph[*jt][*it] = dis[*it][*jt];
+
+                if (dis[*it][*jt] > max_cost) {
+                    largest_edge = { *it, *jt };
+                    max_cost = dis[*it][*jt];
+                }
+            }
         }
     }
 
-    return odds_graph;
+    return { odds_graph, largest_edge };
 }
 
 vector<vector<int>> dijkstra(adj_map &graph, int start) {
     vector<int> dis(graph.size(), INT_MAX), pre(graph.size());
     vector<bool> visited(graph.size(), false);
 
-    auto isCloser = [&dis](int a, int b) -> bool {
+    auto is_closer = [&dis](int a, int b) -> bool {
         return dis[a] < dis[b];
     };
 
-    priority_queue<int, vector<int>, decltype(isCloser)> queue(isCloser);
+    priority_queue<int, vector<int>, decltype(is_closer)> queue(is_closer);
     queue.push(start);
     dis[start] = 0;
 
