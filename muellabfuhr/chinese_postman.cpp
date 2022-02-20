@@ -2,7 +2,7 @@
 #include "perfect_matching.hpp"
 
 vector<int> postman(adj_map &graph) {
-    vector<vector<int>> dis, pre;
+    matrix_2d dis, pre;
     for (int i = 0; i < graph.size(); i++) {
         vector<vector<int>> shortetst_paths = dijkstra(graph, i);
         dis.push_back(shortetst_paths[0]);
@@ -13,15 +13,12 @@ vector<int> postman(adj_map &graph) {
     tie(odds_graph, largest_edge) = create_odds_graph(graph, dis);
 
     set<pair<int, int>> matching = perfect_matching(odds_graph, largest_edge);
-    for (auto it = matching.begin(); it != matching.end(); it++) {
-        cout << (*it).first << " " << (*it).second << "\n";
-    }
+
+    adj_map edge_copies = create_multigraph(graph, matching, pre);
+    return {};
 }
 
-pair<map_2d, pair<int, int>> create_odds_graph(
-    adj_map &graph, 
-    vector<vector<int>> &dis
-) {
+pair<map_2d, pair<int, int>> create_odds_graph(adj_map &graph, matrix_2d &dis) {
     set<int> odds;
     for (int i = 0; i < graph.size(); i++) {
         if (graph[i].size() % 2 == 1) {
@@ -49,8 +46,34 @@ pair<map_2d, pair<int, int>> create_odds_graph(
     return { odds_graph, largest_edge };
 }
 
+adj_map create_multigraph(adj_map &graph, set<pair<int, int>> matching, matrix_2d &pre) {
+    adj_map edge_copies(graph.size());
+
+    for (int i = 0; i < graph.size(); i++) {
+        for (auto it = graph[i].begin(); it != graph[i].end(); it++) {
+            edge_copies[i][it->first] = 1;
+        }
+    }
+
+    for (auto it = matching.begin(); it != matching.end(); it++) {
+        int v1 = it->first;
+        int v2 = pre[it->second][it->first];
+
+        while (v2 != -1) {
+            edge_copies[v1][v2]++;
+            edge_copies[v2][v1]++;
+            v1 = v2;
+            v2 = pre[it->second][v2];
+        }
+    }
+
+    return edge_copies;
+}
+
+vector<int> euler_tour(adj_map &graph, adj_map &edge_copies) {}
+
 vector<vector<int>> dijkstra(adj_map &graph, int start) {
-    vector<int> dis(graph.size(), INT_MAX), pre(graph.size());
+    vector<int> dis(graph.size(), INT_MAX), pre(graph.size(), -1);
     vector<bool> visited(graph.size(), false);
 
     auto is_closer = [&dis](int a, int b) -> bool {
