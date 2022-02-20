@@ -1,21 +1,18 @@
 #include "chinese_postman.hpp"
 #include "perfect_matching.hpp"
+#include "utility.hpp"
 
-vector<int> postman(adj_map &graph) {
-    matrix_2d dis, pre;
-    for (int i = 0; i < graph.size(); i++) {
-        vector<vector<int>> shortetst_paths = dijkstra(graph, i);
-        dis.push_back(shortetst_paths[0]);
-        pre.push_back(shortetst_paths[1]);
-    }
-
-    map_2d odds_graph; pair<int, int> largest_edge;
+vector<int> postman(adj_map &graph, matrix_2d &dis, matrix_2d &pre) {
+    map_2d odds_graph;
+    pair<int, int> largest_edge;
     tie(odds_graph, largest_edge) = create_odds_graph(graph, dis);
 
     set<pair<int, int>> matching = perfect_matching(odds_graph, largest_edge);
 
-    adj_map edge_copies = create_multigraph(graph, matching, pre);
-    return {};
+    map_2d edge_copies = create_multigraph(graph, matching, pre);
+
+    vector<int> postman_tour = euler_tour(edge_copies);
+    return postman_tour;
 }
 
 pair<map_2d, pair<int, int>> create_odds_graph(adj_map &graph, matrix_2d &dis) {
@@ -46,8 +43,8 @@ pair<map_2d, pair<int, int>> create_odds_graph(adj_map &graph, matrix_2d &dis) {
     return { odds_graph, largest_edge };
 }
 
-adj_map create_multigraph(adj_map &graph, set<pair<int, int>> matching, matrix_2d &pre) {
-    adj_map edge_copies(graph.size());
+map_2d create_multigraph(adj_map &graph, set<pair<int, int>> matching, matrix_2d &pre) {
+    map_2d edge_copies;
 
     for (int i = 0; i < graph.size(); i++) {
         for (auto it = graph[i].begin(); it != graph[i].end(); it++) {
@@ -60,8 +57,8 @@ adj_map create_multigraph(adj_map &graph, set<pair<int, int>> matching, matrix_2
         int v2 = pre[it->second][it->first];
 
         while (v2 != -1) {
-            edge_copies[v1][v2]++;
-            edge_copies[v2][v1]++;
+            edge_copies[v1][v2] += 1;
+            edge_copies[v2][v1] += 1;
             v1 = v2;
             v2 = pre[it->second][v2];
         }
