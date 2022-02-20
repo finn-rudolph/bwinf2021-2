@@ -1,2 +1,4 @@
 .vscode
 ideen.md
+*.o
+*.gch
