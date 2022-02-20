@@ -2,17 +2,19 @@
 #include "perfect_matching.hpp"
 #include "utility.hpp"
 
-vector<int> postman(adj_map &graph, matrix_2d &dis, matrix_2d &pre) {
+pair<vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_2d &pre) {
     map_2d odds_graph;
     pair<int, int> largest_edge;
     tie(odds_graph, largest_edge) = create_odds_graph(graph, dis);
 
     set<pair<int, int>> matching = perfect_matching(odds_graph, largest_edge);
 
-    map_2d edge_copies = create_multigraph(graph, matching, pre);
+    map_2d edge_copies;
+    int weight_sum;
+    tie(edge_copies, weight_sum) = create_multigraph(graph, matching, pre);
 
-    vector<int> postman_tour = euler_tour(edge_copies);
-    return postman_tour;
+    vector<int> cp_tour = euler_tour(edge_copies);
+    return { cp_tour, weight_sum };
 }
 
 pair<map_2d, pair<int, int>> create_odds_graph(adj_map &graph, matrix_2d &dis) {
@@ -43,12 +45,18 @@ pair<map_2d, pair<int, int>> create_odds_graph(adj_map &graph, matrix_2d &dis) {
     return { odds_graph, largest_edge };
 }
 
-map_2d create_multigraph(adj_map &graph, set<pair<int, int>> matching, matrix_2d &pre) {
+pair<map_2d, int> create_multigraph(
+    adj_map &graph, 
+    set<pair<int, int>> &matching, 
+    matrix_2d &pre
+) {
     map_2d edge_copies;
+    int weight_sum = 0;
 
     for (int i = 0; i < graph.size(); i++) {
         for (auto it = graph[i].begin(); it != graph[i].end(); it++) {
             edge_copies[i][it->first] = 1;
+            weight_sum += it->second;
         }
     }
 
@@ -59,12 +67,13 @@ map_2d create_multigraph(adj_map &graph, set<pair<int, int>> matching, matrix_2d
         while (v2 != -1) {
             edge_copies[v1][v2] += 1;
             edge_copies[v2][v1] += 1;
+            weight_sum += graph[v1][v2];
             v1 = v2;
             v2 = pre[it->second][v2];
         }
     }
 
-    return edge_copies;
+    return { edge_copies, weight_sum };
 }
 
 vector<int> euler_tour(adj_map &graph, adj_map &edge_copies) {}
