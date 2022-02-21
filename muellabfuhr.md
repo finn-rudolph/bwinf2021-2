@@ -29,7 +29,15 @@ $s$ ist der Startknoten oder das Stadtzentrum, oft auch Depot genannt.
 
 ## Lösungsidee
 
-###
+Das Min-Max $k$-CPP ist NP-schwer, daher existiert für eine exakte Lösung nur ein Algorithmus mit exponentieller Laufzeit (Frederickson et al, 1978, zitiert nach Ahr, 2004, S. 32). Da das ist für große Probleminstanzen, wie z. B. `muellabfuhr8.txt` mit 1000 Knoten und 3543 Kanten nicht praktikabel ist, sind Heuristiken oder Metaheuristiken zur Lösung geeignet. In einem Vergleich der wenigen existierenden Algorithmen für das Min-Max $k$-CPP von Ahr (2004) schnitt der Approximationsalgorithmus von Frederickson, Hecht und Kim sehr gut ab. Zum Begriff Approximationsalgorithmus: Der Unterschied eines Approximationsalgorithmus zu einer Heuristik ist, dass er eine Lösungsqualität innerhalb eines konstanten Faktors der optimalen Lösung garantiert.
+
+Obwohl bessere Heuristiken, unter Einsatz von mehreren nachträglichen Verbesserungsalgorithmen, als der FHK-Algorithmus existieren (Ahr, 2004, S. 46), habe ich mich für eine Implementierung von diesem entschieden. Denn ohne Verbesserungsverfahren war der FHK-Algorithmus in 81% aller Testinstanzen überlegen, erst durch die zusätzliche Anwendung der Metaheuristik Tabu-Suche (S. 63 - 67) konnte er von den anderen vorgestellten Algorithmen _Augment-Merge_ (S. 46 - 47) und _Cluster_ (S. 47 - 51) übertroffen werden. Auch habe ich selbst eine Idee, um seine Laufzeit zu verbessern.
+
+### Der FHK-Algorithmus
+
+### Das Chinese Postman Problem / Briefträgerproblem
+
+### Minimale Perfekte Matchings
 
 ## Implementierung
 
