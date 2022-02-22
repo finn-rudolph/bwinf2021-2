@@ -76,33 +76,59 @@ pair<map_2d, int> create_multigraph(
     return { edge_copies, weight_sum };
 }
 
-vector<int> euler_tour(adj_map &graph, adj_map &edge_copies) {}
+vector<int> euler_tour(map_2d &graph) {
+    vector<int> tour(1, 0);
+    vector<int> subtour;
 
-vector<vector<int>> dijkstra(adj_map &graph, int start) {
-    vector<int> dis(graph.size(), INT_MAX), pre(graph.size(), -1);
-    vector<bool> visited(graph.size(), false);
+    int start = 0;
+    while (!graph.empty()) {
+        dfs_tour(start, graph, subtour);
 
-    auto is_closer = [&dis](int a, int b) -> bool {
-        return dis[a] < dis[b];
-    };
+        if (graph[start].empty()) {
+            graph.erase(start);
+        }
 
-    priority_queue<int, vector<int>, decltype(is_closer)> queue(is_closer);
-    queue.push(start);
-    dis[start] = 0;
-
-    while (queue.size() != 0) {
-        int curr = queue.top();
-        queue.pop();
-        visited[curr] = true;
-
-        for (auto it = graph[curr].begin(); it != graph[curr].end(); it++) {
-            if (!visited[it->first] && dis[it->first] > dis[curr] + it->second) {
-                dis[it->first] = dis[curr] + it->second;
-                pre[it->first] = curr;
-                queue.push(it->first);
+        for (int i = 0; i < tour.size(); i++) {
+            if (tour[i] == start) {
+                tour.insert(tour.begin() + i, subtour.begin(), subtour.end());
+                break;
             }
         }
+
+        for (auto it = graph.begin(); it != graph.end(); it++) {
+            if (!it->second.empty()) {
+                start = it->first; break;
+            }
+        }
+        subtour.clear();
+    }
+    return tour;
+}
+
+void remove_edge(map_2d &graph, int v1, int v2) {
+    graph.at(v1).at(v2) -= 1;
+    graph.at(v2).at(v1) -= 1;
+
+    if (graph.at(v1).at(v2) == 0) {
+        graph.at(v1).erase(v2);
+        graph.at(v2).erase(v1);
     }
 
-    return { dis, pre };
+    if (graph.at(v1).empty()) {
+        graph.erase(v1);
+    }
+
+    if (graph.at(v2).empty()) {
+        graph.erase(v2);
+    }
+}
+
+void dfs_tour(int start, map_2d& graph, vector<int>& subtour) {
+    if (!graph[start].empty()){
+        int next = graph[start].begin()->first;
+        cout << start << " to " << next << endl;
+        remove_edge(graph, start, next);
+        dfs_tour(next, graph, subtour);
+    }
+    subtour.push_back(start);
 }
