@@ -1,6 +1,7 @@
 #include "chinese_postman.hpp"
 #include "perfect_matching.hpp"
 #include "utility.hpp"
+using namespace std;
 
 pair<vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_2d &pre) {
     map_2d odds_graph;
@@ -77,7 +78,7 @@ pair<map_2d, int> create_multigraph(
 }
 
 vector<int> euler_tour(map_2d &graph) {
-    vector<int> tour(1, 0);
+    vector<int> tour{ 0 };
     vector<int> subtour;
 
     int start = 0;
@@ -123,7 +124,7 @@ void remove_edge(map_2d &graph, int v1, int v2) {
     }
 }
 
-void dfs_tour(int start, map_2d& graph, vector<int>& subtour) {
+void dfs_tour(int start, map_2d &graph, vector<int> &subtour) {
     if (!graph[start].empty()){
         int next = graph[start].begin()->first;
         cout << start << " to " << next << endl;

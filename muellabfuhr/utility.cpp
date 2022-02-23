@@ -1,4 +1,5 @@
 #include "utility.hpp"
+using namespace std;
 
 void print_graph(adj_map &graph) {
     for (int i = 0; i < graph.size(); i++) {
@@ -21,8 +22,9 @@ void print_map_2d(map_2d &map) {
 }
 
 void print_vector(vector<int> &vec) {
+    cout << "\n";
     for (int i = 0; i < vec.size(); i++) {
-        cout << vec.at(i) << " ";
+        cout << vec[i] << " ";
     }
     cout << "\n" << endl;
 }

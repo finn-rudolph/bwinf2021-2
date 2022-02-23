@@ -1,13 +1,14 @@
 #include "fhk_algorithm.hpp"
+using namespace std;
 
 const int num_tours = 5;
 
-set<vector<int>> fhk(adj_map &graph) {
+vector<vector<int>> fhk(adj_map &graph) {
     matrix_2d dis, pre;
     for (int i = 0; i < graph.size(); i++) {
-        vector<vector<int>> shortetst_paths = dijkstra(graph, i);
-        dis.push_back(shortetst_paths[0]);
-        pre.push_back(shortetst_paths[1]);
+        vector<vector<int>> shortest_paths = dijkstra(graph, i);
+        dis.push_back(shortest_paths[0]);
+        pre.push_back(shortest_paths[1]);
     }
 
     vector<int> cp_tour;
@@ -16,7 +17,7 @@ set<vector<int>> fhk(adj_map &graph) {
 
     int lower_bound = shortest_path_tour(graph, dis);
     int pre_split = 0;
-    set<vector<int>> tours;
+    vector<vector<int>> tours;
 
     for (int i = 1; i <= num_tours; i++) {
         int max_length = (i / num_tours) * (cp_cost - lower_bound) 
@@ -39,7 +40,7 @@ set<vector<int>> fhk(adj_map &graph) {
             split += 1;
         }
 
-        tours.insert(construct_tour(cp_tour, pre, pre_split, split));
+        tours.push_back(construct_tour(cp_tour, pre, pre_split, split));
         pre_split = split;
     }
 
