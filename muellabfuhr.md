@@ -27,7 +27,9 @@ $$
 
 $F_i(v_j)$ bezeichnet hier den $j$´ten Knoten von $F$. $s$ ist der Startknoten oder das Stadtzentrum, oft auch Depot genannt. Die erste Einschränkung stellt sicher, dass alle Kanten des Graphen besucht werden. Die zweite besagt, dass jede Tour am Stadtzentrum beginnt und endet; diese nennt man den _Subtour Elimination Constraint_.
 
-Es ist auch möglich, das Problem mit _Integer Linear Programming_ zu formulieren (Ahr, 2004, S. 125 - 134). Das heißt, man stellt eine lineare Kostenfunktion, Entscheidungsvariablen und meherere lineare Ungleichungen auf, die als Beschränkungen dienen. Hier wären das die Länge der längsten Tour, die Entscheidung, ob man eine Kante in einer bestimmten Tour durchläuft und wann, und Beschränkungen wie beispielsweise der Subtour Elimination Constraint. Diese Art der Problemstellung ist aber nur für exakte Methoden, vor allem _Branch and Cut_, relevant, daher werde ich sie nicht weiter ausführen.
+Es ist auch möglich, das Problem mit Integer Linear Programming zu formulieren (Ahr, 2004, S. 125 - 134). Das heißt, man stellt eine lineare Kostenfunktion, Entscheidungsvariablen und meherere lineare Ungleichungen auf, die Beschränkungen formulieren. Bei diesem Problem wäre die Kostenfunktion die Länge der längsten Tour und die Entscheidungsvaribalen, ob man eine Kante in einer bestimmten Tour durchläuft und an welcher Position. Ein Beschränkung wäre der Subtour Elimination Constraint. Diese Art der Problemstellung ist aber nur für exakte Methoden, vor allem Branch and Cut, relevant, daher werde ich sie nicht weiter ausführen.
+
+_Anmerkung:_ Der Weg, bis ich das Min-Max $k$-CPP gefunden hatte, war keineswegs linear. Angefangen bei Cluster Algorithmen und spektraler Graphentheorie, über das Traveling Salesman Problem und Vehicle Routing Problem, dann Google's PageRank Algorithmus bin ich erst nach vielen Wochen Recherche erstmals auf das Chinese Postman Problem gestoßen.
 
 ## Lösungsidee
 
@@ -37,7 +39,9 @@ Obwohl bessere Metaheuristiken existieren, z. B. der Tabu-Suche Algorithmus von 
 
 ### Der FHK-Algorithmus
 
-Das Prinzip des FHK-Algorithmus ist es, eine Rundtour über alle Kanten Graphen in $k$ Pfade zu teilen, und den Anfangs- und Endknoten jedes Pfads mit dem Startknoten zu verbinden (Ahr, 2004, S. 44 - 46). Ein Pfad ist hier eine abwechselnde Abfolge von Knoten und Kanten, die von beidem Dopplungen enthalten kann. Diese Rundtour ist eine Lösung des Briefträgerproblems, oder Chinese Postman Problems, auf dem Graphen. Der Pseudocode des Algorithmus sieht wie folgt aus:
+Das Prinzip des FHK-Algorithmus ist es, eine Rundtour über alle Kanten Graphen in $k$ Pfade zu teilen, und den Anfangs- und Endknoten jedes Pfads mit dem Startknoten zu verbinden (Ahr, 2004, S. 44 - 46). Ein Pfad ist hier eine abwechselnde Abfolge von Knoten und Kanten, die von beidem Dopplungen enthalten kann. Diese Rundtour ist eine Lösung $C$ des Briefträgerproblems, oder Chinese Postman Problems auf dem Graphen. Die Kantenzahl in jedem Pfad ist nicht zwingend gleich lang, sondern ist neben der Länge der Postman-Tour auch vom _Shortest Path Tour Lower Bound_ abhängig. Weil er die Kosten zum Besuchen der vom Startknoten am weitest entfernten Kante angibt, ist er eine untere Grenze für die optimale Lösung des Min-Max $k$-CPP. Die maximale Distanz des $h$´ten Teilungsknoten von $v_0$ über $C$ wird durch $l_h$ angegeben. Der Teilungsknoten ist der letzte Knoten, mit dem die tatsächliche Distanz $w(C(v_0, p_h))$ noch kleiner als $l_h$ ist. Dieser kann aber auch noch zum nächsten Knoten in $C$ nach $p_h$, bezeichnet als $C(p_h + 1)$ geändert werden. Informell formuliert: Das geschieht, wenn die Distanz von $p_h$ zu $C(p_h + 1)$ relativ klein ist und wenn dadurch die eigentlich vorgesehene Länge der Tour $l_h$ nicht stark überschritten wird. Exakt wird das in Z. 18 des Pseudocodes beschrieben. Die $h$´te Tour wird durch den kürzesten Pfad vom vorherigen Teilungsknoten $SP(p_{h-1}, v_0)$ und aktuellen Teilungsknoten $SP(p_h, v_0)$ zum Startknoten geschlossen.
+
+Der Pseudocode des Algorithmus sieht wie folgt aus:
 
 ```pseudocode
 procedure FHK(Graph G = (V, E, w))
@@ -48,7 +52,7 @@ procedure FHK(Graph G = (V, E, w))
 
     T = ∅;
 
-    for h ∊ [1, k] ∊ ℕ
+    for h ∊ [1, k]
 
         lₕ = (h / k) ⋅ (Lₘ - w(C)) + 0.5 ⋅ Lₘ;
 
@@ -57,7 +61,7 @@ procedure FHK(Graph G = (V, E, w))
             pₕ = C(pₕ + 1);
         end while
 
-        if w(SP(pₕ, v₀) ≤ w(pₕ, C(pₕ + 1)) + w(SP(C(pₕ + 1), v₀)) - 2(lₕ - w(C(v₀, pₕ)))
+        if w(SP(pₕ, v₀) > w(pₕ, C(pₕ + 1)) + w(SP(C(pₕ + 1), v₀)) - 2(lₕ - w(C(v₀, pₕ)))
             pₕ = C(pₕ + 1);
         end if
 
@@ -65,7 +69,9 @@ procedure FHK(Graph G = (V, E, w))
 
     end for
 
-return T;
+    return T;
+
+end proccedure
 ```
 
 ### Das Chinese Postman Problem / Briefträgerproblem
