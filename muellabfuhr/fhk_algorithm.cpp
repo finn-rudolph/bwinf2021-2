@@ -1,4 +1,5 @@
 #include "fhk_algorithm.hpp"
+#include "utility.hpp"
 using namespace std;
 
 const int num_tours = 5;
@@ -15,22 +16,26 @@ vector<vector<int>> fhk(adj_map &graph) {
     int cp_cost;
     tie(cp_tour, cp_cost) = postman(graph, dis, pre);
 
+    cout << "Computed Euler Circuit with cost " << cp_cost << ":\n";
+    print_vector(cp_tour);
+
     int lower_bound = shortest_path_tour(graph, dis);
     int pre_split = 0;
     vector<vector<int>> tours;
 
-    for (int i = 1; i <= num_tours; i++) {
-        int max_length = (i / num_tours) * (cp_cost - lower_bound) 
-            + 0.5 * lower_bound;
+    for (int i = 1; i <= num_tours - 1; i++) {
+        int max_cost = ((float) i / (float) num_tours) * (float) (cp_cost - lower_bound) 
+            + 0.5 * (float) lower_bound;
 
-        int length = 0;
-        int split = 0;
-        while (length < max_length) {
-            length += graph[cp_tour[split]][cp_tour[split + 1]];
+        int cost = 0;
+        int split = 0; // index in cp_tour, not actual vertex
+        while (cost <= max_cost) {
+            cost += graph[cp_tour[split]][cp_tour[split + 1]];
             split += 1;
         }
         split -= 1;
-        int residual = max_length - length;
+        cost -= 1;
+        int residual = max_cost - cost;
 
         if (
             dis[cp_tour[split]][0] > 
@@ -43,25 +48,24 @@ vector<vector<int>> fhk(adj_map &graph) {
         tours.push_back(construct_tour(cp_tour, pre, pre_split, split));
         pre_split = split;
     }
-
+    tours.push_back(construct_tour(cp_tour, pre, pre_split, cp_tour.size() - 1));
     return tours;
 }
 
 vector<int> construct_tour(vector<int> &cp_tour, matrix_2d &pre, int first, int last) {
-    vector<int> tour(cp_tour.begin() + first, cp_tour.begin() + last);
-
-    close_tour(tour, 0, pre, true);
-    close_tour(tour, 0, pre, false);
+    vector<int> tour(cp_tour.begin() + first, cp_tour.begin() + last + 1);
+    close_tour(tour, pre, true);
+    close_tour(tour, pre, false);
 
     return tour;
 }
 
-void close_tour(vector<int> &tour,int target,matrix_2d &pre, bool append_front) {
-    int curr = append_front ? tour[0] : tour[tour.size() - 1];
+void close_tour(vector<int> &tour, matrix_2d &pre, bool append_front) {
+    int curr = pre[0][append_front ? *tour.begin(): *(--tour.end())];
     while (curr != -1) {
-        curr = pre[target][curr];
         if (append_front) tour.insert(tour.begin(), curr);
         else tour.push_back(curr);
+        curr = pre[0][curr];
     }
 }
 

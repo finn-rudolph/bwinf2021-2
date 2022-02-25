@@ -60,6 +60,7 @@ pair<map_2d, int> create_multigraph(
             weight_sum += it->second;
         }
     }
+    weight_sum /= 2;
 
     for (auto it = matching.begin(); it != matching.end(); it++) {
         int v1 = it->first;
@@ -73,7 +74,6 @@ pair<map_2d, int> create_multigraph(
             v2 = pre[it->second][v2];
         }
     }
-
     return { edge_copies, weight_sum };
 }
 

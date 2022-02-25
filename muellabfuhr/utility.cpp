@@ -22,7 +22,6 @@ void print_map_2d(map_2d &map) {
 }
 
 void print_vector(vector<int> &vec) {
-    cout << "\n";
     for (int i = 0; i < vec.size(); i++) {
         cout << vec[i] << " ";
     }
