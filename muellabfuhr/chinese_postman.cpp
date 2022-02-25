@@ -78,30 +78,21 @@ pair<map_2d, int> create_multigraph(
 }
 
 vector<int> euler_tour(map_2d &graph) {
-    vector<int> tour{ 0 };
-    vector<int> subtour;
+    vector<int> tour;
+    stack<int> subtour;
+    subtour.push(0);
 
-    int start = 0;
-    while (!graph.empty()) {
-        dfs_tour(start, graph, subtour);
+    while (!subtour.empty()) {
+        int curr = subtour.top();
 
-        if (graph[start].empty()) {
-            graph.erase(start);
+        if (graph[curr].empty()) {
+            subtour.pop();
+            tour.push_back(curr);
+        } else {
+            int next = graph[curr].begin()->first;
+            remove_edge(graph, curr, next);
+            subtour.push(next);
         }
-
-        for (int i = 0; i < tour.size(); i++) {
-            if (tour[i] == start) {
-                tour.insert(tour.begin() + i, subtour.begin(), subtour.end());
-                break;
-            }
-        }
-
-        for (auto it = graph.begin(); it != graph.end(); it++) {
-            if (!it->second.empty()) {
-                start = it->first; break;
-            }
-        }
-        subtour.clear();
     }
     return tour;
 }
@@ -125,9 +116,8 @@ void remove_edge(map_2d &graph, int v1, int v2) {
 }
 
 void dfs_tour(int start, map_2d &graph, vector<int> &subtour) {
-    if (!graph[start].empty()){
+    if (!graph[start].empty()) {
         int next = graph[start].begin()->first;
-        cout << start << " to " << next << endl;
         remove_edge(graph, start, next);
         dfs_tour(next, graph, subtour);
     }
