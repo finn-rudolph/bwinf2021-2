@@ -39,87 +39,75 @@ Obwohl bessere Metaheuristiken existieren, z. B. der Tabu-Suche Algorithmus von 
 
 ### Der FHK-Algorithmus
 
-Das Prinzip des FHK-Algorithmus ist es, eine Rundtour über alle Kanten Graphen in $k$ Pfade zu teilen, und den Anfangs- und Endknoten jedes Pfads mit dem Startknoten zu verbinden (Ahr, 2004, S. 44 - 46). Ein Pfad ist hier eine abwechselnde Abfolge von Knoten und Kanten, die von beidem Dopplungen enthalten kann. Diese Rundtour ist eine Lösung $C$ des Briefträgerproblems, oder Chinese Postman Problems auf dem Graphen. Die Kantenzahl in jedem Pfad ist nicht zwingend gleich lang, sondern ist neben der Länge der Postman-Tour auch vom _Shortest Path Tour Lower Bound_ abhängig. Weil er die Kosten zum Besuchen der vom Startknoten am weitest entfernten Kante angibt, ist er eine untere Grenze für die optimale Lösung des Min-Max $k$-CPP. Die maximale Distanz des $h$´ten Teilungsknoten von $v_0$ über $C$ wird durch $l_h$ angegeben. Der Teilungsknoten ist der letzte Knoten, mit dem die tatsächliche
+Das Prinzip des FHK-Algorithmus ist es, eine Rundtour über alle Kanten Graphen in $k$ Pfade zu teilen, und den Anfangs- und Endknoten jedes Pfads mit dem Startknoten zu verbinden (Ahr, 2004, S. 44 - 46). Ein Pfad ist hier eine abwechselnde Abfolge von Knoten und Kanten, die von beidem Dopplungen enthalten kann. Diese Rundtour ist eine Lösung $C$ des Briefträgerproblems, oder Chinese Postman Problems auf dem Graphen. Die Kantenzahl in jedem Pfad ist nicht zwingend gleich lang, sondern ist neben der Länge der Postman-Tour auch vom _Shortest Path Tour Lower Bound_ $L$ abhängig. Weil er die Kosten zum Besuchen der vom Startknoten am weitest entfernten Kante angibt, ist er eine untere Grenze für die optimale Lösung des Min-Max $k$-CPP. Die maximale Distanz des $h$´ten Teilungsknoten von $v_0$ über $C$ wird durch $l_h$ angegeben. Der Teilungsknoten ist der letzte Knoten, mit dem die tatsächliche
 
-Distanz $w(C(v_0, p_h))$ noch kleiner als $l_h$ ist. Dieser kann aber auch noch zum nächsten Knoten in $C$ nach $p_h$, bezeichnet als $C(p_h + 1)$ geändert werden. Informell formuliert: Das geschieht, wenn die Distanz von $p_h$ zu $C(p_h + 1)$ relativ klein ist und wenn dadurch die eigentlich vorgesehene Länge der Tour $l_h$ nicht stark überschritten wird. Exakt wird das in Z. 18 des Pseudocodes beschrieben. Die $h$´te Tour wird durch den kürzesten Pfad vom vorherigen Teilungsknoten $SP(p_{h-1}, v_0)$ und aktuellen Teilungsknoten $SP(p_h, v_0)$ zum Startknoten geschlossen.
+Distanz $w(C(v_0, p_h))$ noch kleiner als $l_h$ ist. Dieser kann aber auch noch zum nächsten Knoten in $C$ nach $p_h$, bezeichnet als $C(p_h + 1)$ geändert werden. Informell formuliert: Das geschieht, wenn die Distanz von $p_h$ zu $C(p_h + 1)$ relativ klein ist und wenn dadurch die eigentlich vorgesehene Länge der Tour $l_h$ nicht stark überschritten wird. Exakt wird das in Z. 13 - 14 des Pseudocodes beschrieben. Die $h$´te Tour wird durch den kürzesten Pfad vom vorherigen Teilungsknoten $SP(p_{h-1}, v_0)$ und aktuellen Teilungsknoten $SP(p_h, v_0)$ zum Startknoten geschlossen.
 
-Der Pseudocode des Algorithmus sieht wie folgt aus:
+Der Pseudocode des Algorithmus sieht folgendermaßen aus. `←` beduetet eine Zuweisung, `=` die Gleichheit zweier Variablen.
 
 ```pseudocode
 procedure FHK(Graph G)
-    C = ChinesePostman(G);
-    Lₘ = max { w(SP(v₀, a,)) + w(e) + w(SP(a, v₀)) }, e = (a, b) ∊ E;
-    T = ∅;
+    C ← ChinesePostman(G);
+    L ← max { w(SP(v₀, a)) + w(e) + w(SP(b, v₀)) }, e = (a, b) ∊ E;
+    T ← ∅;
 
     for h ∊ [1, k]
-        lₕ = (h / k) ⋅ (Lₘ - w(C)) + 0.5 ⋅ Lₘ;
+        lₕ ← (h / k) ⋅ (L - w(C)) + 0.5 ⋅ L;
 
-        pₕ = C(v₀);
-        while w(C(v₀, pₕ)) < lₕ
-            pₕ = C(pₕ + 1);
-        end while
+        pₕ ← C(v₀);
+        while w(C(v₀, pₕ)) ≤ lₕ
+            pₕ ← C(pₕ + 1);
 
-        rₕ = lₕ - w(C(v₀, pₕ));
+        rₕ ← lₕ - w(C(v₀, pₕ));
         if w(SP(pₕ, v₀) > w(pₕ, C(pₕ + 1)) + w(SP(C(pₕ + 1), v₀)) - 2rₕ
-            pₕ = C(pₕ + 1);
-        end if
+            pₕ ← C(pₕ + 1);
 
-        T = T ∪ (SP(v₀, pₕ₋₁) + C(pₕ₋₁, pₕ) + SP(v₀, pₕ));
-    end for
+        T ← T ∪ (SP(v₀, pₕ₋₁) + C(pₕ₋₁, pₕ) + SP(v₀, pₕ));
 
     return T;
-end proccedure
 ```
 
 ### Das Chinese Postman Problem / Briefträgerproblem
 
-Eine optimale Lösung des Briefträgerproblems kann in polynomialer Zeit gefunden werden, es gehört also der Komplexitätsklasse P an (Edmonds & Johnson, 1973). Zuerst werden alle Knoten von ungeradem Grad identifiziert, aus denen ein vollständiger Graph $G'$ erstellt wird, der mit mit den kürzesten Pfaden im Originalgraphen gewichtet ist. Nachdem ein [Minimales Perfektes Matching](#minimale-perfekte-matchings) $M$ für diesen gefunden wurde, wird der Originalgraph mit den Kanten des perfekten Matchings zu einem Multigraphen augmentiert. In dem existiert nun ein Eulerkreis, weil jeder ungerade Knoten durch seinen Matching-Partner zu einem geraden Knoten gemacht wurde. $d(v)$ bezeichnet den Grad eines Knoten.
+Eine optimale Lösung des Briefträgerproblems kann in polynomialer Zeit gefunden werden, es gehört also der Komplexitätsklasse P an (Edmonds & Johnson, 1973). Zuerst werden alle Knoten von ungeradem Grad identifiziert, aus denen ein vollständiger Graph $G_o$ ($o$ für _odd_) erstellt wird, der mit mit den kürzesten Pfaden zwischen den Knoten im Originalgraphen gewichtet ist. Nachdem ein [Minimales Perfektes Matching](#minimale-perfekte-matchings) $M$ für diesen gefunden wurde, wird der Originalgraph mit den Kanten des perfekten Matchings zu einem Multigraphen augmentiert. Darin existiert nun ein Eulerkreis, weil jeder ungerade Knoten durch seinen Matching-Partner zu einem geraden Knoten gemacht wurde. $d(v)$ bezeichnet den Grad eines Knoten.
 
-Das geht immer genau auf, weil ein Graph immer eine gerade Anzahl an Knoten mit ungeradem Grad hat, was einfach zu sehen ist: Angenommen, ein Graph hat nur einen Knoten, d. h. $0$ ungerade Knoten, also eine gerade Anzahl. Das Hinzufügen eines neuen Knoten verändert diese Zahl nicht, weil der neue isolierte Knoten Grad $0$ hat. Das Hinzufügen einer Kante erhöht den Grad von zwei Knoten um eins, verändert also nichts an der Parität der Zahl ungerader Knoten. Das kann man beliebig fortführen, um jeden Graphen zu konstruieren.
+Das Matching geht immer genau auf, weil ein Graph immer eine gerade Anzahl an Knoten mit ungeradem Grad hat, was einfach zu sehen ist: Angenommen, ein Graph hat nur einen Knoten, d. h. $0$ ungerade Knoten, also eine gerade Anzahl. Das Hinzufügen eines neuen Knoten verändert diese Zahl nicht, weil der neue isolierte Knoten Grad $0$ hat. Das Hinzufügen einer Kante erhöht den Grad von zwei Knoten um eins, verändert also nichts an der Parität der Zahl ungerader Knoten. Das kann man beliebig fortführen, um jeden Graphen zu konstruieren.
 
-Um einen Eulerkreis zu finden, wird der Algorithmus von Hierholzer verwendet. Edmonds und Johnson (1973) verwenden diesen in zwei Der Eulerkreis ist die optimale Lösung des CPPs, wobei parallele Kanten als eine Kante im ursprünglichen Graphen behandelt werden müssen.
+Um einen Eulerkreis zu finden, wird der Algorithmus von Hierholzer verwendet. Edmonds und Johnson (1973) verwenden diesen in zwei abgewandelten Formen. Der Eulerkreis ist die optimale Lösung des CPPs, wobei parallele Kanten als eine Kante im ursprünglichen Graphen behandelt werden müssen.
 
 ```pseudocode
 procedure ChinesePostman(Graph G)
-    G' = (V' = ∅, E' = ∅, w' = ∅);
+    Gₒ = (Vₒ ← ∅, Eₒ ← ∅, wₒ ← ∅);
 
     for v ∊ V
         if d(v) ≡ 1 (mod 2)
-            V' = V' ∪ v;
-        end if
-    end for
+            Vₒ ← Vₒ ∪ v;
 
-    for a ∊ V'
-        for b ∊ V'
-            E' = E' ∪ (a, b);
-            w'(a, b) = w(SP(a, b));
-        end for
-    end for
+    for a ∊ Vₒ
+        for b ∊ Vₒ
+            Eₒ ← Eₒ ∪ (a, b);
+            wₒ(a, b) ← w(SP(a, b));
 
-    M = PerfectMatching(G');
+    M ← PerfectMatching(Gₒ);
 
     for (a, b) ∊ M
-        E = E ∪ { e | e ∊ SP(a, b) };
-    end for
+        E ← E ∪ { e | e ∊ SP(a, b) };
 
     return EulerTour(G);
-end procedure
 ```
 
 Der Algorithmus von Hierholzer konstruiert einen Eulerkreis, indem zunächst zufällig ein Kreis $K$ durch den Graphen ausgewählt wird. Das geschieht durch Depth-First-Search, der stoppt, sobald er auf einen Knoten mit Grad $0$ trifft. Direkt nach dem Benutzen einer Kante wird diese aus dem Graphen entfernt. Daher muss ein Knoten $v \space | \space d(v) = 0$ notwendigerweise der Anfangsknoten der Suche sein. Danach wird die Suche von einem Knoten $v \in K$ ausgeführt, der noch anliegende Kanten besitzt. Der resultierende Kreis wird in $K$ an der Position von $v$ eingefügt. Dieser Prozess wird solange wiederholt, bis alle Kanten in $K$ enthalten sind.
 
 ```pseudocode
 procedure EulerTour(Graph G)
-    K = DFS(G, v₀);
+    K ← DFS(G, v₀);
 
     while E ≠ ∅
-        s = v | v ∊ K ∧ d(v) ≠ 0;
-        L = DFS(G, s);
-        K = K(v₀, s) + L + K(s, v₀);
-    end while
+        s | s ∊ K ∧ d(w) ≠ 0;
+        T ← DFS(G, s);
+        K ← K(v₀, s) + T + K(s, v₀);
 
     return K;
-end procedure
 ```
 
 Depth-First-Search oder Tiefensuche erkundet einen Graphen, indem rekursiv ein benachbarter Knoten des aktuellen Knoten vor den anderen benachbarten Knoten _vollständig_ erkundet wird. In diesem Fall wird eine Liste benutzter Kanten zurückgegeben.
@@ -127,12 +115,10 @@ Depth-First-Search oder Tiefensuche erkundet einen Graphen, indem rekursiv ein b
 ```pseudocode
 procedure DepthFirstSearch(Graph G, Node s, Tour T)
     if d(s ≠ 0)
-        E = E \ (s, v | (s, v) ∊ E);
-        T = DepthFirstSearch(G, v, T);
-    end if
+        E ← E \ (s, v | (s, v) ∊ E);
+        T ← DepthFirstSearch(G, v, T);
 
     return T ∪ s;
-end procedure
 ```
 
 ### Minimale Perfekte Matchings
