@@ -11,9 +11,9 @@ std::pair<map_2d, int> create_multigraph(
     matrix_2d &pre
 );
 
-std::vector<int> euler_tour(map_2d &graph);
+std::vector<int> eulerian_circuit(map_2d &graph);
 
 void remove_edge(map_2d &graph, int v1, int v2);
 
-void dfs_tour(int start, map_2d& graph, std::vector<int>& subtour);
+void dfs(int start, map_2d& graph, std::vector<int>& subtour);
 

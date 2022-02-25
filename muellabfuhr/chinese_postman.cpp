@@ -4,25 +4,21 @@
 using namespace std;
 
 pair<vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_2d &pre) {
-    map_2d odds_graph;
-    pair<int, int> largest_edge;
-    tie(odds_graph, largest_edge) = create_odds_graph(graph, dis);
+    auto [odds_graph, largest_edge] = create_odds_graph(graph, dis);
 
     set<pair<int, int>> matching = perfect_matching(odds_graph, largest_edge);
 
-    map_2d edge_copies;
-    int weight_sum;
-    tie(edge_copies, weight_sum) = create_multigraph(graph, matching, pre);
+    auto [augmented, weight_sum] = create_multigraph(graph, matching, pre);
 
-    vector<int> cp_tour = euler_tour(edge_copies);
-    return { cp_tour, weight_sum };
+    vector<int> postman_tour = eulerian_circuit(augmented);
+    return { postman_tour, weight_sum };
 }
 
 pair<map_2d, pair<int, int>> create_odds_graph(adj_map &graph, matrix_2d &dis) {
     set<int> odds;
-    for (int i = 0; i < graph.size(); i++) {
-        if (graph[i].size() % 2 == 1) {
-            odds.insert(i);
+    for (int v = 0; v < graph.size(); v++) {
+        if (graph[v].size() % 2 == 1) {
+            odds.insert(v);
         }
     }
 
@@ -30,14 +26,14 @@ pair<map_2d, pair<int, int>> create_odds_graph(adj_map &graph, matrix_2d &dis) {
     int max_cost = 0;
     pair<int, int> largest_edge;
 
-    for (auto it = odds.begin(); it != odds.end(); it++) {
-        for (auto jt = it; jt != odds.end(); jt++) {
-            if (*it != *jt) {
-                odds_graph[*it][*jt] = odds_graph[*jt][*it] = dis[*it][*jt];
+    for (const auto &a: odds) {
+        for (const auto &b: odds) {
+            if (a != b) {
+                odds_graph[a][b] = odds_graph[b][a] = dis[a][b];
 
-                if (dis[*it][*jt] > max_cost) {
-                    largest_edge = { *it, *jt };
-                    max_cost = dis[*it][*jt];
+                if (dis[a][b] > max_cost) {
+                    largest_edge = { a, b };
+                    max_cost = dis[a][b];
                 }
             }
         }
@@ -51,34 +47,34 @@ pair<map_2d, int> create_multigraph(
     set<pair<int, int>> &matching, 
     matrix_2d &pre
 ) {
-    map_2d edge_copies;
+    map_2d augmented;
     int weight_sum = 0;
 
-    for (int i = 0; i < graph.size(); i++) {
-        for (auto it = graph[i].begin(); it != graph[i].end(); it++) {
-            edge_copies[i][it->first] = 1;
-            weight_sum += it->second;
+    for (int a = 0; a < graph.size(); a++) {
+        for (const auto &[b, w]: graph[a]) {
+            augmented[a][b] = 1;
+            weight_sum += w;
         }
     }
     weight_sum /= 2;
 
-    for (auto it = matching.begin(); it != matching.end(); it++) {
-        int v1 = it->first;
-        int v2 = pre[it->second][it->first];
+    for (auto [start, target]: matching) {
+        int b = pre[target][start];
+        int a = start;
 
-        while (v2 != -1) {
-            edge_copies[v1][v2] += 1;
-            edge_copies[v2][v1] += 1;
-            weight_sum += graph[v1][v2];
-            v1 = v2;
-            v2 = pre[it->second][v2];
+        while (b != -1) {
+            augmented[a][b] += 1;
+            augmented[b][a] += 1;
+            weight_sum += graph[a][b];
+            a = b;
+            b = pre[target][b];
         }
     }
-    return { edge_copies, weight_sum };
+    return { augmented, weight_sum };
 }
 
-vector<int> euler_tour(map_2d &graph) {
-    vector<int> tour;
+vector<int> eulerian_circuit(map_2d &graph) {
+    vector<int> circuit;
     stack<int> subtour;
     subtour.push(0);
 
@@ -87,14 +83,14 @@ vector<int> euler_tour(map_2d &graph) {
 
         if (graph[curr].empty()) {
             subtour.pop();
-            tour.push_back(curr);
+            circuit.push_back(curr);
         } else {
             int next = graph[curr].begin()->first;
             remove_edge(graph, curr, next);
             subtour.push(next);
         }
     }
-    return tour;
+    return circuit;
 }
 
 void remove_edge(map_2d &graph, int v1, int v2) {
@@ -115,11 +111,11 @@ void remove_edge(map_2d &graph, int v1, int v2) {
     }
 }
 
-void dfs_tour(int start, map_2d &graph, vector<int> &subtour) {
+void dfs(int start, map_2d &graph, vector<int> &subtour) {
     if (!graph[start].empty()) {
         int next = graph[start].begin()->first;
         remove_edge(graph, start, next);
-        dfs_tour(next, graph, subtour);
+        dfs(next, graph, subtour);
     }
     subtour.push_back(start);
 }

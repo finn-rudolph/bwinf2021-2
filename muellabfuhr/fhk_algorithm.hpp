@@ -8,6 +8,6 @@ std::vector<int> construct_tour(std::vector<int> &cp_tour, matrix_2d &pre, int f
 
 void close_tour(std::vector<int> &tour, matrix_2d &pre, bool append_front);
 
-int shortest_path_tour(adj_map &graph, matrix_2d &dis);
+int farthest_edge_cost(adj_map &graph, matrix_2d &dis);
 
-std::vector<std::vector<int>> dijkstra(adj_map &graph, int start);
+std::pair<std::vector<int>, std::vector<int>> dijkstra(adj_map &graph, int start);

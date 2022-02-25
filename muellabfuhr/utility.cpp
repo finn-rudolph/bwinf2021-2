@@ -2,28 +2,29 @@
 using namespace std;
 
 void print_graph(adj_map &graph) {
-    for (int i = 0; i < graph.size(); i++) {
-        cout << i << ": \n";
-        for (auto it = graph[i].begin(); it != graph[i].end(); it++) {
-            cout << it->first<< " " << it->second << endl;
+    for (int a = 0; a < graph.size(); a++) {
+        cout << a << ": ";
+        for (const auto &[b, w]: graph[a]) {
+            cout << b << " -> " << w<< ";   ";
         }
-        cout << "\n" << endl;
     }
+    cout << "\n" << endl;
 }
 
 void print_map_2d(map_2d &map) {
-    for (auto it = map.begin(); it != map.end(); it++) {
-        cout << it->first << ": \n";
-        for (auto jt = it->second.begin(); jt != it->second.end(); jt++) {
-            cout << jt->first<< " " << jt->second << endl;
+    for (const auto &[a, m]: map) {
+        cout << a << ": ";
+        for (const auto &[b, w]: m) {
+            cout << b << " -> " << w << ";   ";
         }
-        cout << "\n" << endl;
+        cout << "\n";
     }
+    cout << "\n" << endl;
 }
 
-void print_vector(vector<int> &vec) {
-    for (int i = 0; i < vec.size(); i++) {
-        cout << vec[i] << " ";
+void print_vector(vector<int> &vector) {
+    for (const auto &e: vector) {
+        cout << e << " ";
     }
     cout << "\n" << endl;
 }
