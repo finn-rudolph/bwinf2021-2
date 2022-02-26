@@ -4,7 +4,7 @@ using namespace std;
 
 adj_map to_adjacency_map(int n, int m);
 
-void print_tours(vector<vector<int>> tours);
+void print_tours(vector<vector<int>> &tours, adj_map &graph);
 
 int main() {
     int n, m; 
@@ -12,7 +12,7 @@ int main() {
 
     adj_map graph = to_adjacency_map(n, m);
     vector<vector<int>> tours = fhk(graph);
-    print_tours(tours);
+    print_tours(tours, graph);
 }
 
 adj_map to_adjacency_map(int n, int m) {
@@ -27,12 +27,19 @@ adj_map to_adjacency_map(int n, int m) {
     return adjMap;
 }
 
-void print_tours(vector<vector<int>> tours) {
-    for (int i = 1; i <= tours.size(); i++) {
-        cout << "Tag " << i << ": ";
-        for (const auto v: tours[i - 1]) {
-            cout << v << " ";
+void print_tours(vector<vector<int>> &tours, adj_map &graph) {
+    int largest = 0;
+    for (int i = 0; i < tours.size(); i++) {
+        cout << "Tag " << (i + 1) << ": ";
+        int cost = 0;
+
+        for (int j = 0; j < tours[i].size(); j++) {
+            cout << tours[i][j] << " ";
+            if (j != 0) cost += graph[tours[i][j]][tours[i][j - 1]];
         }
-        cout << "\n";
+
+        cout << "| Gesamtlänge: " << cost << "\n";
+        if (cost > largest) largest = cost;
     }
+    cout << "\nLänge der längsten Tagestour: " << largest << endl;
 }

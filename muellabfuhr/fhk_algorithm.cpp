@@ -14,7 +14,7 @@ vector<vector<int>> fhk(adj_map &graph) {
 
     auto [cpp_tour, cpp_cost] = postman(graph, dis, pre);
 
-    cout << "Lösung des Chinese Postman Problems erstellt, Gesamtkosten " << cpp_cost << "\n";
+    cout << "Lösung des Chinese Postman Problems erstellt, Kosten: " << cpp_cost << "\n";
     print_vector(cpp_tour);
 
     int lower_bound = farthest_edge_cost(graph, dis);
