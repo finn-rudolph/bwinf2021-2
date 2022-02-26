@@ -14,7 +14,7 @@ vector<vector<int>> fhk(adj_map &graph) {
 
     auto [cpp_tour, cpp_cost] = postman(graph, dis, pre);
 
-    cout << "Computed Euler Circuit with cost " << cpp_cost << ":\n";
+    cout << "Lösung des Chinese Postman Problems erstellt, Gesamtkosten " << cpp_cost << "\n";
     print_vector(cpp_tour);
 
     int lower_bound = farthest_edge_cost(graph, dis);
@@ -84,7 +84,7 @@ pair<vector<int>, vector<int>> dijkstra(adj_map &graph, int start) {
     vector<bool> visited(graph.size(), false);
 
     auto is_closer = [&dis](int a, int b) -> bool {
-        return dis[a] < dis[b];
+        return dis[a] > dis[b];
     };
 
     priority_queue<int, vector<int>, decltype(is_closer)> queue(is_closer);

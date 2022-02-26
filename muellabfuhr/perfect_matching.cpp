@@ -5,29 +5,30 @@ using namespace std;
 // This algorithm only works for complete and metric graphs.
 
 set<pair<int, int>> perfect_matching(map_2d &graph, pair<int, int> &largest_edge) {
-    auto [a, b] = largest_edge;
-    int max_cost = graph[a][b];
+    if (graph.empty()) return { };
+    auto [max1, max2] = largest_edge;
+    int max_cost = graph.at(max1).at(max2);
 
-    vector<float> dis_a(graph.size());
-    dis_a[a] = 0;
-    dis_a[b] = max_cost;
+    map<int, float> dis_max1;
+    dis_max1[max1] = 0.0;
+    dis_max1[max2] = (float) max_cost;
 
-    auto smaller_dis = [&dis_a](int a, int b) -> bool {
-        return dis_a[a] < dis_a[b];
+    auto smaller_dis = [&dis_max1](int a, int b) -> bool {
+        return dis_max1[a] > dis_max1[b];
     };
 
     priority_queue<int, vector<int>, decltype(smaller_dis)> order(smaller_dis);
-    order.push(a);
-    order.push(b);
+    order.push(max1);
+    order.push(max2);
 
     for (const auto &[v, ignore]: graph) {
-        if (v!= a && v != b) {
+        if (v != max1 && v != max2) {
             float dis = circle_intersection(
-                (float) graph[v][a],
-                (float) graph[v][b], 
+                (float) graph[v][max1],
+                (float) graph[v][max2], 
                 (float) max_cost
             );
-            dis_a[v] = dis;
+            dis_max1[v] = dis;
             order.push(v);
         }
     }
@@ -35,12 +36,12 @@ set<pair<int, int>> perfect_matching(map_2d &graph, pair<int, int> &largest_edge
     set<pair<int, int>> matching;
 
     while (!order.empty()) {
-        int u = order.top();
+        int a = order.top();
         order.pop();
-        int v = order.top();
+        int b = order.top();
         order.pop();
 
-        matching.insert(make_pair(u, v));
+        matching.insert(make_pair(a, b));
     }
 
     return matching;
