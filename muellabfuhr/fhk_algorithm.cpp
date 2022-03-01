@@ -14,35 +14,36 @@ vector<vector<int>> fhk(adj_map &graph) {
 
     auto [cpp_tour, cpp_cost] = postman(graph, dis, pre);
 
-    cout << "Lösung des Chinese Postman Problems erstellt, Kosten: " << cpp_cost << "\n";
+    cout << "Chinese Postman Tour mit Kosten: " << cpp_cost << "\n";
     print_vector(cpp_tour);
 
     int lower_bound = farthest_edge_cost(graph, dis);
     int pre_split = 0;
+    int cost = 0;
     vector<vector<int>> tours;
 
     for (int i = 1; i <= num_tours - 1; i++) {
-        int max_cost = ((float) i / (float) num_tours) * (float) (cpp_cost - lower_bound) 
-            + 0.5 * (float) lower_bound;
+        int max_cost = ((float) i / (float) num_tours) * 
+            (float) (cpp_cost - lower_bound) + 0.5 * (float) lower_bound;
 
-        int cost = 0;
-        int split = 0; // index in cp_tour, not actual vertex
+        int split = pre_split; // index in cpp_tour, not actual vertex
         while (cost <= max_cost) {
             cost += graph[cpp_tour[split]][cpp_tour[split + 1]];
             split += 1;
         }
-        split -= 1;
-        cost -= 1;
-        int residual = max_cost - cost;
+
+        int residual = max_cost - cost - graph[cpp_tour[split]][cpp_tour[split + 1]];
 
         if (
-            dis[cpp_tour[split]][0] > 
-                graph[cpp_tour[split]][cpp_tour[split + 1]] + dis[cpp_tour[split + 1]][0]
+            dis[cpp_tour[split]][0] <= 
+                graph[cpp_tour[split]][cpp_tour[split + 1]] 
+                + dis[cpp_tour[split + 1]][0]
                 - 2 * residual
         ) {
-            split += 1;
+            split -= 1;
+            cost -= graph[cpp_tour[split]][cpp_tour[split + 1]];
         }
-
+        
         tours.push_back(construct_tour(cpp_tour, pre, pre_split, split));
         pre_split = split;
     }
@@ -50,8 +51,8 @@ vector<vector<int>> fhk(adj_map &graph) {
     return tours;
 }
 
-vector<int> construct_tour(vector<int> &cpp_tour, matrix_2d &pre, int first, int last) {
-    vector<int> tour(cpp_tour.begin() + first, cpp_tour.begin() + last + 1);
+vector<int> construct_tour(vector<int> &cpp_tour, matrix_2d &pre, int start, int end) {
+    vector<int> tour(cpp_tour.begin() + start, cpp_tour.begin() + end + 1);
     close_tour(tour, pre, true);
     close_tour(tour, pre, false);
 
@@ -59,7 +60,7 @@ vector<int> construct_tour(vector<int> &cpp_tour, matrix_2d &pre, int first, int
 }
 
 void close_tour(vector<int> &tour, matrix_2d &pre, bool append_front) {
-    int curr = pre[0][append_front ? *tour.begin(): *(--tour.end())];
+    int curr = pre[0][append_front ? *tour.begin() : *(--tour.end())];
 
     while (curr != -1) {
         if (append_front) tour.insert(tour.begin(), curr);
