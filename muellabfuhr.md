@@ -80,7 +80,7 @@ $$
 
 Da man beliebig Knoten und Kanten hinzufügen kann, um jeden Graphen zu konstruieren, gilt es für jeden Graphen.
 
-Um einen Eulerkreis zu finden, wird der Algorithmus von Hierholzer verwendet. Edmonds und Johnson (1973) verwenden diesen in zwei abgewandelten Formen, ich werde ihn in seiner ursprünglichen Form verwenden. Der Eulerkreis in dem Multigraphen ist die optimale Lösung des CPPs, wobei parallele Kanten als eine Kante im ursprünglichen Graphen behandelt werden müssen.
+Um einen Eulerkreis zu finden, wird der Algorithmus von Hierholzer verwendet. Edmonds und Johnson (1973) verwenden diesen in zwei abgewandelten Formen, ich werde ihn in seiner ursprünglichen Form mit einer veränderten Implementierung verwenden. Der Eulerkreis in dem Multigraphen ist die optimale Lösung des CPPs, wobei parallele Kanten als eine Kante im ursprünglichen Graphen behandelt werden müssen.
 
 ```pseudocode
 procedure ChinesePostman(Graph G)
@@ -102,39 +102,40 @@ procedure ChinesePostman(Graph G)
     for (a, b) ∊ M
         Eₐ ← Eₐ ∪ { e | e ∊ SP(a, b) };
 
-    return EulerCircuit(Gₐ);
+    return EulerianCircuit(Gₐ);
 ```
 
-Der Algorithmus von Hierholzer konstruiert einen Eulerkreis, indem zunächst ein zufälliger Kreis $K$ in $G_a$ durchlaufen wird. Das geschieht durch Depth-First-Search (DFS), der stoppt, sobald er auf einen Knoten mit Grad $0$ trifft. Weil direkt nach dem Benutzen einer Kante diese aus dem Graphen entfernt wird, muss ein Knoten $v \space | \space d(v) = 0$ notwendigerweise der Anfangsknoten $s$ der Suche sein. Denn nach dem ersten Suchschritt hat in $G_a$ hat jeder Knoten einen geraden Grad, weil beim Durchlaufen eines Knotens immer genau zwei Kanten entfernt werden. Der Knoten, bei dem DFS aktuell steht, hat einen ungeraden Grad, weil die Kante zum Verlassen noch nicht entfernt wurde. Nur bei $s$ sind diese Regeln der Parität umgekehrt, weil dort im ersten Schritt nur eine Kante entfernt wurde. Daher kann nur sein Grad $0$ sein, während DFS bei ihm steht. Danach wird die Suche von einem Knoten $v \in K$ ausgeführt, der noch anliegende Kanten besitzt. Der resultierende Kreis wird in $K$ an der Position von $v$ eingefügt. Dieser Prozess wird solange wiederholt, bis alle Kanten in $K$ enthalten sind.
+Grundsätzlich gibt der Algorithmus von Hierholzer einen Kreis $T$ zurück, dessen Reihenfolge umgekehrt dazu ist, wie er vom Algorithmus besucht wurde. Er konstruiert einen Eulerkreis, indem zunächst ein zufälliger Kreis $S$ in $G_a$ durchlaufen wird. Alle dabei verwendeten Kanten werden aus dem Graphen entfernt. Wieder am Startknoten angelangt, wird der Kreis solange rückwärts durchlaufen, bis ein Knoten mit noch freien Kanten auftritt. Alle Knoten und Kanten entlang dieses Wegs werden dem Eulerkreis $T$ hinzugefügt und aus $S$ entfernt. Von diesem Knoten wird der selbe Prozess erneut ausgeführt, bis $S$ leer ist. Dass Knoten und Kanten erst beim "Rückwärtsgehen" hinzugefügt werden ist sehr nützlich, weil so die nötigen Knoten zum Erreichen des Startknotens eines anderen Teilkreises erst hinzugefügt werden, nachdem der Teilkreis selbst hinzugefügt wurde. Würde man nach Durchlaufen eines Kreises ihn sofort vollständig einfügen, müsste man spätere Teilkreise innerhalb einfügen, was sehr aufwändig ist. 
+
+Der Startknoten wird durch die Bedinung $d(v_s) = 0$ erfasst, weil er der einzige Knoten ist, der während des Durchlaufens, nicht Rückverfolgens, Grad $0$ haben kann, wenn der Algorithmus gerade bei ihm steht. $v_s$ ist der aktuelle Knoten. Das liegt daran, dass sein Grad durch das anfängliche Verlassen ständig ungerade ist und gerade wird, wenn der Algorithmus bei ihm steht. Bei allen anderen Knoten sind diese Paritätsregeln umgekehrt, daher können sie als aktueller Knoten nie Grad $0$ haben.
+
+$s$ ist ständig die aktuelle Anzahl an Kanten in $S$. $S(v_s)$ ist also der letzte $S(v_{s-1})$ der vorletzte Knoten in $S$. $\sim$ bedeutet, dass zwei Knoten durch eine Kante verbunden sind.  
 
 ```pseudocode
-procedure EulerCircuit(Graph G)
-    K ← DFS(G, v₀);
+procedure EulerianCircuit(Graph G)
+	T ← ∅;
+    S ← { v₀ };
 
-    while E ≠ ∅
-        s ← v | v ∊ K ∧ d(v) ≠ 0;
-        T ← DFS(G, s);
-        K ← K(v₀, s) + T + K(s, v₀);
-
-    return K;
+    while S ≠ ∅
+    	if d(S(vₛ)) = 0
+    		Append eₛ, vₛ to T;
+    		Remove eₛ, vₛ from S;
+    	else
+    		Append (v | v ~ vₛ), (v, vₛ) to S;
+    		Remove eₛ from G;
+    
+    return T;
 ```
 
-Depth-First-Search, oder Tiefensuche, erkundet einen Graphen, indem rekursiv ein benachbarter Knoten des aktuellen Knoten vor den anderen benachbarten Knoten _vollständig_ erkundet wird. Die Abbruchbedingung ist hier, wenn der aktuelle Knoten Grad $0$ hat, wie oben beschrieben. In diesem Fall wird die Liste aller benutzter Kanten zurückgegeben.
+###  Minimale Perfekte Matchings
 
-```pseudocode
-procedure DepthFirstSearch(Graph G, Node s, Tour T)
-    if d(s ≠ 0)
-        E ← E \ (s, v | (s, v) ∊ E);
-        T ← DepthFirstSearch(G, v, T);
-
-    return T ∪ s;
-```
-
-### Minimale Perfekte Matchings
+## Zeitkomplexität
 
 ## Implementierung
 
 Ich schreibe das Programm in C++ für den Compiler g++ aus der GNU Compiler Collection. Es kann auf einem x86-64 Linux PC ausgeführt werden. Der Code ist grundsätzlich in Funktionen gegliedert, die aus `main.cpp`, oder untereinander aufgerufen werden. In `main.cpp` geschieht Ein- und Ausgabe, die übrigen Funktionen sind nach Unterprobleme in Module zusammengefasst. Ich schreibe den Code auf Englisch, weil die Schlüsselwörter von C++ ebenfalls englisch sind, damit er einfacher lesbar ist.
+
+Der Graph des Straßennetzwerks wird als Adjazenzmap repräsentiert. D. h. ein Vektor mit Länge $|V|$ ordnet jedem Knoten eine Hashmap (C++ `map`) zu, die als Schlüssel alle verbunden Knoten und als Wert die jeweilige Distanz bzw. Kosten zu dem Knoten. Das ermöglicht das Überprüfen der Existenz einer Kante in $O(1)$ bei gleichzeitigem Speicherverbrauch von nur $O(|V| + |E|)$. Die Umwandlung der Textdatei in diese Datenstruktur übernimmt eine Funktion in `main.cpp`.
 
 ### Der FHK-Algorithmus
 
@@ -163,6 +164,20 @@ Diese Funktion dient dazu, die eigentliche Logik zum Verbinden einer Tour zum St
 Der Parameter `append_front` ist `true`, wenn der Anfangsknoten des Pfads zum Startknoten verbunden werden soll und `false`, wenn das mit dem Endknoten des Pfads geschehen soll. Die Knoten, die auf dem kürzesten Pfad des zu verbindenden Knoten zum Startknoten liegen, sind in der Vorgängermatrix im Vektor bei Index `0` enthalten. `curr`, der aktuelle Knoten auf dem kürzesten Pfad, wird solange mit seinem Vorgänger, der bei `pre[0][curr]` liegt, ersetzt, bis dieser `-1` ist, was bedeutet, dass der Startknoten erreicht wurde (Z. 4 - 8). Dass `-1` bedeutet, dass der Zielknoten erreicht ist, habe ich in Dijkstra's Algorithmus so festgelegt. Alle auf diesem Weg besuchten Knoten werden vorne bzw. hinten an die Tour angehängt. Die Funktion verändert direkt die Tour, die ihr als Referenz mitgegeben wurde.
 
 ### Der Chinese Postman Algorithmus
+
+&rarr; zugehörige Funktion: `pair<vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_2d &pre)`
+
+Zu Beginn wird der vollständige Graph aus Knoten mit ungeradem Grad erstellt. Dazu wird einem Set `odds` jeder Knoten hinzugefügt, dessen Anzahl an Einträgen in seiner Hashmap der Restklasse $1 \space (\bmod 2)$ angehört (Z. 2 - 7). Der Graph selbst wird erstellt, indem in `odds_graph` für jede Kombination zweier Knoten aus `odds` die Distanz ihres kürzesten Pfads eingetragen wird (Z. 13 - 24).
+
+Nachdem das perfekte Matching für `odds_graph` gefunden wurde, wird der augmentierte Multigraph `augmented` erstellt. Er wird als zweidimensionale Map implementiert und hat die gleiche Struktur wie die ursprüngliche Adjazenzmap, speichert aber die Anzahl paralleler Kanten zwischen zwei Knoten anstatt des Kantengewichts. Weil Kantengewichte für den Eulerkreis irrelevant sind, werden sie in diesem Teil des Algorithmus vernachlässigt. Die zweidimensionale Map statt einer Adjazenzmap ist deshalb sinnvoll, weil während der Konstruktion des Eulerkreises neben Kanten auch Knoten aus dem Graphen entfernt werden, was bedeuten würde, dass ein Eintrag im Vektor entfernt wird. Damit würden sich die Indizes der Hashmaps verschieben, was den Graphen verfälscht. Zunächst wird für jedes im Ursprungsgraphen verbundene Knotenpaar, durch eine verschachtelte `for`-Schleife, der Eintrag in `augmented` auf $1$ gesetzt (Z. 31 - 36). Um die Kanten des perfekten Matchings von `odds` hinzuzufügen, müssen alle Kanten entlang des kürzesten Pfads hinzugefügt werden. Das geschieht durch den gleichen Rückverfolgungsalgorithmus wie bei der [Tourenkonstruktion des FHK-Algorithmus](#konstruktion-einer-tour). Der Unterschied ist, dass ständig zwei Knoten `a` und `b` gespeichert und immer einen Schritt weiter bewegt werden. Indem die Anzahl an Kanten zwischen diesen zwei Knoten in `augmented` bei jedem Schritt um $1$ erhöht wird, entsteht der gewünschte eulersche Multigraph (Z. 39 - 50).
+
+Der Eulerkreis durch den Graphen, der zurückgegeben wird, behandelt parallele Kanten bereits als eine ursprüngliche, was durch die implizite Umsetzung des Multigraphen als `map_2d` möglich ist.
+
+#### Hierholzer's Algorithmus
+
+&rarr; zugehörige Funktion: `vector<int> eulerian_circuit(map_2d &graph)`
+
+Die letztendlich zurückgegebene Knotenfolge des Eulerkreises wird in `circuit` gespeichert. Für die aktuelle Subtour wird ein Stapel verwendet (Z. 2 - 4), weil nur an der letzten Position Elemente hinzugefügt oder entfernt werden müssen. `curr` ist der Knoten, bei dem der Algorithmus aktuell steht. `graph[curr].empty()` bedeutet, dass der Grad von `curr` $0$ ist (Z. 9), d. h. die Subtour wird bis zu einem Knoten mit noch anliegenden Kanten rückverfolgt. Wenn Kanten an `curr` anliegen, wird der erste verbundene Knoten als nächster gewählt (Z. 13) und die zwischenliegende Kante entfernt (Z. 16 - 19). Dazu wird die Anzahl an Kanten zwischen ihnen um $1$ verringert, und falls diese $0$ wird, der Eintrag in der `map` ganz entfernt.
 
 ## Beispiele
 
@@ -317,3 +332,90 @@ pair<vector<int>, vector<int>> dijkstra(adj_map &graph, int start) {
 ```
 
 ### Der Chinese Postman Algorithmus
+
+```c++
+pair<vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_2d &pre) {
+    set<int> odds;
+    for (int v = 0; v < graph.size(); v++) {
+        if (graph[v].size() % 2 == 1) {
+            odds.insert(v);
+        }
+    }
+
+    map_2d odds_graph;
+    int max_cost = 0;
+    pair<int, int> largest_edge;
+
+    for (const auto &a: odds) {
+        for (const auto &b: odds) {
+            if (a != b) {
+                odds_graph[a][b] = odds_graph[b][a] = dis[a][b];
+
+                if (dis[a][b] > max_cost) {
+                    largest_edge = { a, b };
+                    max_cost = dis[a][b];
+                }
+            }
+        }
+    }
+
+    set<pair<int, int>> matching = perfect_matching(odds_graph, largest_edge);
+
+    map_2d augmented;
+    int weight_sum = 0;
+
+    for (int a = 0; a < graph.size(); a++) {
+        for (const auto &[b, w]: graph[a]) {
+            augmented[a][b] = 1;
+            weight_sum += w;
+        }
+    }
+    weight_sum /= 2;
+
+    for (auto [start, target]: matching) {
+        int b = pre[target][start];
+        int a = start;
+
+        while (b != -1) {
+            augmented[a][b] += 1;
+            augmented[b][a] += 1;
+            weight_sum += graph[a][b];
+            a = b;
+            b = pre[target][b];
+        }
+    }
+
+    vector<int> postman_tour = eulerian_circuit(augmented);
+    return { postman_tour, weight_sum };
+}
+```
+
+#### Hierholzer's Algorithmus
+
+```c++
+vector<int> eulerian_circuit(map_2d &graph) {
+    vector<int> circuit;
+    stack<int> subtour;
+    subtour.push(0);
+
+    while (!subtour.empty()) {
+        int curr = subtour.top();
+
+        if (graph[curr].empty()) {
+            subtour.pop();
+            circuit.push_back(curr);
+        } else {
+            int next = graph[curr].begin()->first;
+            subtour.push(next);
+            
+            graph[curr][next] = graph[next][curr] -= 1;
+            if (graph[curr][next] == 0) {
+                graph[curr].erase(next);
+                graph[next].erase(curr);
+            }
+        }
+    }
+    return circuit;
+}
+```
+
