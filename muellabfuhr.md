@@ -5,7 +5,7 @@
 
 ## Problembeschreibung
 
-Der Stadtplan kann als Graph gesehen werden, wobei Kreuzungen Knoten und Straßen Kanten entsprechen. Der Graph ist ungerichtet und mit den Distanzen zwischen den Kreuzungen gewichtet. Damit ist das Problem ein Kantenroutingproblem, oder Variation des Briefträgerproblems / _Chinese Postman Problem_. Dieses gehört zu den kombinatorischen Optimierungsproblemen, in denen durch mehrere Entscheidungen eine Kostenfunktion maximiert bzw. minimiert werden soll, während Rahmenbedingungen beachtet werden.
+Der Stadtplan kann als Graph gesehen werden, wobei Kreuzungen Knoten und Straßen Kanten entsprechen. Der Graph ist ungerichtet und mit den Distanzen zwischen den Kreuzungen gewichtet. Damit ist das Problem ein Kantenroutingproblem und Variation des Briefträgerproblems / Chinese Postman Problem. Es gehört zu den kombinatorischen Optimierungsproblemen, in denen durch mehrere Entscheidungen eine Kostenfunktion maximiert bzw. minimiert werden soll, während Rahmenbedingungen beachtet werden.
 
 Genauer ist es das Min-Max $k$-Chinese Postman Problem, wie es 1978 von Frederickson, Hecht und Kim gestellt wurde. Das originale Paper ist leider nicht kostenfrei im Internet verfügbar, daher beziehe ich mich auf die Problembeschreibung von Ahr (2004). Das Min-Max $k$-Chinese Postman Problem verlangt es, eine gegebene Anzahl von $k$ Rundtouren $F_1, F_2, \dots, F_k$ durch einen gewichteten Graphen $G = (V, E, w)$ zu finden. Dabei gilt folgendes Ziel:
 
@@ -127,6 +127,35 @@ procedure EulerianCircuit(Graph G)
     return T;
 ```
 
+_Beispiel: `muellabfuhr0.txt`_
+
+Die Knoten mit ungeradem Grad sind $2, 4, 6$ und $9$ (eckig dargestellt). Aus ihnen wird beispielsweise das minimale perfekte Matching $2, 4$ und $6, 9$ erstellt. Dann werden die Kanten $(0, 2), (0, 4)$ für das erste Paar und $(0, 6), (0, 8), (8, 9)$ für das zweite Paar erneut hinzugefügt. Oben ist der ursprüngliche Graph dargestellt (alle Kanten haben Gewicht $1$), unten der vollständige Graph aus ungeraden Knoten.
+
+_Anmerkung:_ Der Graph wird von der für Markdown-Erweiterung [mermaid](https://mermaid-js.github.io/mermaid/#/) etwas anders dargestellt, ist aber der gleiche.
+
+```mermaid
+flowchart LR
+
+
+3((3)) --- 2{2} --- 1((1))
+4{4} --- 0((0)) --- 8((8))
+5((5)) --- 6{6} --- 7((7))
+
+1 --- 8 --- 7
+2 --- 0 --- 6
+3 --- 4 --- 5
+
+8 --- 9{9}
+
+21{2} ---|2| 41{4}
+61{6} ---|3| 91{9}
+
+21 ---|2| 61
+41 ---|3| 91
+21 ---|3| 91
+41 ---|2| 61
+```
+
 ### Minimale Perfekte Matchings
 
 ## Zeitkomplexität
@@ -180,6 +209,8 @@ Der Eulerkreis durch den Graphen, der zurückgegeben wird, behandelt parallele K
 Die letztendlich zurückgegebene Knotenfolge des Eulerkreises wird in `circuit` gespeichert. Für die aktuelle Subtour wird ein Stapel verwendet (Z. 2 - 4), weil nur an der letzten Position Elemente hinzugefügt oder entfernt werden müssen. `curr` ist der Knoten, bei dem der Algorithmus aktuell steht. `graph[curr].empty()` bedeutet, dass der Grad von `curr` $0$ ist (Z. 9), d. h. die Subtour wird bis zu einem Knoten mit noch anliegenden Kanten rückverfolgt. Wenn Kanten an `curr` anliegen, wird der erste verbundene Knoten als nächster gewählt (Z. 13) und die zwischenliegende Kante entfernt (Z. 16 - 19). Dazu wird die Anzahl an Kanten zwischen ihnen um $1$ verringert, und falls diese $0$ wird, der Eintrag in der `map` ganz entfernt.
 
 ## Beispiele
+
+Um mein Programm an anderen großen Graphen außer den vorgegebenen testen zu können, habe ich mir Testinstanzen von sintef (Literaturverzeichnis &rarr; Testinstanzen) herausgesucht. Sie sind zwar eigentlich für das _Capacitated Arc Routing Problem_ (CARP) bzw _Node, Edge and Arc Routing Problem_ (NEARP) gedacht, aber das stört nicht. Mit einem kleinen C++ Programm (`muellabfuhr/beispiele/convert_samples.cpp`) habe ich sie in das bekannte Format umgewandelt, wobei gerichtete Kanten einfach als ungerichtet behandelt wurden. Ich habe die des BHW-Benchmarks und des DI-NEARP-Benchmarks verwendet, Instanzen, bei denen der zugrundeliegende Graph gleich ist, wurden nicht doppelt aufgenommen. Insgesamt sind es 14 Instanzen mit $|V|$ von 11 bis 1120 und $|E|$ von 25 bis 1450.
 
 ## Quellcode
 
