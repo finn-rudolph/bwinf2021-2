@@ -5,9 +5,9 @@
 
 ## Problembeschreibung
 
-Zunächst einige wichtige Eigenschaften des $\text{xor}$ Operators. Das exklusive Oder zweier gleicher Zahlen ist immer $0$. weil sich bei diesen Zahlen kein Bit unterscheidet. Auch ist er kommutativ sowie assoziativ, d. h. die Anwendungsreihenfolge auf mehrere Operanden und Anordnung der Operanden sind irrelevant für das Ergebnis. Die Aufgabenstellung verlangt es, aus einer Menge $S$ von Karten oder Binärzahlen, $k$ Zahlen zu finden, deren $\text{xor}$ gleich irgendeiner anderen Zahl $\in S$ ist. Mit den oben genannten Eigenschaften kann das Problem umformuliert werden: Finde $k + 1$ Zahlen aus $S$, deren $\text{xor}$ gleich $0$ ist. Für weitere Beschreibungen werde ich $k$ für die Anzahl an Zahlen, der $\text{xor}$ gleich $0$ sein soll verwenden, und nicht $k + 1$, weil das der Standard in allen Quellen ist.
+Zunächst einige wichtige Eigenschaften des $\text{xor}$ Operators. Das exklusive Oder zweier gleicher Zahlen ist immer 0, weil sich bei diesen Zahlen kein Bit unterscheidet. Auch ist $\text{xor}$ kommutativ sowie assoziativ, d. h. die Anwendungsreihenfolge auf mehrere Operanden und Anordnung der Operanden sind irrelevant für das Ergebnis. Die Aufgabenstellung verlangt es, aus einer Menge $S$ von Karten oder Binärzahlen, $k$ Zahlen zu finden, deren $\text{xor}$ gleich irgendeiner anderen Zahl $\in S$ ist. Mit den oben genannten Eigenschaften kann das Problem umformuliert werden: Finde $k + 1$ Zahlen aus $S$, deren $\text{xor}$ gleich $0$ ist. Für weitere Beschreibungen werde ich $k$ für die Anzahl an Zahlen, der $\text{xor}$ gleich 0 sein soll verwenden, und nicht $k + 1$, weil das der Standard in allen Quellen ist.
 
-Das Problem ist Variation des Teilsummenproblems, das ein Spezialfall des Rucksackproblems ist. Das Teilsummenproblem verlangt es, von einer Menge an ganzen Zahlen $S$ eine Teilmenge $T$ zu bestimmen, deren Summe gleich $0$ ist. In diesem Fall wird statt des $+$ Operators der $\text{xor}$ Operator verwendet. Diese Eigenschaft allein würde das Problem, im Gegensatz zum Teilsummenproblem, in polynomialer Zeit lösbar machen (Jafargholi & Viola, 2018, S. 2). Aber da die Größe von $T$ ebenfalls vorgegeben ist, ist es NP-schwer, kann also nur in exponentieller Zeit optimal gelöst werden.
+Das Problem ist Variation des Teilsummenproblems, das ein Spezialfall des Rucksackproblems ist. Das Teilsummenproblem verlangt es, von einer Menge an ganzen Zahlen $S$ eine Teilmenge $T$ zu bestimmen, deren Summe gleich 0 ist. In diesem Fall wird statt des $+$ Operators der $\text{xor}$ Operator verwendet. Diese Eigenschaft allein würde das Problem, im Gegensatz zum Teilsummenproblem, in polynomialer Zeit lösbar machen (Jafargholi & Viola, 2018, S. 2). Aber da die Größe von $T$ ebenfalls vorgegeben ist, ist es NP-schwer, kann also nur in exponentieller Zeit optimal gelöst werden.
 
 Formal ausgedrückt, soll eine Menge $T$ bestimmt werden, die folgende Eigenschaften erfüllt. $t_i$ bezeichnet die $i$´te Zahl in $T$.
 
@@ -50,15 +50,17 @@ Für größere $k$ muss beachtet werden, dass der Speicherbedarf sowie die Zeit 
 
 Betrachten wir zunächst nur die Zeitkomplexität. Wenn $d \neq k - 2$, kann das spätere Durchsuchen der Hashmap auch nicht mehr in $O(n^2)$ geschehen, weil nicht alle Paare, sondern alle Kombinationen von $k - d$ Zahlen überprüft werden müssen. Da es davon $\binom {n}{k-d}$ gibt, ist die Zeitkomplexität des Durchsuchens $O(n^{k - d})$. Die gesamte Zeitkomplexität ist also $O(n^d + n^{k-d})$. Daran ist ersichtlich, dass $d = \lfloor \frac k2 \rfloor$ die sinnvollste Wahl ist, denn für die asymptotische Zeitkomplexität ist allein der Summand mit dem größten Exponenten entscheidend, der so minimiert wird. Bei ungeradem $k$ ist abrunden sinnvoller als aufrunden, weil der Speicherbedarf von $H$ exponentiell mit $d$ steigt.
 
-Nun zur Speicherkomplexität. Sie ist wesentlich limiterender, was ich am Beispiel `stapel2.txt` verdeutlichen möchte. Mit der oben genannten Einschätzung der Speicherkomplexität $O(n^d)$ müssten $111^5 \approx 16,9 \cdot 10^9$ $128$-Bit Zahlen gespeichert werden, was ungefähr $270$ Gigabyte Arbeitsspeicher erfordern würde. So viel steht keinem üblichen Computer zur Verfügung, daher muss $d$ entsprechend klein gehalten werden.
+Nun zur Speicherkomplexität. Sie ist wesentlich limiterender, was ich am Beispiel `stapel2.txt` verdeutlichen möchte. Mit der oben genannten Einschätzung der Speicherkomplexität $O(n^d)$ müssten $111^5 \approx 16,9 \cdot 10^9$ 128-Bit Zahlen gespeichert werden, was ungefähr 270 Gigabyte Arbeitsspeicher erfordern würde. So viel steht keinem üblichen Computer zur Verfügung, daher muss $d$ entsprechend klein gehalten werden.
 
-_Anmerkung:_ Bei den bisherigen Einschätzungen der Zeit- und Platzkomplexität lasse ich zur Vereinfachung konstante und lineare Faktoren, die sich bei der Implementierung zeigen werden, außer Acht.
+_Anmerkung:_ Bei den bisherigen Einschätzungen der Zeit- und Platzkomplexität habe ich lineare Faktoren außer Acht gelassen, die sich bei der Implementierung zeigen werden.
 
-// Divide and Conquer: Teilung in kleinere Bitfolgen, um den Speicherbedarf zu reduzieren
+### Divide and Conquer
 
-## Zeitkomplexität
+Um den Arbeitsspeicherbedarf zu reduzieren kann sich die Eigenschaft des $\text{xor}$ Operators zunutze gemacht werden, dass sein Ergebnis bei einem Bit unabhängig von den anderen Bits ist. Das heißt, eine 128-Bit Zahl kann in 16 8-Bit Zahlen geteilt werden, bei denen jeweils alle Kombinationen von $k$ Zahlen gefunden werden, deren $\text{xor}$ gleich 0 ist. Dann ist die Schnittmenge der Lösungsmengen der Teilprobleme die Lösungsmenge des gesamten Problems. Wenn $d$ aufgrund mangelnden Arbeitsspeichers kleiner als $\lfloor \frac k2 \rfloor$ gewählt werden müsste, kann es mit diesem Trick möglicherweise doch um 1 erhöht werden. Denn der Speicherbedarf wird um den Faktor $\frac m8$ verringert wird, wobei $m$ die Anzahl an Bits der Zahlen ist. Eine kleinere Teilung als in 8-Bit Zahlen ist  nicht möglich bzw. sinnvoll, denn 8 Bits oder 1 Byte sind die kleinste Speichereinheit eines Computers, d. h. kleinere Einheiten sind nicht direkt adressierbar. Außerdem nimmt die Anzahl an Lösungen bei kleineren Zahlen der Erwartung nach stark zu, was wiederum Speicherplatz benötigt.
 
 ## Implementierung
+
+## Zeitkomplexität
 
 ## Quellcode
 
