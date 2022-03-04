@@ -1,12 +1,10 @@
-CPP = g++
+CPP = clang++
 CFLAGS = -Wall -g
-BINS = main.o
 
-all: $(BINS)
-	$(CPP) $(CFLAGS) $(BINS) -o main
+all: 
+	$(CPP) $(CFLAGS) k_xor.hpp main.cpp -c
+	$(CPP) $(CFLAGS) main.o -o main
 
-%.o: %.cpp %.hpp
-	$(CPP) $(CFLAGS) -c $^
 
 clean:
 	rm *.o *.gch
