@@ -1,6 +1,6 @@
-CPP = g++
+CPP = clang++
 CFLAGS = -Wall -g
-BINS = main.o utility.o chinese_postman.o perfect_matching.o fhk_algorithm.o
+BINS = main.o io.o chinese_postman.o perfect_matching.o fhk_algorithm.o
 
 all: $(BINS)
 	$(CPP) $(CFLAGS) $(BINS) -o main

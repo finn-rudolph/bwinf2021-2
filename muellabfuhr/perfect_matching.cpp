@@ -1,5 +1,4 @@
 #include "perfect_matching.hpp"
-#include "utility.hpp"
 using namespace std;
 
 // This algorithm only works for complete and metric graphs.

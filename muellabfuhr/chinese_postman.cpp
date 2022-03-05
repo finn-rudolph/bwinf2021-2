@@ -1,6 +1,5 @@
 #include "chinese_postman.hpp"
 #include "perfect_matching.hpp"
-#include "utility.hpp"
 using namespace std;
 
 pair<vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_2d &pre) {
