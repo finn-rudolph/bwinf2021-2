@@ -36,24 +36,6 @@ bool no_intersection(vector<uint8_t> vec, uint8_t* arr, int length) {
     return true;
 }
 
-bool has_vector(set<vector<uint8_t>> vector_set, vector<uint8_t> vec) {
-    unordered_set<uint8_t> hashed(vec.begin(), vec.end());
-
-    for (vector<uint8_t> vec2: vector_set) {
-        bool is_equal = true;
-
-        for (uint8_t num: vec2) {
-            if (hashed.find(num) == hashed.end()) {
-                is_equal = false;
-                break;
-            }
-        }
-        if (is_equal) return true;
-    }
-
-    return false;
-}
-
 template <typename T>
 void delete_map(unordered_map<T, uint8_t*> xor_map) {
     for (auto [ignore, components]: xor_map) {
@@ -82,18 +64,19 @@ void find_k_xor(int n, int k) {
     set<vector<uint8_t>> results;
 
     xor_combine<T>(cards, k - d,
-        [&cards, &xor_map, &results, &k, &d](T xor_val, vector<uint8_t> &used) {
+        [&xor_map, &results, &k, &d](T xor_val, vector<uint8_t> &used) {
             if (xor_map.find(xor_val) != xor_map.end() && 
-                no_intersection(used, xor_map[xor_val], k)) {
-                    vector<uint8_t> comb(used.begin(), used.end());
-                    comb.insert(comb.end(), xor_map[xor_val], xor_map[xor_val] + d);     
-                    if (!has_vector(results, comb)) {
-                        results.insert(comb);
-                        print_cards(comb, cards);
-                    }       
+                no_intersection(used, xor_map[xor_val], k)
+            ) {
+                vector<uint8_t> comb(used.begin(), used.end());
+                comb.insert(comb.end(), xor_map[xor_val], xor_map[xor_val] + d);
+
+                sort(comb.begin(), comb.end());   
+                results.insert(comb);    
             }
         },
         used);
 
+    print_cards<T>(*results.begin(), cards);
     delete_map(xor_map);
 }
