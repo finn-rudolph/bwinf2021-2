@@ -2,7 +2,7 @@ CPP = clang++
 CFLAGS = -Wall -g
 
 all: 
-	$(CPP) $(CFLAGS) k_xor.hpp main.cpp -c
+	$(CPP) $(CFLAGS) k_xor.hpp io.hpp main.cpp -c
 	$(CPP) $(CFLAGS) main.o -o main
 
 
