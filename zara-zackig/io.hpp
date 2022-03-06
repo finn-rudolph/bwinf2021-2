@@ -7,7 +7,7 @@ string to_binary_str(T number) {
     string binary(length, ' ');
 
     for (int i = 0; i < length; i++) {
-        binary[length - i - 1] = ((number % 2) + '0');
+        binary[length - i - 1] = ((number & (T) 1) + '0');
         number = number >> 1;
     }
     return binary;
@@ -38,17 +38,4 @@ void print_cards(vector<uint8_t> indices, vector<T> &cards) {
         cout << to_binary_str<T>(cards[i]) << " (Z. " << ((int) i + 2)  << ")" << '\n';
     }
     cout << endl;   
-}
-
-template <typename T>
-void print_map(unordered_map<T, uint8_t*> &xor_map, vector<T> &cards) {
-    for (auto [xor_value, components]: xor_map) {
-        cout << to_binary_str(xor_value) << " -> ";
-        
-        for (int i = 0; i < 1; i++) {
-            cout << to_binary_str<T>(cards[components[i]]) << " ";
-        }
-        cout << '\n';
-    }
-    cout << endl;
 }

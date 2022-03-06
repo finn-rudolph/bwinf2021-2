@@ -3,6 +3,12 @@
 using namespace std;
 
 template <typename T>
+struct xor_comb {
+    T value;
+    uint8_t* cards; // indices
+};
+
+template <typename T>
 void xor_combine(
     vector<T> &cards,
     int d,
@@ -26,7 +32,7 @@ void xor_combine(
     }
 }
 
-bool no_intersection(vector<uint8_t> vec, uint8_t* arr, int length) {
+bool no_intersection(vector<uint8_t> &vec, uint8_t* arr, int length) {
     unordered_set<uint8_t> arr_set(arr, arr + length);
     for (uint8_t &number: vec) {
         if (arr_set.find(number) != arr_set.end()) {
@@ -37,9 +43,41 @@ bool no_intersection(vector<uint8_t> vec, uint8_t* arr, int length) {
 }
 
 template <typename T>
-void delete_map(unordered_map<T, uint8_t*> xor_map) {
-    for (auto [ignore, components]: xor_map) {
-        delete components;
+void radix_sort_lsd(vector<xor_comb<T>> &arr) {
+    vector<xor_comb<T>> zeros;
+    vector<xor_comb<T>> ones;
+
+    for (int i = 0; i < sizeof (T) * 8; i++) {
+        for (xor_comb<T> &comb: arr) {
+            ((comb.value >> i) & (T) 1) 
+                ? ones.push_back(move(comb)) 
+                : zeros.push_back(move(comb));
+        }
+
+        zeros.insert(zeros.end(), ones.begin(), ones.end());
+        swap(zeros, arr);
+        zeros.clear();
+        ones.clear();
+    }
+}
+
+template <typename T>
+int bs(vector<xor_comb<T>> &arr, T target) {
+    int a = 0, b = arr.size() - 1;
+
+    while (b > a) {
+        int mid = (a + b) / 2;
+        if (arr[mid].value == target) return mid;
+        else if (arr[mid].value < target) a = mid + 1;
+        else b = mid - 1;
+    }
+    return -1;
+}
+
+template <typename T>
+void delete_xors(vector<xor_comb<T>> xors) {
+    for (auto [ignore, cards]: xors) {
+        delete cards;
     }
 }
 
@@ -48,35 +86,36 @@ void find_k_xor(int n, int k) {
     vector<T> cards = read_cards<T>(n);
     int d = k / 2;
 
-    unordered_map<T, uint8_t*> xor_map;
-    vector<uint8_t> used = {};
+    vector<xor_comb<T>> xors;
+    vector<uint8_t> used;
 
     xor_combine<T>(cards, d, 
-        [&xor_map](T xor_val, vector<uint8_t> &used) {
-            uint8_t* used_arr = new uint8_t[used.size()];           
-            copy(used.begin(), used.end(), used_arr);
-            xor_map[xor_val] = used_arr;
+        [&xors](T xor_val, vector<uint8_t> &used) {
+            uint8_t* used_cards = new uint8_t[used.size()];           
+            copy(used.begin(), used.end(), used_cards);
+            
+            xor_comb<T> comb = { xor_val, used_cards };
+            xors.push_back(comb);
         }, 
         used);
 
-    // Use different data structure for faster comparison
-    used.clear(); 
+    used.clear();
+    radix_sort_lsd<T>(xors);
     set<vector<uint8_t>> results;
 
     xor_combine<T>(cards, k - d,
-        [&xor_map, &results, &k, &d](T xor_val, vector<uint8_t> &used) {
-            if (xor_map.find(xor_val) != xor_map.end() && 
-                no_intersection(used, xor_map[xor_val], k)
-            ) {
-                vector<uint8_t> comb(used.begin(), used.end());
-                comb.insert(comb.end(), xor_map[xor_val], xor_map[xor_val] + d);
+        [&xors, &results, &d](T xor_val, vector<uint8_t> &used) {
+            int i = bs<T>(xors, xor_val);
+            if (i != -1 && no_intersection(used, xors[i].cards, d)) {
+                vector<uint8_t> used_cards(used.begin(), used.end());
+                used_cards.insert(used_cards.end(), xors[i].cards, xors[i].cards + d);
 
-                sort(comb.begin(), comb.end());   
-                results.insert(comb);    
+                sort(used_cards.begin(), used_cards.end());
+                results.insert(used_cards);    
             }
         },
         used);
 
     print_cards<T>(*results.begin(), cards);
-    delete_map(xor_map);
+    delete_xors<T>(xors);
 }
