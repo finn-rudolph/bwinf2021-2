@@ -1,4 +1,4 @@
-#include <bits/stdc++.h>
+#include <vector>
 #include "types.hpp"
 #include "chinese_postman.hpp"
 

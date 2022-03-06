@@ -1,11 +1,16 @@
-#include <bits/stdc++.h>
+#include <vector>
+#include <set>
+#include <unordered_set>
+#include <functional>
+#include <algorithm>
+#include <stdint.h>
 #include "io.hpp"
 using namespace std;
 
 template <typename T>
 struct xor_comb {
     T value;
-    uint8_t* cards; // indices
+    uint8_t* cards; // indices, not actual values
 };
 
 template <typename T>

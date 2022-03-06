@@ -1,4 +1,5 @@
-#include <bits/stdc++.h>
+#include <vector>
+#include <map>
 
 typedef std::vector<std::map<int, int>> adj_map;
 

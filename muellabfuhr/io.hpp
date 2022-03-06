@@ -1,4 +1,4 @@
-#include <bits/stdc++.h>
+#include <vector>
 #include "types.hpp"
 
 adj_map to_adjacency_map(int n, int m);

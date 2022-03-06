@@ -1,4 +1,7 @@
-#include <bits/stdc++.h>
+#include <vector>
+#include <string>
+#include <regex>
+#include <iostream>
 using namespace std;
 
 vector<int> get_numbers(string s) {

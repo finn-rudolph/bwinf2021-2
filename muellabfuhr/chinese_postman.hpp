@@ -1,4 +1,4 @@
-#include <bits/stdc++.h>
+#include <vector>
 #include "types.hpp"
 
 std::pair<std::vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_2d &pre);

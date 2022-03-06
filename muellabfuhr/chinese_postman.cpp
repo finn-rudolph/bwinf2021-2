@@ -1,3 +1,5 @@
+#include <set>
+#include <stack>
 #include "chinese_postman.hpp"
 #include "perfect_matching.hpp"
 using namespace std;

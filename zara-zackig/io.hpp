@@ -1,4 +1,7 @@
-#include <bits/stdc++.h>
+#include <vector>
+#include <string>
+#include <stdint.h>
+#include <iostream>
 using namespace std;
 
 template <typename T>

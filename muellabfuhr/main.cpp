@@ -1,4 +1,5 @@
-#include <bits/stdc++.h>
+#include <vector>
+#include <iostream>
 #include "fhk_algorithm.hpp"
 #include "io.hpp"
 using namespace std;

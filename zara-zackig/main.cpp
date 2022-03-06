@@ -1,4 +1,4 @@
-#include <bits/stdc++.h>
+#include <iostream>
 #include "k_xor.hpp"
 using namespace std;
 

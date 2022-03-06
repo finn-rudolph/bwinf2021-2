@@ -1,4 +1,4 @@
-#include <bits/stdc++.h>
+#include <set>
 #include "types.hpp"
 
 std::set<std::pair<int, int>> perfect_matching(map_2d &graph, std::pair<int, int> &largest_edge);
