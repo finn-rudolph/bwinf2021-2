@@ -5,6 +5,5 @@ all:
 	$(CPP) $(CFLAGS) k_xor.hpp io.hpp main.cpp -c
 	$(CPP) $(CFLAGS) main.o -o main
 
-
 clean:
 	rm *.o *.gch

@@ -4,6 +4,7 @@
 #include <functional>
 #include <algorithm>
 #include <stdint.h>
+#include <iostream>
 #include "io.hpp"
 using namespace std;
 
@@ -80,16 +81,26 @@ int bs(vector<xor_comb<T>> &arr, T target) {
 }
 
 template <typename T>
-void delete_xors(vector<xor_comb<T>> xors) {
+void delete_xors(vector<xor_comb<T>> &xors) {
     for (auto [ignore, cards]: xors) {
         delete cards;
     }
 }
 
+long long binom(int n, int k) {
+    if (k == 1) return n;
+    return ((double) n / (double) k) * (double) binom(n - 1, k - 1);
+}
+
 template <typename T>
-void find_k_xor(int n, int k) {
+void find_k_xor(int n, int k, int m) {
     vector<T> cards = read_cards<T>(n);
+
+    long long memory_limit = ((long long) 1) << 32;
     int d = k / 2;
+    while (binom(n, d) * (m / 8 + 8 + d) > memory_limit) d -= 1;
+
+    cout << "Berechne das xor aller Teilmengen von Größe d = " << d << " vorab.\n";
 
     vector<xor_comb<T>> xors;
     vector<uint8_t> used;
