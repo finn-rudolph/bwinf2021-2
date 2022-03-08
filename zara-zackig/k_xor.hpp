@@ -9,12 +9,6 @@
 using namespace std;
 
 template <typename T>
-struct xor_comb {
-    T value;
-    uint8_t* cards; // indices, not actual values
-};
-
-template <typename T>
 void xor_combine(
     vector<T> &cards,
     int d,
@@ -49,42 +43,44 @@ bool no_intersection(vector<uint8_t> &vec, uint8_t* arr, int length) {
 }
 
 template <typename T>
-void radix_sort_lsd(vector<xor_comb<T>> &arr) {
-    vector<xor_comb<T>> zeros;
-    vector<xor_comb<T>> ones;
+void radix_sort_lsd(T* values, uint8_t* indices, int length, int d) {
+    vector<T>* val_part = new vector<T>[2];
+    vector<uint8_t>* ind_part = new vector<uint8_t>[2];
 
-    for (int i = 0; i < sizeof (T) * 8; i++) {
-        for (xor_comb<T> &comb: arr) {
-            ((comb.value >> i) & (T) 1) 
-                ? ones.push_back(move(comb)) 
-                : zeros.push_back(move(comb));
+    for (int b = 0; b < sizeof (T) * 8; b++) {
+        for (int i = 0; i < length; i++) {
+            bool bit = (values[i] >> b) & (T) 1;
+            val_part[bit].push_back(values[i]);
+            ind_part[bit].insert(ind_part[bit].end(), indices + i * d, indices + i * d + d);
         }
 
-        zeros.insert(zeros.end(), ones.begin(), ones.end());
-        swap(zeros, arr);
-        zeros.clear();
-        ones.clear();
+        val_part[0].insert(val_part[0].end(), val_part[1].begin(), val_part[1].end());
+        ind_part[0].insert(ind_part[0].end(), ind_part[1].begin(), ind_part[1].end());
+
+        move(val_part[0].begin(), val_part[0].end(), values);
+        move(ind_part[0].begin(), ind_part[0].end(), indices);
+
+        val_part[0].clear();
+        val_part[1].clear();
+        ind_part[0].clear();
+        ind_part[1].clear();
+
     }
+    delete[] val_part;
+    delete[] ind_part;
 }
 
 template <typename T>
-int bs(vector<xor_comb<T>> &arr, T target) {
-    int a = 0, b = arr.size() - 1;
+int bs(T* &arr, long long length, T target) {
+    int a = 0, b = length - 1;
 
     while (b > a) {
         int mid = (a + b) / 2;
-        if (arr[mid].value == target) return mid;
-        else if (arr[mid].value < target) a = mid + 1;
+        if (arr[mid] == target) return mid;
+        else if (arr[mid] < target) a = mid + 1;
         else b = mid - 1;
     }
     return -1;
-}
-
-template <typename T>
-void delete_xors(vector<xor_comb<T>> &xors) {
-    for (auto [ignore, cards]: xors) {
-        delete cards;
-    }
 }
 
 long long binom(int n, int k) {
@@ -98,33 +94,35 @@ void find_k_xor(int n, int k, int m) {
 
     long long memory_limit = ((long long) 1) << 32;
     int d = k / 2;
-    while (binom(n, d) * (m / 8 + 8 + d) > memory_limit) d -= 1;
+    while (binom(n, d) * (m / 8 + d) > memory_limit) d -= 1;
 
-    cout << "Berechne das xor aller Teilmengen von Größe d = " << d << " vorab.\n";
+    long long num_comb = binom(n, d);
+    cout << "Berechne das xor von " << num_comb 
+        << " Teilmengen mit Größe d = " << d << " vorab.\n";
 
-    vector<xor_comb<T>> xors;
+    T* values = new T[num_comb];
+    uint8_t* indices = new uint8_t[num_comb * d];
+    int length = 0;
     vector<uint8_t> used;
 
     xor_combine<T>(cards, d, 
-        [&xors](T xor_val, vector<uint8_t> &used) {
-            uint8_t* used_cards = new uint8_t[used.size()];           
-            copy(used.begin(), used.end(), used_cards);
-            
-            xor_comb<T> comb = { xor_val, used_cards };
-            xors.push_back(comb);
+        [&values, &indices, &length, &d](T xor_val, vector<uint8_t> &used) {
+            values[length] = xor_val;
+            move(used.begin(), used.end(), indices + length * d);
+            length += 1;
         }, 
         used);
 
     used.clear();
-    radix_sort_lsd<T>(xors);
+    radix_sort_lsd<T>(values, indices, num_comb, d);
     set<vector<uint8_t>> results;
 
     xor_combine<T>(cards, k - d,
-        [&xors, &results, &d](T xor_val, vector<uint8_t> &used) {
-            int i = bs<T>(xors, xor_val);
-            if (i != -1 && no_intersection(used, xors[i].cards, d)) {
+        [&values, &indices, &results, &num_comb, &d](T xor_val, vector<uint8_t> &used) {
+            int i = bs<T>(values, num_comb, xor_val);
+            if (i != -1 && no_intersection(used, indices + i * d, d)) {
                 vector<uint8_t> used_cards(used.begin(), used.end());
-                used_cards.insert(used_cards.end(), xors[i].cards, xors[i].cards + d);
+                used_cards.insert(used_cards.end(), indices + i * d, indices + i * d + d);
 
                 sort(used_cards.begin(), used_cards.end());
                 results.insert(used_cards);    
@@ -133,5 +131,6 @@ void find_k_xor(int n, int k, int m) {
         used);
 
     print_cards<T>(*results.begin(), cards);
-    delete_xors<T>(xors);
+    delete[] values;
+    delete[] indices;
 }
