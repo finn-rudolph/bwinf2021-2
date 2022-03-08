@@ -43,31 +43,30 @@ bool no_intersection(vector<uint8_t> &vec, uint8_t* arr, int length) {
 }
 
 template <typename T>
-void radix_sort_lsd(T* values, uint8_t* indices, int length, int d) {
-    vector<T>* val_part = new vector<T>[2];
-    vector<uint8_t>* ind_part = new vector<uint8_t>[2];
+void radix_sort_lsd(T* values, uint8_t* indices, long long length, int d) {
+    for (int bits = 0; bits < sizeof (T) * 8; bits++) {
+        long long a = 0, b = length;
+        for (long long i = 0; i < b; i++) {
+            T val = values[i];
+            uint8_t ind[d];
+            copy(indices + i * d, indices + i * d + d, ind);
 
-    for (int b = 0; b < sizeof (T) * 8; b++) {
-        for (int i = 0; i < length; i++) {
-            bool bit = (values[i] >> b) & (T) 1;
-            val_part[bit].push_back(values[i]);
-            ind_part[bit].insert(ind_part[bit].end(), indices + i * d, indices + i * d + d);
+            if ((val >> bits) & (T) 1) {
+                move(values + i + 1, values + length, values + i);
+                values[length - 1] = val;
+                move(indices + i * d + d, indices + length * d, indices + i * d);
+                move(ind, ind + d, indices + length * d - d);
+                i -= 1;
+                b -= 1;
+            } else {
+                move_backward(values + a, values + i, values + i + 1);
+                values[a] = val;
+                move_backward(indices + a * d, indices + i * d, indices + i * d + d);
+                move(ind, ind + d, indices + a * d);
+                a += 1;
+            }
         }
-
-        val_part[0].insert(val_part[0].end(), val_part[1].begin(), val_part[1].end());
-        ind_part[0].insert(ind_part[0].end(), ind_part[1].begin(), ind_part[1].end());
-
-        move(val_part[0].begin(), val_part[0].end(), values);
-        move(ind_part[0].begin(), ind_part[0].end(), indices);
-
-        val_part[0].clear();
-        val_part[1].clear();
-        ind_part[0].clear();
-        ind_part[1].clear();
-
     }
-    delete[] val_part;
-    delete[] ind_part;
 }
 
 template <typename T>
