@@ -43,30 +43,22 @@ bool no_intersection(vector<uint8_t> &vec, uint8_t* arr, int length) {
 }
 
 template <typename T>
-void radix_sort_lsd(T* values, uint8_t* indices, long long length, int d) {
-    for (int bits = 0; bits < sizeof (T) * 8; bits++) {
-        long long a = 0, b = length;
-        for (long long i = 0; i < b; i++) {
-            T val = values[i];
-            uint8_t ind[d];
-            copy(indices + i * d, indices + i * d + d, ind);
+void radix_sort_msd(T* values, uint8_t* indices, long long length, int d, int bit = sizeof (T) * 8 - 1) {
+    if (length <= 1) return;
 
-            if ((val >> bits) & (T) 1) {
-                move(values + i + 1, values + length, values + i);
-                values[length - 1] = val;
-                move(indices + i * d + d, indices + length * d, indices + i * d);
-                move(ind, ind + d, indices + length * d - d);
-                i -= 1;
-                b -= 1;
-            } else {
-                move_backward(values + a, values + i, values + i + 1);
-                values[a] = val;
-                move_backward(indices + a * d, indices + i * d, indices + i * d + d);
-                move(ind, ind + d, indices + a * d);
-                a += 1;
-            }
+    long long a = 0, b = length - 1;
+    while (a != b) {
+        if ((values[a] >> bit) & (T) 1) {
+            swap(values[a], values[b]);
+            swap_ranges(indices + a * d, indices + a * d + d, indices + b * d);
+            b -= 1;
+        } else {
+            a += 1;
         }
     }
+
+    radix_sort_msd<T>(values, indices, a, d, bit - 1);
+    radix_sort_msd<T>(values + a, indices + a * d, length - a, d, bit - 1);
 }
 
 template <typename T>
@@ -113,7 +105,7 @@ void find_k_xor(int n, int k, int m) {
         used);
 
     used.clear();
-    radix_sort_lsd<T>(values, indices, num_comb, d);
+    radix_sort_msd<T>(values, indices, num_comb, d);
     set<vector<uint8_t>> results;
 
     xor_combine<T>(cards, k - d,
