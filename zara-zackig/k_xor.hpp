@@ -5,7 +5,8 @@
 #include <algorithm>
 #include <stdint.h>
 #include <iostream>
-#include <cstring>
+#include <cmath>
+#include <unistd.h>
 #include "io.hpp"
 using namespace std;
 
@@ -78,17 +79,22 @@ long long binom(int n, int k) {
     return ((double) n / (double) k) * (double) binom(n - 1, k - 1);
 }
 
+long long memory() {
+    return sysconf(_SC_PHYS_PAGES) * sysconf(_SC_PAGE_SIZE);
+}
+
 template <typename T>
 void find_k_xor(int n, int k, int m) {
     vector<T> cards = read_cards<T>(n);
 
-    long long memory_limit = ((long long) 1) << 32;
+    long long memory_limit = memory() - (((long long) 1) << 31);
+    cout << "Memory Limit: " << (memory_limit) / pow(10, 6) << " MB\n";
+    
     int d = k / 2;
     while (binom(n, d) * (m / 8 + d) > memory_limit) d -= 1;
 
     long long num_comb = binom(n, d);
-    cout << "Berechne das xor von " << num_comb 
-        << " Teilmengen mit Größe d = " << d << " vorab.\n";
+    cout << "Precomputed combinations: " << num_comb << "; Combination size d = " << d << "\n\n";
 
     T* values = new T[num_comb];
     uint8_t* indices = new uint8_t[num_comb * d];
