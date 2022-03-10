@@ -120,12 +120,19 @@ set<vector<uint8_t>> xor_to_zero(vector<T> cards, int n, int k, int d) {
     xor_combine<T>(cards, k - d,
         [&values, &indices, &results, &used, &num_comb, &k, &d](T xor_val) {
             int i = bs<T>(values, num_comb, xor_val);
-            if (i != -1 && no_intersection(used, indices + i * d, k - d, d)) {
-                vector<uint8_t> used_cards(used, used + k - d);
-                used_cards.insert(used_cards.end(), indices + i * d, indices + i * d + d);
+            if (i != -1) {
+                while (values[i - 1] == xor_val) i -= 1;
 
-                sort(used_cards.begin(), used_cards.end());
-                results.insert(used_cards);    
+                while (values[i] == xor_val) {
+                    if (no_intersection(used, indices + i * d, k - d, d)) {
+                        vector<uint8_t> used_cards(used, used + k - d);
+                        used_cards.insert(used_cards.end(), indices + i * d, indices + i * d + d);
+
+                        sort(used_cards.begin(), used_cards.end());
+                        results.insert(used_cards);    
+                    }
+                    i += 1;
+                }
             }
         },
         used);
