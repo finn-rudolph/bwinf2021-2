@@ -83,18 +83,22 @@ long long memory() {
     return sysconf(_SC_PHYS_PAGES) * sysconf(_SC_PAGE_SIZE);
 }
 
+template <typename T, typename S>
+vector<vector<S>> split_cards(vector<T> cards, int c) {
+    vector<vector<S>> fragments(sizeof (T) / sizeof (S));
+    for (T &card: cards) {
+        string bin_string = to_binary_str<T>(card);
+        for (int i = 0; i < bin_string.size(); i += c) {
+            fragments[i].push_back(to_number<S>(bin_string.substr(i, c)));
+        }
+    }
+    return fragments;
+}
+
 template <typename T>
-void find_k_xor(int n, int k, int m) {
-    vector<T> cards = read_cards<T>(n);
-
-    long long memory_limit = memory() - (((long long) 1) << 31);
-    cout << "Memory Limit: " << (memory_limit) / pow(10, 6) << " MB\n";
-    
-    int d = k / 2;
-    while (binom(n, d) * (m / 8 + d) > memory_limit) d -= 1;
-
+set<vector<uint8_t>> xor_to_zero(vector<T> cards, int n, int k, int d) {
     long long num_comb = binom(n, d);
-    cout << "Precomputed combinations: " << num_comb << "; Combination size d = " << d << "\n\n";
+    cout << "Vorberechnen von " << num_comb << " Kombinationen aus jeweils d = " << d << " Karten\n\n";
 
     T* values = new T[num_comb];
     uint8_t* indices = new uint8_t[num_comb * d];
@@ -126,7 +130,60 @@ void find_k_xor(int n, int k, int m) {
         },
         used);
 
-    print_cards<T>(*results.begin(), cards);
     delete[] values;
     delete[] indices;
+    return results;
+}
+
+template <typename T, typename S>
+void merge_results(vector<T> cards, int n, int k, int c, int d) {
+    vector<vector<S>> fragments = split_cards<T, S>(cards, c);
+    set<vector<uint8_t>> results;
+
+    for (vector<S> &card_set: fragments) {
+        set<vector<uint8_t>> partial = xor_to_zero<S>(card_set, n, k, d);
+        if (results.empty()) {
+            results = partial;
+        } else {
+            set<vector<uint8_t>> new_solutions;
+            for (vector<uint8_t> comb: results) {
+                if (partial.find(comb) != partial.end()) new_solutions.insert(comb);
+            }
+            results = new_solutions;
+        }
+    }
+    print_cards<T>(*results.begin(), cards);
+}
+
+template <typename T>
+void decide_parameters(int n, int k, int m) {
+    vector<T> cards = read_cards<T>(n);
+
+    long long memory_limit = memory() - (((long long) 1) << 31);
+    cout << "Memory Limit: " << (memory_limit) / pow(10, 6) << " MB\n";
+
+    int c = m;
+    int d = k / 2;
+    while (c > 8 && binom(n, d) * (c / 8 + d) > memory_limit) c /= 2;
+    while (binom(n, d) * (c / 8 + d) > memory_limit) d -= 1;
+
+    cout << "Teile Karten in " << c << "-Bit Stücke\n";
+
+    switch (c) {
+        case 8: 
+            merge_results<T, uint8_t>(cards, n, k, c, d);
+            break;
+        case 16: 
+            merge_results<T, uint16_t>(cards, n, k, c, d);
+            break;
+        case 32: 
+            merge_results<T, uint32_t>(cards, n, k, c, d);
+            break;
+        case 64: 
+            merge_results<T, uint64_t>(cards, n, k, c, d);
+            break;
+        case 128: 
+            merge_results<T, __uint128_t>(cards, n, k, c, d);
+            break;
+    }
 }
