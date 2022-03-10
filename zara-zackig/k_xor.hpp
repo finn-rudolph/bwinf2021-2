@@ -89,7 +89,7 @@ vector<vector<S>> split_cards(vector<T> cards, int c) {
     for (T &card: cards) {
         string bin_string = to_binary_str<T>(card);
         for (int i = 0; i < bin_string.size(); i += c) {
-            fragments[i].push_back(to_number<S>(bin_string.substr(i, c)));
+            fragments[i / c].push_back(to_number<S>(bin_string.substr(i, c)));
         }
     }
     return fragments;
