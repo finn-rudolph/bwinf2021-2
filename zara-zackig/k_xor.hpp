@@ -7,6 +7,7 @@
 #include <iostream>
 #include <cmath>
 #include <unistd.h>
+#include <thread>
 #include "io.hpp"
 using namespace std;
 
@@ -14,20 +15,21 @@ template <typename T>
 void xor_combine(
     vector<T> &cards,
     int d,
-    function<void (T)> cb,
+    function<void (T&)> cb,
     uint8_t* used,
-    T xor_val = 0,
-    uint8_t start = 0
+    uint8_t start,
+    uint8_t end,
+    T xor_val = 0
 ) {
     if (d == 0) {
         cb(xor_val);
         return;
     }
 
-    for (uint8_t i = start; i < cards.size(); i++) {
+    for (uint8_t i = start; i < end; i++) {
         xor_val ^= cards[i];
         used[d - 1] = i;
-        xor_combine<T>(cards, d - 1, cb, used, xor_val, i + 1);
+        xor_combine<T>(cards, d - 1, cb, used, i + 1, cards.size(), xor_val);
         xor_val ^= cards[i];
     }
 }
@@ -62,7 +64,7 @@ void radix_sort_msd(T* values, uint8_t* indices, long long length, int d, int bi
 }
 
 template <typename T>
-int bs(T* &arr, long long length, T target) {
+int bs(T* arr, long long length, T target) {
     int a = 0, b = length - 1;
 
     while (b > a) {
@@ -98,44 +100,59 @@ vector<vector<S>> split_cards(vector<T> cards, int c) {
 template <typename T>
 set<vector<uint8_t>> xor_to_zero(vector<T> cards, int n, int k, int d) {
     long long num_comb = binom(n, d);
-    cout << "Vorberechnen von " << num_comb << " Kombinationen aus jeweils d = " << d << " Karten\n\n";
 
     T* values = new T[num_comb];
     uint8_t* indices = new uint8_t[num_comb * d];
     int length = 0;
-    uint8_t used[k - d];
+
+    uint8_t used[d];
 
     xor_combine<T>(cards, d, 
-        [&values, &indices, &used, &length, &d](T xor_val) {
+        [&values, &indices, &used, &length, &d](T &xor_val) {
             values[length] = xor_val;
             move(used, used + d, indices + length * d);
             length += 1;
-        }, 
-        used);
+        },
+        used, 0, n);
+    
+    cout << num_comb << " Kombinationen aus jeweils d = " << d << " Karten vorberechnet.\n";
 
     radix_sort_msd<T>(values, indices, num_comb, d);
-
     set<vector<uint8_t>> results;
 
-    xor_combine<T>(cards, k - d,
-        [&values, &indices, &results, &used, &num_comb, &k, &d](T xor_val) {
-            int i = bs<T>(values, num_comb, xor_val);
-            if (i != -1) {
-                while (values[i - 1] == xor_val) i -= 1;
+    int cores = thread::hardware_concurrency();
+    if (cores == 0) cores = sysconf(_SC_NPROCESSORS_ONLN);
+    if (cores == 0) cores = 8;
 
-                while (values[i] == xor_val) {
-                    if (no_intersection(used, indices + i * d, k - d, d)) {
-                        vector<uint8_t> used_cards(used, used + k - d);
-                        used_cards.insert(used_cards.end(), indices + i * d, indices + i * d + d);
+    cout << "Benutze " << cores << " Threads\n\n";
+    vector<thread> threads;
 
-                        sort(used_cards.begin(), used_cards.end());
-                        results.insert(used_cards);    
+    for (int i = 0; i < cores; i++) {
+        threads.emplace_back([&] {
+            uint8_t used[k - d];
+            xor_combine<T>(cards, k - d,
+                [&values, &indices, &results, &used, &num_comb, &k, &d](T &xor_val) {
+                    int i = bs<T>(values, num_comb, xor_val);
+                    if (i != -1) {
+                        while (values[i - 1] == xor_val) i -= 1;
+
+                        while (values[i] == xor_val) {
+                            if (no_intersection(used, indices + i * d, k - d, d)) {
+                                vector<uint8_t> used_cards(used, used + k - d);
+                                used_cards.insert(used_cards.end(), indices + i * d, indices + i * d + d);
+
+                                sort(used_cards.begin(), used_cards.end());
+                                results.insert(used_cards);   
+                            }
+                            i += 1;
+                        }
                     }
-                    i += 1;
-                }
-            }
-        },
-        used);
+                },
+                used, n * i / cores, n * (i + 1) / cores);
+        });
+    }
+
+    for (thread &t: threads) t.join();
 
     delete[] values;
     delete[] indices;
