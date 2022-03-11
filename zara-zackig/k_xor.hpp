@@ -97,58 +97,81 @@ vector<vector<S>> split_cards(vector<T> cards, int c) {
     return fragments;
 }
 
+vector<int> assign_threads(long long num_comb, int cores, int n, int d) {
+    vector<int> alloc(cores * 2, 0);
+    int j = 1;
+    long long min = num_comb / cores, sum = 0;
+    for (int i = 0; i < n; i++) {
+        if (sum >= min * j) {
+            alloc[j * 2] = i;
+            alloc[j * 2 + 1] = sum;
+            j += 1;
+        } 
+        sum += binom(n - i - 1, d - 1);
+    }
+    return alloc;
+}
+
 template <typename T>
 set<vector<uint8_t>> xor_to_zero(vector<T> cards, int n, int k, int d) {
     long long num_comb = binom(n, d);
 
     T* values = new T[num_comb];
     uint8_t* indices = new uint8_t[num_comb * d];
-    int length = 0;
-
-    uint8_t used[d];
-
-    xor_combine<T>(cards, d, 
-        [&values, &indices, &used, &length, &d](T &xor_val) {
-            values[length] = xor_val;
-            move(used, used + d, indices + length * d);
-            length += 1;
-        },
-        used, 0, n);
-    
-    cout << num_comb << " Kombinationen aus jeweils d = " << d << " Karten vorberechnet.\n";
-
-    radix_sort_msd<T>(values, indices, num_comb, d);
-    set<vector<uint8_t>> results;
 
     int cores = thread::hardware_concurrency();
     if (cores == 0) cores = sysconf(_SC_NPROCESSORS_ONLN);
     if (cores == 0) cores = 8;
 
-    cout << "Benutze " << cores << " Threads\n\n";
+    vector<int> alloc = assign_threads(num_comb, cores, n, d);
+    cout << "Using " << cores << " threads\n\n";
     vector<thread> threads;
+
+    for (int i = 0; i < cores; i++) {
+        threads.emplace_back([&] {
+            int pos = alloc[i * 2 + 1];
+            uint8_t used[d];
+            xor_combine<T>(cards, d, 
+                [&values, &indices, &used, &pos, &d](T &xor_val) {
+                    values[pos] = xor_val;
+                    move(used, used + d, indices + pos * d);
+                    pos += 1;
+                },
+                used, alloc[i * 2], alloc[i * 2 + 2]);
+        });
+    }
+
+    for (thread &t: threads) t.join();
+
+    cout << "Precomputed "<< num_comb << " combinations, d = " << d << "\n";
+    radix_sort_msd<T>(values, indices, num_comb, d);
+
+    set<vector<uint8_t>> results;
+    alloc = assign_threads(num_comb, cores, n, k - d);
+    threads.clear();
 
     for (int i = 0; i < cores; i++) {
         threads.emplace_back([&] {
             uint8_t used[k - d];
             xor_combine<T>(cards, k - d,
-                [&values, &indices, &results, &used, &num_comb, &k, &d](T &xor_val) {
+                [&values, &indices, &results, &num_comb, &k, &d, &used](T &xor_val) {
                     int i = bs<T>(values, num_comb, xor_val);
                     if (i != -1) {
                         while (values[i - 1] == xor_val) i -= 1;
 
                         while (values[i] == xor_val) {
                             if (no_intersection(used, indices + i * d, k - d, d)) {
-                                vector<uint8_t> used_cards(used, used + k - d);
-                                used_cards.insert(used_cards.end(), indices + i * d, indices + i * d + d);
+                                vector<uint8_t> res(used, used + k - d);
+                                res.insert(res.end(), indices + i * d, indices + i * d + d);
 
-                                sort(used_cards.begin(), used_cards.end());
-                                results.insert(used_cards);   
+                                sort(res.begin(), res.end());
+                                results.insert(res);   
                             }
                             i += 1;
                         }
                     }
                 },
-                used, n * i / cores, n * (i + 1) / cores);
+                used, alloc[i * 2], alloc[i * 2 + 2]);
         });
     }
 
@@ -191,7 +214,7 @@ void decide_parameters(int n, int k, int m) {
     while (c > 8 && binom(n, d) * (c / 8 + d) > memory_limit) c /= 2;
     while (binom(n, d) * (c / 8 + d) > memory_limit) d -= 1;
 
-    cout << "Teile Karten in " << c << "-Bit Stücke\n";
+    cout << "Divide cards into " << c << "-bit pieces\n";
 
     switch (c) {
         case 8: 
