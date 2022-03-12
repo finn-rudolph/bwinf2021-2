@@ -1,6 +1,5 @@
 #include <vector>
 #include <set>
-#include <map>
 #include <unordered_set>
 #include <functional>
 #include <algorithm>
@@ -87,18 +86,6 @@ long long memory() {
     return sysconf(_SC_PHYS_PAGES) * sysconf(_SC_PAGE_SIZE);
 }
 
-template <typename T, typename S>
-vector<vector<S>> split_cards(vector<T> cards, int c) {
-    vector<vector<S>> fragments(sizeof (T) / sizeof (S));
-    for (T &card: cards) {
-        string bin_string = to_binary_str<T>(card);
-        for (int i = 0; i < bin_string.size(); i += c) {
-            fragments[i / c].push_back(to_number<S>(bin_string.substr(i, c)));
-        }
-    }
-    return fragments;
-}
-
 vector<int> assign_threads(long long num_comb, int cores, int n, int d) {
     vector<int> alloc(cores * 2, 0);
     int j = 1;
@@ -115,7 +102,12 @@ vector<int> assign_threads(long long num_comb, int cores, int n, int d) {
 }
 
 template <typename T>
-set<vector<uint8_t>> xor_to_zero(vector<T> cards, int n, int k, int d) {
+vector<uint8_t> xor_to_zero(vector<T> cards, int n, int k) {
+    long long memory_limit = memory() - (((long long) 3) << 30);
+    cout << "Memory Limit: " << (memory_limit) / pow(10, 6) << " MB\n";
+
+    int d = k / 2;
+    while (binom(n, d) * (sizeof (T) + d) > memory_limit) d -= 1;
     long long num_comb = binom(n, d);
 
     T* values = new T[num_comb];
@@ -149,28 +141,28 @@ set<vector<uint8_t>> xor_to_zero(vector<T> cards, int n, int k, int d) {
     radix_sort_msd<T>(values, indices, num_comb, d);
     cout << "Sorted\n";
 
-    set<vector<uint8_t>> results;
     alloc = assign_threads(num_comb, cores, n, k - d);
     threads.clear();
 
     for (int i = 0; i < cores; i++) {
-        threads.emplace_back([i, &cards, &values, &indices, &num_comb, &results, &n, &k, &d, &cores, &alloc] {
+        threads.emplace_back([i, &cards, &values, &indices, &num_comb, &n, &k, &d, &cores, &alloc] {
             uint8_t used[k - d];
             xor_combine<T>(cards, k - d,
-                [&values, &indices, &results, &num_comb, &k, &d, &used](T &xor_val) {
+                [&cards, &values, &indices, &num_comb, &k, &d, &used](T &xor_val) {
                     int j = bs<T>(values, num_comb, xor_val);
                     if (j != -1) {
-                        while (j > 0 && values[j - 1] == xor_val) {
-                            j -= 1;
-                        }
+                        while (j > 0 && values[j - 1] == xor_val) j -= 1;      
 
                         while (values[j] == xor_val && j < num_comb) {
                             if (no_intersection(used, indices + j * d, (k - d), d)) {
                                 vector<uint8_t> res(used, used + (k - d));
                                 res.insert(res.end(), indices + j * d, indices + j * d + d);
-
                                 sort(res.begin(), res.end());
-                                results.insert(res);
+
+                                delete[] values;
+                                delete[] indices;
+                                print_cards(res, cards);
+                                exit(EXIT_SUCCESS);
                             }
                             j += 1;
                         }
@@ -184,58 +176,5 @@ set<vector<uint8_t>> xor_to_zero(vector<T> cards, int n, int k, int d) {
 
     delete[] values;
     delete[] indices;
-    return results;
-}
-
-template <typename T, typename S>
-vector<uint8_t> merge_results(vector<T> cards, int n, int k, int c, int d) {
-    vector<vector<S>> fragments = split_cards<T, S>(cards, c);
-    set<vector<uint8_t>> results;
-
-    for (vector<S> &card_set: fragments) {
-        set<vector<uint8_t>> partial = xor_to_zero<S>(card_set, n, k, d);
-        if (results.empty()) {
-            results = partial;
-        } else {
-            set<vector<uint8_t>> new_solutions;
-            for (vector<uint8_t> comb: results) {
-                if (partial.find(comb) != partial.end()) new_solutions.insert(comb);
-            }
-            results = new_solutions;
-        }
-    }
-    return *(results.begin());
-}
-
-template <typename T>
-void decide_parameters(int n, int k, int m) {
-    vector<T> cards = read_cards<T>(n);
-
-    long long memory_limit = memory() - (((long long) 3) << 30);
-    cout << "Memory Limit: " << (memory_limit) / pow(10, 6) << " MB\n";
-
-    int c = m;
-    int d = k / 2;
-    while (c > 8 && binom(n, d) * (c / 8 + d) > memory_limit) c /= 2;
-    while (binom(n, d) * (c / 8 + d) > memory_limit) d -= 1;
-
-    cout << "Divide cards into " << c << "-bit pieces\n";
-
-    switch (c) {
-        case 8: 
-            merge_results<T, uint8_t>(cards, n, k, c, d);
-            break;
-        case 16: 
-            merge_results<T, uint16_t>(cards, n, k, c, d);
-            break;
-        case 32: 
-            merge_results<T, uint32_t>(cards, n, k, c, d);
-            break;
-        case 64: 
-            merge_results<T, uint64_t>(cards, n, k, c, d);
-            break;
-        case 128: 
-            merge_results<T, __uint128_t>(cards, n, k, c, d);
-            break;
-    }
+    return {};
 }
