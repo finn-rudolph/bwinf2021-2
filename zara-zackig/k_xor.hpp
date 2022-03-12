@@ -47,10 +47,10 @@ bool no_intersection(uint8_t* arr1, uint8_t* arr2, int len1, int len2) {
 
 template <typename T>
 void radix_sort_msd(T* values, uint8_t* indices, long long length, int d, int bit = sizeof (T) * 8 - 1) {
-    if (length <= 1) return;
+    if (length <= 1 || bit == 0) return;
 
     long long a = 0, b = length - 1;
-    while (a != b) {
+    while (a < b) {
         if ((values[a] >> bit) & (T) 1) {
             swap(values[a], values[b]);
             swap_ranges(indices + a * d, indices + a * d + d, indices + b * d);
@@ -60,6 +60,7 @@ void radix_sort_msd(T* values, uint8_t* indices, long long length, int d, int bi
         }
     }
 
+    if (!((values[a] >> bit) & (T) 1)) a += 1;
     radix_sort_msd<T>(values, indices, a, d, bit - 1);
     radix_sort_msd<T>(values + a, indices + a * d, length - a, d, bit - 1);
 }
@@ -78,7 +79,7 @@ int bs(T* arr, long long length, T target) {
 }
 
 long long binom(int n, int k) {
-    if (k == 1) return n;
+    if (k == 0) return 1;
     return ((double) n / (double) k) * (double) binom(n - 1, k - 1);
 }
 
@@ -102,7 +103,7 @@ vector<int> assign_threads(long long num_comb, int cores, int n, int d) {
     vector<int> alloc(cores * 2, 0);
     int j = 1;
     long long min = num_comb / cores, sum = 0;
-    for (int i = 0; i < n && j < cores; i++) {
+    for (int i = 0; j < cores; i++) {
         if (sum >= min * j) {
             alloc[j * 2] = i;
             alloc[j * 2 + 1] = sum;
@@ -144,7 +145,7 @@ set<vector<uint8_t>> xor_to_zero(vector<T> cards, int n, int k, int d) {
 
     for (thread &t: threads) t.join();
 
-    cout << "Precomputed "<< num_comb << " combinations, d = " << d << "\n";
+    cout << "Precomputed " << num_comb << " combinations, d = " << d << "\n";
     radix_sort_msd<T>(values, indices, num_comb, d);
 
     set<vector<uint8_t>> results;
