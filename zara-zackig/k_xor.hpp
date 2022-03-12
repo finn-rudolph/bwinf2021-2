@@ -1,5 +1,6 @@
 #include <vector>
 #include <set>
+#include <map>
 #include <unordered_set>
 #include <functional>
 #include <algorithm>
@@ -101,7 +102,7 @@ vector<int> assign_threads(long long num_comb, int cores, int n, int d) {
     vector<int> alloc(cores * 2, 0);
     int j = 1;
     long long min = num_comb / cores, sum = 0;
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < n && j < cores; i++) {
         if (sum >= min * j) {
             alloc[j * 2] = i;
             alloc[j * 2 + 1] = sum;
@@ -128,7 +129,7 @@ set<vector<uint8_t>> xor_to_zero(vector<T> cards, int n, int k, int d) {
     vector<thread> threads;
 
     for (int i = 0; i < cores; i++) {
-        threads.emplace_back([&] {
+        threads.emplace_back([i, &cards, &values, &indices, &d, &alloc] {
             int pos = alloc[i * 2 + 1];
             uint8_t used[d];
             xor_combine<T>(cards, d, 
@@ -151,23 +152,23 @@ set<vector<uint8_t>> xor_to_zero(vector<T> cards, int n, int k, int d) {
     threads.clear();
 
     for (int i = 0; i < cores; i++) {
-        threads.emplace_back([&] {
+        threads.emplace_back([i, &cards, &values, &indices, &num_comb, &results, &k, &d, &alloc] {
             uint8_t used[k - d];
             xor_combine<T>(cards, k - d,
                 [&values, &indices, &results, &num_comb, &k, &d, &used](T &xor_val) {
-                    int i = bs<T>(values, num_comb, xor_val);
-                    if (i != -1) {
-                        while (values[i - 1] == xor_val) i -= 1;
+                    int j = bs<T>(values, num_comb, xor_val);
+                    if (j != -1) {
+                        while (values[j - 1] == xor_val) j -= 1;
 
-                        while (values[i] == xor_val) {
-                            if (no_intersection(used, indices + i * d, k - d, d)) {
+                        while (values[j] == xor_val) {
+                            if (no_intersection(used, indices + j * d, k - d, d)) {
                                 vector<uint8_t> res(used, used + k - d);
-                                res.insert(res.end(), indices + i * d, indices + i * d + d);
+                                res.insert(res.end(), indices + j * d, indices + j * d + d);
 
                                 sort(res.begin(), res.end());
                                 results.insert(res);   
                             }
-                            i += 1;
+                            j += 1;
                         }
                     }
                 },
