@@ -129,7 +129,7 @@ set<vector<uint8_t>> xor_to_zero(vector<T> cards, int n, int k, int d) {
     vector<thread> threads;
 
     for (int i = 0; i < cores; i++) {
-        threads.emplace_back([i, &cards, &values, &indices, &d, &alloc] {
+        threads.emplace_back([i, &cards, &values, &indices, &n, &d, &cores, &alloc] {
             int pos = alloc[i * 2 + 1];
             uint8_t used[d];
             xor_combine<T>(cards, d, 
@@ -138,7 +138,7 @@ set<vector<uint8_t>> xor_to_zero(vector<T> cards, int n, int k, int d) {
                     move(used, used + d, indices + pos * d);
                     pos += 1;
                 },
-                used, alloc[i * 2], alloc[i * 2 + 2]);
+                used, alloc[i * 2], i == cores - 1 ? n : alloc[i * 2 + 2]);
         });
     }
 
@@ -152,7 +152,7 @@ set<vector<uint8_t>> xor_to_zero(vector<T> cards, int n, int k, int d) {
     threads.clear();
 
     for (int i = 0; i < cores; i++) {
-        threads.emplace_back([i, &cards, &values, &indices, &num_comb, &results, &k, &d, &alloc] {
+        threads.emplace_back([i, &cards, &values, &indices, &num_comb, &results, &n, &k, &d, &cores, &alloc] {
             uint8_t used[k - d];
             xor_combine<T>(cards, k - d,
                 [&values, &indices, &results, &num_comb, &k, &d, &used](T &xor_val) {
@@ -172,7 +172,7 @@ set<vector<uint8_t>> xor_to_zero(vector<T> cards, int n, int k, int d) {
                         }
                     }
                 },
-                used, alloc[i * 2], alloc[i * 2 + 2]);
+                used, alloc[i * 2], i == cores - 1 ? n : alloc[i * 2 + 2]);
         });
     }
 
