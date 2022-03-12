@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include <cstdlib>
 #include <ctime>
-#include <iostream>
 using namespace std;
 
 template<typename T>

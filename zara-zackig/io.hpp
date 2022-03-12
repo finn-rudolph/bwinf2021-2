@@ -37,6 +37,7 @@ vector<T> read_cards(int n) {
 
 template <typename T>
 void print_cards(vector<uint8_t> indices, vector<T> &cards) {
+    cout << '\n';
     for (uint8_t i: indices) {
         cout << to_binary_str<T>(cards[i]) << " (Z. " << ((int) i + 2)  << ")" << '\n';
     }

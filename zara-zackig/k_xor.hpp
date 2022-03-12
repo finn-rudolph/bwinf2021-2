@@ -69,7 +69,7 @@ template <typename T>
 int bs(T* arr, long long length, T target) {
     int a = 0, b = length - 1;
 
-    while (b > a) {
+    while (a < b) {
         int mid = (a + b) / 2;
         if (arr[mid] == target) return mid;
         else if (arr[mid] < target) a = mid + 1;
@@ -126,7 +126,7 @@ set<vector<uint8_t>> xor_to_zero(vector<T> cards, int n, int k, int d) {
     if (cores == 0) cores = 8;
 
     vector<int> alloc = assign_threads(num_comb, cores, n, d);
-    cout << "Using " << cores << " threads\n\n";
+    cout << "Using " << cores << " threads\n";
     vector<thread> threads;
 
     for (int i = 0; i < cores; i++) {
@@ -147,6 +147,7 @@ set<vector<uint8_t>> xor_to_zero(vector<T> cards, int n, int k, int d) {
 
     cout << "Precomputed " << num_comb << " combinations, d = " << d << "\n";
     radix_sort_msd<T>(values, indices, num_comb, d);
+    cout << "Sorted\n";
 
     set<vector<uint8_t>> results;
     alloc = assign_threads(num_comb, cores, n, k - d);
@@ -159,15 +160,17 @@ set<vector<uint8_t>> xor_to_zero(vector<T> cards, int n, int k, int d) {
                 [&values, &indices, &results, &num_comb, &k, &d, &used](T &xor_val) {
                     int j = bs<T>(values, num_comb, xor_val);
                     if (j != -1) {
-                        while (values[j - 1] == xor_val) j -= 1;
+                        while (j > 0 && values[j - 1] == xor_val) {
+                            j -= 1;
+                        }
 
-                        while (values[j] == xor_val) {
-                            if (no_intersection(used, indices + j * d, k - d, d)) {
-                                vector<uint8_t> res(used, used + k - d);
+                        while (values[j] == xor_val && j < num_comb) {
+                            if (no_intersection(used, indices + j * d, (k - d), d)) {
+                                vector<uint8_t> res(used, used + (k - d));
                                 res.insert(res.end(), indices + j * d, indices + j * d + d);
 
                                 sort(res.begin(), res.end());
-                                results.insert(res);   
+                                results.insert(res);
                             }
                             j += 1;
                         }
@@ -185,7 +188,7 @@ set<vector<uint8_t>> xor_to_zero(vector<T> cards, int n, int k, int d) {
 }
 
 template <typename T, typename S>
-void merge_results(vector<T> cards, int n, int k, int c, int d) {
+vector<uint8_t> merge_results(vector<T> cards, int n, int k, int c, int d) {
     vector<vector<S>> fragments = split_cards<T, S>(cards, c);
     set<vector<uint8_t>> results;
 
@@ -201,14 +204,14 @@ void merge_results(vector<T> cards, int n, int k, int c, int d) {
             results = new_solutions;
         }
     }
-    print_cards<T>(*results.begin(), cards);
+    return *(results.begin());
 }
 
 template <typename T>
 void decide_parameters(int n, int k, int m) {
     vector<T> cards = read_cards<T>(n);
 
-    long long memory_limit = memory() - (((long long) 1) << 31);
+    long long memory_limit = memory() - (((long long) 3) << 30);
     cout << "Memory Limit: " << (memory_limit) / pow(10, 6) << " MB\n";
 
     int c = m;
