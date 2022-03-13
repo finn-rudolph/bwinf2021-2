@@ -5,7 +5,7 @@
 
 ## Problembeschreibung
 
-Zunächst einige wichtige Eigenschaften des $\text{xor}$ Operators. Das exklusive Oder zweier gleicher Zahlen ist immer 0, weil sich bei diesen Zahlen kein Bit unterscheidet. Auch ist $\text{xor}$ kommutativ sowie assoziativ, d. h. die Anwendungsreihenfolge auf mehrere Operanden und Anordnung der Operanden sind irrelevant für das Ergebnis (Lewin, 2012). Die Aufgabenstellung verlangt es, aus einer Menge $S$ von Karten oder Binärzahlen, $k$ Zahlen zu finden, deren $\text{xor}$ gleich irgendeiner anderen Zahl $\in S$ ist. Mit den oben genannten Eigenschaften kann das Problem umformuliert werden: Finde $k + 1$ Zahlen aus $S$, deren $\text{xor}$ gleich $0$ ist. Für weitere Beschreibungen werde ich $k$ für die Anzahl an Zahlen, der $\text{xor}$ gleich 0 sein soll verwenden, und nicht $k + 1$, weil das der Standard in allen Quellen ist.
+Zunächst einige wichtige Eigenschaften des $\text{xor}$ Operators. Das exklusive Oder zweier gleicher Zahlen ist immer 0, weil sich bei diesen Zahlen kein Bit unterscheidet. Auch ist $\text{xor}$ kommutativ sowie assoziativ, d. h. die Anwendungsreihenfolge auf mehrere Operanden und Anordnung der Operanden sind irrelevant für das Ergebnis (Lewin, 2012). Die Aufgabenstellung verlangt es, aus einer Menge $S$ von Karten oder Binärzahlen, $k$ verschiedene Zahlen zu finden, deren $\text{xor}$ gleich irgendeiner anderen Zahl $\in S$ ist. Mit den oben genannten Eigenschaften kann das Problem umformuliert werden: Finde $k + 1$ Zahlen aus $S$, deren $\text{xor}$ gleich $0$ ist. Von hier an werde ich $k$ für die Anzahl an Zahlen, deren $\text{xor}$ gleich 0 sein soll verwenden, und nicht $k + 1$, weil das der Standard in allen Quellen ist.
 
 Das Problem ist Variation des Teilsummenproblems, das ein Spezialfall des Rucksackproblems ist. Das Teilsummenproblem verlangt es, von einer Menge an ganzen Zahlen $S$ eine Teilmenge $T$ zu bestimmen, deren Summe gleich 0 ist. In diesem Fall wird statt des $+$ Operators der $\text{xor}$ Operator verwendet. Diese Eigenschaft allein würde das Problem, im Gegensatz zum Teilsummenproblem, in polynomialer Zeit lösbar machen (Jafargholi & Viola, 2018, S. 2). Aber da die Größe von $T$ ebenfalls vorgegeben ist, ist es NP-schwer, kann also nur in exponentieller Zeit optimal gelöst werden.
 
@@ -14,111 +14,134 @@ Formal ausgedrückt, soll eine Menge $T$ bestimmt werden, die folgende Eigenscha
 $$
 t_1 \text{ xor } t_2 \text{ xor } \dots \text{ xor } t_k = 0 \\
 |T| = k \\
-T \subseteq S
+T \subseteq S \\
+t_i \neq t_j \space \forall \space 1 \leq i < j \leq k
 $$
 
 ## Lösungsidee
 
-Im Gegensatz zum Müllabfuhr-Problem ist eine Heuristik hier unangebracht, denn fast richtige Schlüsselkarten helfen Zara nicht weiter. Das Ziel ist es also, die exponentielle Laufzeit, die ein optimaler Algorithmus haben wird, mit einigen Tricks im Rahmen zu halten. Dafür verwende ich drei Ansätzte: _Hashing_, _Meet in the Middle_ und _Divide and Conquer_.
+### Teil a)
 
-### Das 3-XOR Problem
+Im Gegensatz zum Müllabfuhr-Problem ist eine Heuristik hier unangebracht, denn fast richtige Schlüsselkarten helfen Zara nicht weiter. Das Ziel ist es also, die exponentielle Laufzeit, die ein optimaler Algorithmus haben wird, mit einigen Tricks im Rahmen zu halten. Dafür verwende ich den Brute-Force Ansatz _Meet in the Middle_ (Sannemo, 2018, S. 138). Das bedeutet, einen Teil, meist die Hälfte, aller möglichen Lösungen im Voraus zu berechnen.
 
-Für den Fall $k = 3$ (3-XOR Problem) existiert bereits ein einfacher Algorithmus mit quadratischer Laufzeit (Bouillaguet & Delaplace, 2021, S. 5). Mit einem naiven Ausprobieren aller Kombinationen würde er $O(n^3)$ benötigen, da man $\binom{n}{3} = \frac 16 n^3 - \frac 12 n^2 + \frac 13 n$ Möglichkeiten hat, die Zahlen zu kombinieren. $n = |S|$, wie in der Aufgabenstellung. Durch Speichern aller Zahlen $\in S$ in einer Hashmap, um nicht für jedes $\text{xor}$-verknüpfte Paar von Zahlen die ganze Liste durchgehen zu müssen, kann der Grad des Polynoms um $1$ reduziert werden.
+#### Das 3-XOR Problem
 
-Das hier vorliegende Problem kann also, analog zum 3-XOR Problem, als $k$-XOR Problem bezeichnet werden. Der Begriff existiert allerdings bereits und wird für ein ähnliches Problem verwendet, nämlich aus $k$ Listen je ein Element zu wählen, sodass das $\text{xor}$ all dieser Elemente 0 ist. Für dieses Problem existiert ein Algorithmus mit subexponentieller Laufzeit (Wagner, 2002), der allerdings eine bestimmte Größe der Listen voraussetzt, weswegen eine Übertragung auf das hier vorliegende Problem nicht sinnvoll ist. Ansonsten findet man zum $k$-XOR Problem vor allem Quantenalgorithmen.
+Für den Fall $k = 3$ (3-XOR Problem) existiert bereits ein einfacher Algorithmus mit quadratischer Laufzeit (Bouillaguet & Delaplace, 2021, S. 5). Mit einem naiven Ausprobieren aller Kombinationen würde er $O(n^3)$ benötigen, da man $\binom{n}{3} = \frac 16 n^3 - \frac 12 n^2 + \frac 13 n$ Möglichkeiten hat, die Zahlen zu kombinieren. $n = |S|$, wie in der Aufgabenstellung. Durch Speichern aller Zahlen $\in S$ in einer Hashmap, um nicht für jedes $\text{xor}$-verknüpfte Paar von Zahlen die ganze Liste durchgehen zu müssen, kann der Grad des Polynoms um $1$ reduziert werden. Es wird für jede $\text{xor}$-Verknüpfung aus zwei verschiedenen Zahlen geprüft, ob diese in der Hashmap existiert, denn das $\text{xor}$ von zwei gleichen Zahlen ist $0$. Natürlich ist eine Lösung nur gültig, wenn der gefundene Eintrag in der Hashmap nicht zu einer der zwei Zahlen gehört.
+
+Das hier vorliegende Problem kann also, analog zum 3-XOR Problem, als $k$-XOR Problem bezeichnet werden. Der Begriff existiert allerdings bereits und wird für ein ähnliches Problem verwendet, nämlich aus $k$ Listen je ein Element zu wählen, sodass das $\text{xor}$ all dieser Elemente 0 ist. Für dieses Problem existiert ein Algorithmus mit subexponentieller Laufzeit (Wagner, 2002), der allerdings eine bestimmte Größe der Listen voraussetzt, weswegen eine Übertragung auf das hier vorliegende Problem nicht sinnvoll ist.
 
 _Anmerkung:_ Der Algorithmus für das 3-XOR Problem läuft in polynomialer Zeit, weil das Problem für variable $k$ eine Zeitkomplexität mit $k$ im Exponenten hat.
 
-### Verallgemeinerung des 3-XOR Problems
+#### Verallgemeinerung des 3-XOR Problems
 
-Ich möchte diese Idee des Hashings für größere $k$ generalisieren. Um das Problem für $k = 4$ zu lösen, wird die Hashmap $H$ mit allen $\text{xor}$-Verknüpfungen von zwei ungleichen Zahlen $\in S$ gefüllt:
+Ich möchte diese Idee des Vorberechnens für größere $k$ generalisieren. Allerdings verwende ich wegen des großen Speicherbedarfs keine Hashmap, sondern eine sortierte Liste, in der ein bestimmtes Element mithilfe von Binärsuche in $O(\log_2n)$ gefunden werden kann. Obwohl das zunächst langsamer ist als $O(1)$ bei einer Hashmap, lohnt es sich insgesamt für den Zeitaufwand, da der Speicherplatz für die Zeitkomplexität limitierend ist, wie ich später erklären werde.
+
+Um das Problem beispielsweise für $k = 4$ zu lösen, wird eine Liste $L$ mit allen $\text{xor}$-Verknüpfungen von zwei ungleichen Zahlen $\in S$ gefüllt:
 
 $$
-H = \{s_1 \text{ xor } s_2 \space
+L = \{s_1 \text{ xor } s_2 \space
 \forall \space (s_1, s_2 \in S \space | \space s_1 \neq s_2)
 $$
 
-Damit ist das Problem für $k = 4$ ebenfalls in $O(n^2)$ lösbar, weil die Erstellung von $H$ sowie das Überprüfen der Existenz jedes $\text{xor}$-verknüpften Paares in $H$ in $O(n^2)$ ausgeführt werden kann. Diese Strategie, einen Teil, meist die Hälfte, aller möglichen Lösungen im Voraus zu berechnen, heißt _Meet in the Middle_ und gehört zu den Brute-Force Lösungsmethoden (Sannemo, 2018, S. 138). Warum gerade die Hälfte sinnvoll ist, wird später erklärt.
+Damit ist das Problem für $k = 4$ in $O(n^2 \log_2 n)$ lösbar, weil die Erstellung von $L$ in $O(n^2)$, und das Überprüfen der Existenz jedes $\text{xor}$-verknüpften Paares in $L$ in $O(n^2 )$ ausgeführt werden kann.
 
-Sei $d$ die Anzahl an Zahlen, die für einen Eintrag in $H$ mit $\text{xor}$ verknüpft werden (im obigen Fall $d = 2$). Das heißt $H$ hat $\binom nd = O(n^d)$ Einträge, die durch folgende Rekursionsformel erzeugt werden können:
+Für allgemeine $k$. Sei $d$ die Anzahl an Zahlen, die für einen Eintrag in $L$ mit $\text{xor}$ verknüpft werden (im obigen Fall $d = 2$). Das heißt $L$ hat $\binom nd = O(n^d)$ Einträge. Um die Karten im Auge zu behalten, die für einen vorberechneten $\text{xor}$-Wert benutzt wurden, wird eine zweite Liste $M$ mit Länge $|L| \cdot d$ angelegt, in der die Indizes der verwendeten Karten in $S$ gespeichert. Die verwendeten Karten des $i$´ten $\text{xor}$-Werts in $L$ stehen in $M$ von Position $i \cdot d$ bis $i \cdot d + d$. $L$ und $M$ können durch folgende Rekursion erzeugt werden. $\larr$ bedeutet die Zuweisung einer Variable.
 
 $$
-\text{comb}(d, x) = \begin{cases}
-H \larr H \space \cup \space x & \quad d = 0 \\
-\text{comb}(d - 1, x \text{ xor }s) \space \forall \space s \in S
+\text{comb}(d, x, u) = \begin{cases}
+L \larr L \cup x; \space M \larr M \cup u& \quad d = 0 \\
+\text{comb}(d - 1, x \text{ xor }s, u \cup s) \space \forall \space s \in S
 & \quad \text{else}
 \end{cases}
 $$
 
-$x$ ist der $\text{xor}$-verknüpfte Wert aller $x$ der höher liegenden rekursiven Funktionsaufrufe. Für den ersten Aufruf eignet sich $x=0$, da $0$ der Identitätsoperand des exklusiven Oders ist. Bei größeren $k$ muss beachtet werden, dass der Speicherbedarf sowie die Zeit zur Erstellung von $H$ mit $O(n^d)$ zunimmt, weshlb es nicht immer sinnvoll ist $d = k - 2$ zu wählen, wie in den bisherigen Beispielen. Man stößt hier auf ein _Space-Time-Tradeoff_, das durch ein gut ausgewähltes $d$ optimiert werden kann.
+$x$ ist der $\text{xor}$-verknüpfte Wert aller $s$ der höher liegenden rekursiven Aufrufe. Für den ersten Aufruf eignet sich $x=0$, da $0$ der Identitätsoperand von $\text{xor}$ ist. $u$ ist die Liste aller bisher benutzten $s$ und sollte zu Beginn leer sein. Bei größeren $k$ muss beachtet werden, dass der Speicherbedarf sowie die Zeit zur Erstellung von $L$ mit $O(n^d)$ zunimmt, weshlb es nicht immer sinnvoll ist $d = k - 2$ zu wählen, wie in den bisherigen Beispielen. Man stößt hier auf ein _Space-Time-Tradeoff_, das durch ein gut ausgewähltes $d$ optimiert werden kann.
 
-Betrachten wir zunächst nur die Zeitkomplexität. Wenn $d \neq k - 2$, kann das spätere Durchsuchen der Hashmap auch nicht mehr in $O(n^2)$ geschehen, weil nicht alle Paare, sondern alle Kombinationen von $k - d$ Zahlen überprüft werden müssen. Da es davon $\binom {n}{k-d}$ gibt, ist die Zeitkomplexität des Durchsuchens $O(n^{k - d})$. Die gesamte Zeitkomplexität ist also $O(n^d + n^{k-d})$. Daran sieht man, dass $d = \lfloor \frac k2 \rfloor$ die sinnvollste Wahl ist, denn für die asymptotische Zeitkomplexität ist allein der Summand mit dem größten Exponenten entscheidend, der so minimiert wird. Bei ungeradem $k$ ist abrunden sinnvoller als aufrunden, weil der Speicherbedarf von $H$ exponentiell mit $d$ steigt.
+**Optimierung der Zeitkomplexität.** Wenn $d \neq k - 2$, kann das spätere Durchsuchen der Liste auch nicht mehr in $O(n^2 \log_2 n)$ geschehen, weil nicht alle Paare, sondern alle Kombinationen von $k - d$ Zahlen überprüft werden müssen. Da es davon $\binom {n}{k-d}$ gibt, ist die Zeitkomplexität des Durchsuchens $O(n^{k - d} \log_2 n^d)$. Die gesamte Zeitkomplexität ist also $O(n^d + n^{k - d} \log_2n^d)$. Daran sieht man, dass $d = \lfloor \frac k2 \rfloor$ die sinnvollste Wahl ist, denn für die asymptotische Zeitkomplexität ist allein der Summand mit dem größten Exponenten entscheidend, der so minimiert wird. Bei ungeradem $k$ ist abrunden sinnvoller als aufrunden, weil der Speicherbedarf von $L$ exponentiell mit $d$ steigt.
 
-Nun zur Speicherkomplexität. Sie ist wesentlich limiterender, was ich am Beispiel `stapel2.txt` verdeutlichen möchte. Mit der oben genannten Einschätzung der Speicherkomplexität $O(n^d)$ müssten $111^5 \approx 16,9 \cdot 10^9$ 128-Bit Zahlen gespeichert werden, was ungefähr 270 Gigabyte Arbeitsspeicher erfordern würde. So viel steht keinem üblichen Computer zur Verfügung, daher muss $d$ entsprechend klein gehalten werden.
-
-_Anmerkung:_ Bei den bisherigen Einschätzungen der Zeit- und Platzkomplexität habe ich teilweise polynomiale / logarithmische Faktoren außer Acht gelassen, die sich bei der Implementierung zeigen werden.
+**Limitierung durch die Speicherkomplexität.** Bei großen Eingabedateien muss der Speicherverbrauch beachtet werden. Z. B. bei `stapel4.txt`: Mit der oben genannten Einschätzung der Speicherkomplexität $\binom {n}{d}$ müssten $\binom {181}{5} \approx 1,53 \cdot 10^9$ 128-Bit Zahlen gespeichert werden, was ungefähr 24,5 Gigabyte Arbeitsspeicher erfordern würde. Wenn der Computer nicht so viel Arbeitsspeicher besitzt, muss $d$ entsprechend verringert werden.
 
 Zusammenfassend sieht der Pseudocode des Algorithmus folgendermaßen aus:
 
 ```pseudocode
-prcoedure XorToZero(List S, int k)
+prcoedure Xor0(S, k)
 	d ← ⌊k / 2⌋;
-	H ← ∅;
-	create H with comb(d, 0);
+	while (Speicher von L und M > Arbeitsspeicher) d ← d - 1;
+
+	L ← ∅;
+	M ← ∅;
+	Erstelle L und M mit comb(d, 0, ∅);
+
+	RadixSort(L, M);
 
 	for T ⊆ S | (|T| = k - d) ∧ (tᵢ ≠ tⱼ ∀ 1 ≤ i < j ≤ k - d)
 		x ← t₁ xor t₂ xor ... xor tₖ;
-		if (x ∊ H) 
-			return T;
+		i ← BinarySearch(L, x);
+		P ← M[i ∙ d] ... M[i ∙ d + d];
+		if (i ≠ -1 ∧ T ∩ P = ∅);
+			return T ∪ P;
 ```
 
-### Divide and Conquer
+#### Radix Sort
 
-Um den Arbeitsspeicherbedarf zu reduzieren kann sich die Eigenschaft des $\text{xor}$ Operators zunutze gemacht werden, dass sein Ergebnis bei einem Bit unabhängig von den anderen Bits ist. Das heißt, eine 128-Bit Zahl kann in 16 8-Bit Zahlen geteilt werden, bei denen jeweils alle Kombinationen von $k$ Zahlen gefunden werden, deren $\text{xor}$ gleich 0 ist. Dann ist die Schnittmenge der Lösungsmengen der Teilprobleme die Lösungsmenge des gesamten Problems. Wenn $d$ aufgrund mangelnden Arbeitsspeichers kleiner als $\lfloor \frac k2 \rfloor$ gewählt werden müsste, kann es mit diesem Trick möglicherweise doch um 1 erhöht werden. Denn der Speicherbedarf wird um den Faktor $\frac m8$ verringert wird, wobei $m$ die Anzahl an Bits der Zahlen ist. Eine kleinere Teilung als in 8-Bit Zahlen ist nicht möglich bzw. sinnvoll, denn 8 Bits oder 1 Byte sind die kleinste Speichereinheit eines Computers, d. h. kleinere Einheiten sind nicht direkt adressierbar. Außerdem nimmt die Anzahl an Lösungen bei kleineren Zahlen der Erwartung nach stark zu, was wiederum Speicherplatz benötigt.
+#### Binärsuche
 
-Der Algorithmus `XorToZero` wird also als Subroutine verwendet. Der Pseudocode des gesamten Algorithmus ist wie folgt, wobei $A$ die Lösungsmenge des gesamten Problems und $B$ die des aktuellen Teilproblems ist.
+Binärsuche findet die Position eines gesuchten Werts in einer sortierten Liste, indem das betrachtete Intervall $[a, b]$ schrittweise verkleinert wird. Wenn der Wert in der Mitte des Intervalls kleiner als der gesuchte ist, muss der gesuchte Wert $x$, falls er existiert, in der zweiten Hälfte liegen, d. h. die untere Grenze $a$ kann auf die Mitte $+\space1$ angehoben werden. Wenn er größer ist, wird die obere Grenze $b$ abgesenkt. Wenn in der Mitte der gesuchte Wert liegt, kann sie sofort zurückgegeben werden. $-1$ zeigt an, dass das $x \neq L$, was eintritt, wenn die Länge von $[a, b]$ $0$ ist.
 
 ```pseudocode
-procedure FindCards(List S, int k, int m)
-	A ← ∅;
-	
-	for i ∊ [1, m] | i ≡ 0 (mod 8) 
-		K ← { Bit i bis i + 8 ∊ s | s ∊ S };
-		B ← XorToZero(K, k);		
-		if A = ∅
-			A ← B;
-		else
-			A ← A ∩ B;
-			
-	return A;
+procedure BinarySearch(L, x)
+	a ← 1;
+	b ← |L|;
+
+	while (a < b)
+		h ← ⌊(a + b) / 2⌋;
+		if (lₕ = x) return h;
+		if (lₕ < x) a ← h + 1;
+		else b ← h - 1;
+
+	return -1;
 ```
+
+Neben Binärsuche habe ich als Suchalgorithmus auch Interpolationssuche in Betracht gezogen. Weil eine Gleichverteilung der vorberechneten $\text{xor}$-Werte aber nicht garantiert werden kann bzw. unwahrscheinlich ist, benutze ich Binärsuche.
+
+#### Möglicher Divide and Conquer-Ansatz
+
+Ich hatte die Idee, bei nicht ausreichendem Speicher jede Zahl in kleinere Zahlen mit $c$ Bits aufzuteilen, um $\frac mc$ neue Kartensets zu erhalten. Nachdem alle Lösungen für jedes dieser Sets berechnet wurden, wird die Schnittmenge aller Lösungen genommen, die die Lösung des gesamten Problems ist. Beispielsweise würde sich bei 128-Bit Zahlen mit $c = 8$ der Speicherverbrauch auf $\frac 1{16}$ reduzieren. Ich habe diesen Ansatz implementiert und getestet, er war aber nicht gewinnbringend. Die Testergebnisse finden sich im [Anhang](#teilung-der-zahlen). Ein weiteres Problem war, dass bei großem $n$ und $k$ und gleichzeitig kleinem $c$ die Anzahl an Lösungen jedes Kartensets sehr groß ist, wodurch teilweise mehr Speicher als ohne Teilung verbraucht wurde.
+
+### Teil b)
+
+// sortiert ausgeben
 
 ## Implementierung
 
 Die Idee setzte ich in C++ mit dem Compiler clang um. Das Programm ist auf x86-64 Linux Systemen ausführbar.
 
-```mermaid
-flowchart LR
-
-xm("Variable xor_map:
-unordered_map #60; T, uint8_t * #62;") --> \n
-
-subgraph \n
-	xor("XOR-Ergebnis (Schlüssel): T") --> p("Zeiger (Wert): uint8_t *")
-end
-
-p --> uc
-uc("Array der Indizes benutzter Zahlen: uint8_t [ ]")
-```
-
 ## Zeitkomplexität
+
+## Beispiele
 
 ## Quellcode
 
 ## Literaturverzeichnis
 
 1. Bouillaguet, C. & Delaplace, C. (2021). _Faster Algorithms for the Sparse Random 3XOR Problem_. https://hal.archives-ouvertes.fr/hal-02306917v1/document
-1. Jafargholi, Z. & Viola, E. (2018). _3SUM, 3XOR, Triangles_. https://arxiv.org/pdf/1305.3827.pdf
-1. Lewin, M. (2012). _All about XOR_. https://accu.org/journals/overload/20/109/lewin_1915/
-1. Sannemo, J. (2018). _Principles of Algorithmic Problem Solving_. KTH Royal Institute of Technology. https://www.csc.kth.se/~jsannemo/slask/main.pdf
-1. Wagner, D. (2002). _A Generalized Birthday Problem (Long version)_. University of California at Berkeley. https://people.eecs.berkeley.edu/~daw/papers/genbday.html
+2. Jafargholi, Z. & Viola, E. (2018). _3SUM, 3XOR, Triangles_. https://arxiv.org/pdf/1305.3827.pdf
+3. Lewin, M. (2012). _All about XOR_. https://accu.org/journals/overload/20/109/lewin_1915/
+4. Sannemo, J. (2018). _Principles of Algorithmic Problem Solving_. KTH Royal Institute of Technology. https://www.csc.kth.se/~jsannemo/slask/main.pdf
+5. Wagner, D. (2002). _A Generalized Birthday Problem (Long version)_. University of California at Berkeley. https://people.eecs.berkeley.edu/~daw/papers/genbday.html
+6. Williams, A. (2019). _C++ Concurrency in Action_. https://beefnoodles.cc/assets/book/C++%20Concurrency%20in%20Action.pdf
+7. Woeginger, G. (2003). _Exact Algorithms for NP-Hard Problems: A Survey_. https://people.engr.tamu.edu/j-chen3/courses/689/2006/reading/w1.pdf
+
+## Anhang
+
+### Teilung der Zahlen
+
+Es wurden jeweils 5 Tests mit $n = 20$ und $k = 4$ durchgeführt, die Karten wurden zufällig generiert. Links stehen die Ergebnisse mit Teilung der Karten in $c$-Bit Stücke, rechts die Ergebnisse ohne Teilung. Ohne Teilung muss $d$ um 1 reduziert werden, um den Speicherverbrauch gleich gering zu halten und den Vergleich fair zu machen. Zeitangaben in Durchschnitt ± Standardabweichung.
+
+| m   | c   | d   | Zeit (ms)  |     | m   | d   | Zeit (ms)   |
+| --- | --- | --- | ---------- | --- | --- | --- | ----------- |
+| 8   | 8   | 2   | 2.3 ± 0.13 |     | 8   | 1   | 0.51 ± 0.48 |
+| 16  | 8   | 2   | 5.7 ± 0.52 |     | 16  | 1   | 1.7 ± 0.37  |
+| 32  | 8   | 2   | 13 ± 1.2   |     | 32  | 1   | 1.9 ± 0.28  |
+| 64  | 8   | 2   | 26 ± 1.7   |     | 64  | 1   | 2.0 ± 0.41  |
+| 128 | 8   | 2   | 53 ± 2.7   |     | 128 | 1   | 2.3 ± 0.23  |
