@@ -8,6 +8,7 @@
 #include <cmath>
 #include <unistd.h>
 #include <thread>
+#include <ctime>
 #include "io.hpp"
 using namespace std;
 
@@ -110,6 +111,8 @@ vector<uint8_t> xor_to_zero(vector<T> cards, int n, int k) {
     while (binom(n, d) * (sizeof (T) + d) > memory_limit) d -= 1;
     long long num_comb = binom(n, d);
 
+    int begin = clock();
+
     T* values = new T[num_comb];
     uint8_t* indices = new uint8_t[num_comb * d];
 
@@ -145,10 +148,10 @@ vector<uint8_t> xor_to_zero(vector<T> cards, int n, int k) {
     threads.clear();
 
     for (int i = 0; i < cores; i++) {
-        threads.emplace_back([i, &cards, &values, &indices, &num_comb, &n, &k, &d, &cores, &alloc] {
+        threads.emplace_back([i, &cards, &values, &indices, &num_comb, &n, &k, &d, &cores, &alloc, &begin] {
             uint8_t used[k - d];
             xor_combine<T>(cards, k - d,
-                [&cards, &values, &indices, &num_comb, &k, &d, &used](T &xor_val) {
+                [&cards, &values, &indices, &num_comb, &k, &d, &used, &begin](T &xor_val) {
                     int j = bs<T>(values, num_comb, xor_val);
                     if (j != -1) {
                         while (j > 0 && values[j - 1] == xor_val) j -= 1;      
@@ -162,6 +165,7 @@ vector<uint8_t> xor_to_zero(vector<T> cards, int n, int k) {
                                 delete[] values;
                                 delete[] indices;
                                 print_cards(res, cards);
+                                cout << ((float) (clock() - begin) * 1000 / (float) CLOCKS_PER_SEC) << "ms \n";
                                 exit(EXIT_SUCCESS);
                             }
                             j += 1;
