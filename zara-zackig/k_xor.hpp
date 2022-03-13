@@ -103,8 +103,8 @@ vector<int> assign_threads(long long num_comb, int cores, int n, int d) {
 }
 
 template <typename T>
-vector<uint8_t> xor_to_zero(vector<T> cards, int n, int k) {
-    long long memory_limit = memory() - (((long long) 3) << 30);
+void xor_to_zero(vector<T> cards, int n, int k) {
+    long long memory_limit = memory() - (((long long) 1) << 31);
     cout << "Memory Limit: " << (memory_limit) / pow(10, 6) << " MB\n";
 
     int d = k / 2;
@@ -160,12 +160,11 @@ vector<uint8_t> xor_to_zero(vector<T> cards, int n, int k) {
                             if (no_intersection(used, indices + j * d, (k - d), d)) {
                                 vector<uint8_t> res(used, used + (k - d));
                                 res.insert(res.end(), indices + j * d, indices + j * d + d);
-                                sort(res.begin(), res.end());
 
                                 delete[] values;
                                 delete[] indices;
                                 print_cards(res, cards);
-                                cout << ((float) (clock() - begin) * 1000 / (float) CLOCKS_PER_SEC) << "ms \n";
+                                cout << ((float) (clock() - begin) * 1000 / (float) CLOCKS_PER_SEC) << " ms \n";
                                 exit(EXIT_SUCCESS);
                             }
                             j += 1;
@@ -180,5 +179,4 @@ vector<uint8_t> xor_to_zero(vector<T> cards, int n, int k) {
 
     delete[] values;
     delete[] indices;
-    return {};
 }
