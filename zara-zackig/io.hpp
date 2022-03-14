@@ -2,12 +2,11 @@
 #include <string>
 #include <stdint.h>
 #include <iostream>
-using namespace std;
 
 template <typename T>
-string to_binary_str(T number) {
+std::string to_binary_str(T number) {
     int length = sizeof (T) * 8;
-    string binary(length, ' ');
+    std::string binary(length, ' ');
 
     for (int i = 0; i < length; i++) {
         binary[length - i - 1] = ((number & (T) 1) + '0');
@@ -17,7 +16,7 @@ string to_binary_str(T number) {
 }
 
 template <typename T>
-T to_number(string str) {
+T to_number(std::string str) {
     T number = 0;
     for (char &bit: str) {
         number = (number << 1) | (bit - '0');
@@ -26,22 +25,22 @@ T to_number(string str) {
 }
 
 template <typename T>
-vector<T> read_cards(int n) {
-    vector<T> cards;
+std::vector<T> read_cards(int n) {
+    std::vector<T> cards;
     for (int i = 0; i < n; i++) {
-        string card; cin >> card;
+        std::string card; std::cin >> card;
         cards.push_back(to_number<T>(card));
     }
     return cards;
 }
 
 template <typename T>
-void print_cards(vector<uint8_t> indices, vector<T> &cards) {
-    cout << '\n';
-    vector<T> solution;
+void print_cards(std::vector<uint8_t> indices, std::vector<T> &cards) {
+    std::cout << '\n';
+    std::vector<T> solution;
     for (uint8_t i: indices) solution.push_back(cards[i]);
     sort(solution.begin(), solution.end());
     
-    for (T card: solution) cout << to_binary_str<T>(card) << '\n';
-    cout << endl;   
+    for (T card: solution) std::cout << to_binary_str<T>(card) << '\n';
+    std::cout << std::endl;   
 }

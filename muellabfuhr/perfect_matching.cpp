@@ -3,16 +3,15 @@
 #include <queue>
 #include <cmath>
 #include "perfect_matching.hpp"
-using namespace std;
 
 // This algorithm only works for complete and metric graphs.
 
-set<pair<int, int>> perfect_matching(map_2d &graph, pair<int, int> &largest_edge) {
+std::set<std::pair<int, int>> perfect_matching(map_2d &graph, std::pair<int, int> &largest_edge) {
     if (graph.empty()) return { };
     auto [max1, max2] = largest_edge;
     int max_cost = graph.at(max1).at(max2);
 
-    map<int, float> dis_max1;
+    std::map<int, float> dis_max1;
     dis_max1[max1] = 0.0;
     dis_max1[max2] = (float) max_cost;
 
@@ -20,7 +19,7 @@ set<pair<int, int>> perfect_matching(map_2d &graph, pair<int, int> &largest_edge
         return dis_max1[a] > dis_max1[b];
     };
 
-    priority_queue<int, vector<int>, decltype(smaller_dis)> order(smaller_dis);
+    std::priority_queue<int, std::vector<int>, decltype(smaller_dis)> order(smaller_dis);
     order.push(max1);
     order.push(max2);
 
@@ -36,7 +35,7 @@ set<pair<int, int>> perfect_matching(map_2d &graph, pair<int, int> &largest_edge
         }
     }
 
-    set<pair<int, int>> matching;
+    std::set<std::pair<int, int>> matching;
 
     while (!order.empty()) {
         int a = order.top();
@@ -44,12 +43,12 @@ set<pair<int, int>> perfect_matching(map_2d &graph, pair<int, int> &largest_edge
         int b = order.top();
         order.pop();
 
-        matching.insert(make_pair(a, b));
+        matching.insert({ a, b });
     }
 
     return matching;
 }
 
 float circle_intersection(float r1, float r2, float distance) {
-    return (pow(distance, 2) + pow(r1, 2) - pow(r2, 2)) / (2 * distance);
+    return (std::pow(distance, 2) + std::pow(r1, 2) - std::pow(r2, 2)) / (2 * distance);
 }

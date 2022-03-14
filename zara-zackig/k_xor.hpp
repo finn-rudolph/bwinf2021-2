@@ -11,13 +11,12 @@
 #include <atomic>
 #include <chrono>
 #include "io.hpp"
-using namespace std;
 
 template <typename T>
 void xor_combine(
-    vector<T> &cards,
+    std::vector<T> &cards,
     int d,
-    function<void (T&)> cb,
+    std::function<void (T&)> cb,
     uint8_t* used,
     uint8_t start,
     uint8_t end,
@@ -37,7 +36,7 @@ void xor_combine(
 }
 
 bool no_intersection(uint8_t* arr1, uint8_t* arr2, int len1, int len2) {
-    unordered_set<uint8_t> arr_set(arr2, arr2 + len2);
+    std::unordered_set<uint8_t> arr_set(arr2, arr2 + len2);
     for (int i = 0; i < len1; i++) {
         if (arr_set.find(arr1[i]) != arr_set.end()) {
             return false;
@@ -53,8 +52,8 @@ void radix_sort_msd(T* values, uint8_t* indices, long long length, int d, int bi
     long long a = 0, b = length - 1;
     while (a < b) {
         if ((values[a] >> bit) & (T) 1) {
-            swap(values[a], values[b]);
-            swap_ranges(indices + a * d, indices + a * d + d, indices + b * d);
+            std::swap(values[a], values[b]);
+            std::swap_ranges(indices + a * d, indices + a * d + d, indices + b * d);
             b -= 1;
         } else {
             a += 1;
@@ -88,8 +87,8 @@ long long memory() {
     return sysconf(_SC_PHYS_PAGES) * sysconf(_SC_PAGE_SIZE);
 }
 
-vector<int> assign_threads(long long num_comb, int cores, int n, int d) {
-    vector<int> alloc(cores * 2, 0);
+std::vector<int> assign_threads(long long num_comb, int cores, int n, int d) {
+    std::vector<int> alloc(cores * 2, 0);
     int j = 1;
     long long min = num_comb / cores, sum = 0;
     for (int i = 0; j < cores; i++) {
@@ -104,26 +103,26 @@ vector<int> assign_threads(long long num_comb, int cores, int n, int d) {
 }
 
 template <typename T>
-void xor_to_zero(vector<T> cards, int n, int k) {
+void xor_to_zero(std::vector<T> cards, int n, int k) {
     long long memory_limit = memory() - (((long long) 1) << 31);
-    cout << "Memory Limit: " << (memory_limit) / pow(10, 6) << " MB\n";
+    std::cout << "Memory Limit: " << (memory_limit) / pow(10, 6) << " MB\n";
 
     int d = k / 2;
     while (binom(n, d) * (sizeof (T) + d) > memory_limit) d -= 1;
     long long num_comb = binom(n, d);
 
-    auto begin = chrono::system_clock::now();
+    auto begin = std::chrono::system_clock::now();
 
     T* values = new T[num_comb];
     uint8_t* indices = new uint8_t[num_comb * d];
 
-    int cores = thread::hardware_concurrency();
+    int cores = std::thread::hardware_concurrency();
     if (cores == 0) cores = sysconf(_SC_NPROCESSORS_ONLN);
     if (cores == 0) cores = 8;
 
-    vector<int> alloc = assign_threads(num_comb, cores, n, d);
-    cout << "Using " << cores << " threads\n";
-    vector<thread> threads;
+    std::vector<int> alloc = assign_threads(num_comb, cores, n, d);
+    std::cout << "Using " << cores << " threads\n";
+    std::vector<std::thread> threads;
 
     for (int i = 0; i < cores; i++) {
         threads.emplace_back([i, &cards, &values, &indices, &n, &d, &cores, &alloc] {
@@ -132,22 +131,22 @@ void xor_to_zero(vector<T> cards, int n, int k) {
             xor_combine<T>(cards, d, 
                 [&values, &indices, &used, &pos, &d](T &xor_val) {
                     values[pos] = xor_val;
-                    move(used, used + d, indices + pos * d);
+                    std::move(used, used + d, indices + pos * d);
                     pos += 1;
                 },
                 used, alloc[i * 2], i == cores - 1 ? n : alloc[i * 2 + 2]);
         });
     }
 
-    for (thread &t: threads) t.join();
+    for (std::thread &t: threads) t.join();
 
-    cout << "Precomputed " << num_comb << " combinations, d = " << d << "\n";
+    std::cout << "Precomputed " << num_comb << " combinations, d = " << d << "\n";
     radix_sort_msd<T>(values, indices, num_comb, d);
-    cout << "Sorted\n";
+    std::cout << "Sorted\n";
 
     alloc = assign_threads(num_comb, cores, n, k - d);
     threads.clear();
-    atomic_bool found(false);
+    std::atomic_bool found(false);
 
     for (int i = 0; i < cores; i++) {
         threads.emplace_back([i, &cards, &values, &indices, &num_comb, &n, &k, &d, &cores, &alloc, &begin, &found] {
@@ -163,11 +162,11 @@ void xor_to_zero(vector<T> cards, int n, int k) {
                             if (no_intersection(used, indices + j * d, k - d, d) && !found) {
                                 found.store(true);
 
-                                vector<uint8_t> res(used, used + (k - d));
+                                std::vector<uint8_t> res(used, used + (k - d));
                                 res.insert(res.end(), indices+ j * d, indices + j * d + d);
                                 print_cards(res, cards);
-                                cout << ((chrono::duration<float>) 
-                                    (chrono::system_clock::now() - begin)).count() << " s \n";
+                                std::cout << ((std::chrono::duration<float>) 
+                                    (std::chrono::system_clock::now() - begin)).count() << " s \n";
 
                                 delete[] indices;
                                 delete[] values;
@@ -181,7 +180,7 @@ void xor_to_zero(vector<T> cards, int n, int k) {
         });
     }
 
-    for (thread &t: threads) t.join();
+    for (std::thread &t: threads) t.join();
 
     delete[] values;
     delete[] indices;

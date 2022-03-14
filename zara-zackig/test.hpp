@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include <cstdlib>
 #include <ctime>
-using namespace std;
 
 template<typename T>
 T random_T() {

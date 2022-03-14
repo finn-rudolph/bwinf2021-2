@@ -3,11 +3,10 @@
 #include <climits>
 #include "fhk_algorithm.hpp"
 #include "io.hpp"
-using namespace std;
 
 const int num_tours = 5;
 
-vector<vector<int>> fhk(adj_map &graph) {
+std::vector<std::vector<int>> fhk(adj_map &graph) {
     matrix_2d dis, pre;
     for (int v = 0; v < graph.size(); v++) {
         auto [distances, predecessors] = dijkstra(graph, v);
@@ -17,13 +16,13 @@ vector<vector<int>> fhk(adj_map &graph) {
 
     auto [cpp_tour, cpp_cost] = postman(graph, dis, pre);
 
-    cout << "Chinese Postman Tour mit Kosten: " << cpp_cost << "\n";
+    std::cout << "Chinese Postman Tour mit Kosten: " << cpp_cost << "\n";
     print_vector(cpp_tour);
 
     int lower_bound = farthest_edge_cost(graph, dis);
     int pre_split = 0;
     int cost = 0;
-    vector<vector<int>> tours;
+    std::vector<std::vector<int>> tours;
 
     for (int i = 1; i <= num_tours - 1; i++) {
         int max_cost = ((float) i / (float) num_tours) * 
@@ -54,15 +53,15 @@ vector<vector<int>> fhk(adj_map &graph) {
     return tours;
 }
 
-vector<int> construct_tour(vector<int> &cpp_tour, matrix_2d &pre, int start, int end) {
-    vector<int> tour(cpp_tour.begin() + start, cpp_tour.begin() + end + 1);
+std::vector<int> construct_tour(std::vector<int> &cpp_tour, matrix_2d &pre, int start, int end) {
+    std::vector<int> tour(cpp_tour.begin() + start, cpp_tour.begin() + end + 1);
     close_tour(tour, pre, true);
     close_tour(tour, pre, false);
 
     return tour;
 }
 
-void close_tour(vector<int> &tour, matrix_2d &pre, bool append_front) {
+void close_tour(std::vector<int> &tour, matrix_2d &pre, bool append_front) {
     int curr = pre[0][append_front ? *tour.begin() : *(--tour.end())];
 
     while (curr != -1) {
@@ -76,22 +75,22 @@ int farthest_edge_cost(adj_map &graph, matrix_2d &dis) {
     int farthest = 0;
     for (int a = 0; a < graph.size(); a++) {
         for (const auto &[b, w]: graph[a]) {
-            farthest = max(dis[0][a] + w + dis[b][0], farthest);
+            farthest = std::max(dis[0][a] + w + dis[b][0], farthest);
         }
     }
 
     return farthest;
 }
 
-pair<vector<int>, vector<int>> dijkstra(adj_map &graph, int start) {
-    vector<int> dis(graph.size(), INT_MAX), pre(graph.size(), -1);
-    vector<bool> visited(graph.size(), false);
+std::pair<std::vector<int>, std::vector<int>> dijkstra(adj_map &graph, int start) {
+    std::vector<int> dis(graph.size(), INT_MAX), pre(graph.size(), -1);
+    std::vector<bool> visited(graph.size(), false);
 
     auto is_closer = [&dis](int a, int b) -> bool {
         return dis[a] > dis[b];
     };
 
-    priority_queue<int, vector<int>, decltype(is_closer)> queue(is_closer);
+    std::priority_queue<int, std::vector<int>, decltype(is_closer)> queue(is_closer);
     queue.push(start);
     dis[start] = 0;
 

@@ -2,10 +2,9 @@
 #include <stack>
 #include "chinese_postman.hpp"
 #include "perfect_matching.hpp"
-using namespace std;
 
-pair<vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_2d &pre) {
-    set<int> odds;
+std::pair<std::vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_2d &pre) {
+    std::set<int> odds;
     for (int v = 0; v < graph.size(); v++) {
         if (graph[v].size() % 2 == 1) {
             odds.insert(v);
@@ -14,7 +13,7 @@ pair<vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_2d &pre) {
 
     map_2d odds_graph;
     int max_cost = 0;
-    pair<int, int> largest_edge;
+    std::pair<int, int> largest_edge;
 
     for (const auto &a: odds) {
         for (const auto &b: odds) {
@@ -29,7 +28,7 @@ pair<vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_2d &pre) {
         }
     }
 
-    set<pair<int, int>> matching = perfect_matching(odds_graph, largest_edge);
+    std::set<std::pair<int, int>> matching = perfect_matching(odds_graph, largest_edge);
 
     map_2d augmented;
     int weight_sum = 0;
@@ -55,13 +54,13 @@ pair<vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_2d &pre) {
         }
     }
 
-    vector<int> postman_tour = eulerian_circuit(augmented);
+    std::vector<int> postman_tour = eulerian_circuit(augmented);
     return { postman_tour, weight_sum };
 }
 
-vector<int> eulerian_circuit(map_2d &graph) {
-    vector<int> circuit;
-    stack<int> subtour;
+std::vector<int> eulerian_circuit(map_2d &graph) {
+    std::vector<int> circuit;
+    std::stack<int> subtour;
     subtour.push(0);
 
     while (!subtour.empty()) {

@@ -3,15 +3,14 @@
 #include <algorithm>
 #include "test.hpp"
 #include "k_xor.hpp"
-using namespace std;
 
 int main () {
     typedef __uint128_t N;
-    int n, k; cin >> n >> k;
+    int n, k; std::cin >> n >> k;
 
-    vector<N> cards(n - 1);
+    std::vector<N> cards(n - 1);
 
-    srand(time(NULL));
+    std::srand(time(NULL));
     for (int i = 0; i < n - 1; i++) {
         cards[i] = random_T<N>();
     }
@@ -20,7 +19,7 @@ int main () {
     for (int i = 0; i < k - 1; i++) xor_card ^= cards[i];
     cards.push_back(xor_card);
 
-    random_shuffle(cards.begin(), cards.end());
+    std::random_shuffle(cards.begin(), cards.end());
 
     xor_to_zero<N>(cards, n, k);
 }
