@@ -46,33 +46,33 @@ bool no_intersection(uint8_t* arr1, uint8_t* arr2, int len1, int len2) {
 }
 
 template <typename T>
-void radix_sort_msd(T* values, uint8_t* indices, long long length, int d, int bit = sizeof (T) * 8 - 1) {
+void radix_sort_msd(T* val, uint8_t* ind, long long length, int d, int bit = sizeof (T) * 8 - 1) {
     if (length <= 1 || bit == 0) return;
 
     long long a = 0, b = length - 1;
     while (a < b) {
-        if ((values[a] >> bit) & (T) 1) {
-            std::swap(values[a], values[b]);
-            std::swap_ranges(indices + a * d, indices + a * d + d, indices + b * d);
+        if ((val[a] >> bit) & (T) 1) {
+            std::swap(val[a], val[b]);
+            std::swap_ranges(ind + a * d, ind + a * d + d, ind + b * d);
             b -= 1;
         } else {
             a += 1;
         }
     }
 
-    if (!((values[a] >> bit) & (T) 1)) a += 1;
-    radix_sort_msd<T>(values, indices, a, d, bit - 1);
-    radix_sort_msd<T>(values + a, indices + a * d, length - a, d, bit - 1);
+    if (!((val[a] >> bit) & (T) 1)) a += 1;
+    radix_sort_msd<T>(val, ind, a, d, bit - 1);
+    radix_sort_msd<T>(val + a, ind + a * d, length - a, d, bit - 1);
 }
 
 template <typename T>
-long long bs(T* arr, long long length, T target) {
+long long bs(T* val, long long length, T target) {
     long long a = 0, b = length - 1;
 
     while (a < b) {
         int mid = (a + b) / 2;
-        if (arr[mid] == target) return mid;
-        else if (arr[mid] < target) a = mid + 1;
+        if (val[mid] == target) return mid;
+        else if (val[mid] < target) a = mid + 1;
         else b = mid - 1;
     }
     return -1;
@@ -113,8 +113,8 @@ void xor_to_zero(std::vector<T> cards, int n, int k) {
 
     auto begin = std::chrono::system_clock::now();
 
-    T* values = new T[num_comb];
-    uint8_t* indices = new uint8_t[num_comb * d];
+    T* val = new T[num_comb];
+    uint8_t* ind = new uint8_t[num_comb * d];
 
     int cores = std::thread::hardware_concurrency();
     if (cores == 0) cores = sysconf(_SC_NPROCESSORS_ONLN);
@@ -125,13 +125,13 @@ void xor_to_zero(std::vector<T> cards, int n, int k) {
     std::vector<std::thread> threads;
 
     for (int i = 0; i < cores; i++) {
-        threads.emplace_back([i, &cards, &values, &indices, &n, &d, &cores, &alloc] {
+        threads.emplace_back([i, &cards, &val, &ind, &n, &d, &cores, &alloc] {
             int pos = alloc[i * 2 + 1];
             uint8_t used[d];
             xor_combine<T>(cards, d, 
-                [&values, &indices, &used, &pos, &d](T &xor_val) {
-                    values[pos] = xor_val;
-                    std::move(used, used + d, indices + pos * d);
+                [&val, &ind, &used, &pos, &d](T &xor_val) {
+                    val[pos] = xor_val;
+                    std::move(used, used + d, ind + pos * d);
                     pos += 1;
                 },
                 used, alloc[i * 2], i == cores - 1 ? n : alloc[i * 2 + 2]);
@@ -141,7 +141,7 @@ void xor_to_zero(std::vector<T> cards, int n, int k) {
     for (std::thread &t: threads) t.join();
 
     std::cout << "Precomputed " << num_comb << " combinations, d = " << d << "\n";
-    radix_sort_msd<T>(values, indices, num_comb, d);
+    radix_sort_msd<T>(val, ind, num_comb, d);
     std::cout << "Sorted\n";
 
     alloc = assign_threads(num_comb, cores, n, k - d);
@@ -149,27 +149,29 @@ void xor_to_zero(std::vector<T> cards, int n, int k) {
     std::atomic_bool found(false);
 
     for (int i = 0; i < cores; i++) {
-        threads.emplace_back([i, &cards, &values, &indices, &num_comb, &n, &k, &d, &cores, &alloc, &begin, &found] {
+        threads.emplace_back([i, &cards, &val, &ind, &num_comb, 
+            &n, &k, &d, &cores, &alloc, &begin, &found] {
             uint8_t used[k - d];
             xor_combine<T>(cards, k - d,
-                [&cards, &values, &indices, &num_comb, &k, &d, &used, &begin, &found](T &xor_val) {
+                [&cards, &val, &ind, &num_comb, &k, &d, &used, &begin, &found](T &xor_val) {
                     if (found) return;
-                    long long j = bs<T>(values, num_comb, xor_val);
+                    long long j = bs<T>(val, num_comb, xor_val);
                     if (j != -1) {
-                        while (j > 0 && values[j - 1] == xor_val) j -= 1;      
+                        while (j > 0 && val[j - 1] == xor_val) j -= 1;      
 
-                        while (values[j] == xor_val && j < num_comb) {
-                            if (no_intersection(used, indices + j * d, k - d, d) && !found) {
+                        while (val[j] == xor_val && j < num_comb) {
+                            if (no_intersection(used, ind + j * d, k - d, d) && !found) {
                                 found.store(true);
 
                                 std::vector<uint8_t> res(used, used + (k - d));
-                                res.insert(res.end(), indices+ j * d, indices + j * d + d);
+                                res.insert(res.end(), ind+ j * d, ind + j * d + d);
                                 print_cards(res, cards);
                                 std::cout << ((std::chrono::duration<float>) 
-                                    (std::chrono::system_clock::now() - begin)).count() << " s \n";
+                                    (std::chrono::system_clock::now() - begin)).count() 
+                                    << " s \n";
 
-                                delete[] indices;
-                                delete[] values;
+                                delete[] ind;
+                                delete[] val;
                                 exit(EXIT_SUCCESS);
                             }
                             j += 1;
@@ -182,6 +184,6 @@ void xor_to_zero(std::vector<T> cards, int n, int k) {
 
     for (std::thread &t: threads) t.join();
 
-    delete[] values;
-    delete[] indices;
+    delete[] val;
+    delete[] ind;
 }
