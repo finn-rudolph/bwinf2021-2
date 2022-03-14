@@ -8,6 +8,7 @@
 #include <cmath>
 #include <unistd.h>
 #include <thread>
+#include <atomic>
 #include <ctime>
 #include "io.hpp"
 using namespace std;
@@ -66,8 +67,8 @@ void radix_sort_msd(T* values, uint8_t* indices, long long length, int d, int bi
 }
 
 template <typename T>
-int bs(T* arr, long long length, T target) {
-    int a = 0, b = length - 1;
+long long bs(T* arr, long long length, T target) {
+    long long a = 0, b = length - 1;
 
     while (a < b) {
         int mid = (a + b) / 2;
@@ -146,25 +147,29 @@ void xor_to_zero(vector<T> cards, int n, int k) {
 
     alloc = assign_threads(num_comb, cores, n, k - d);
     threads.clear();
+    atomic_bool found(false);
 
     for (int i = 0; i < cores; i++) {
-        threads.emplace_back([i, &cards, &values, &indices, &num_comb, &n, &k, &d, &cores, &alloc, &begin] {
+        threads.emplace_back([i, &cards, &values, &indices, &num_comb, &n, &k, &d, &cores, &alloc, &begin, &found] {
             uint8_t used[k - d];
             xor_combine<T>(cards, k - d,
-                [&cards, &values, &indices, &num_comb, &k, &d, &used, &begin](T &xor_val) {
-                    int j = bs<T>(values, num_comb, xor_val);
+                [&cards, &values, &indices, &num_comb, &k, &d, &used, &begin, &found](T &xor_val) {
+                    if (found) return;
+                    long long j = bs<T>(values, num_comb, xor_val);
                     if (j != -1) {
                         while (j > 0 && values[j - 1] == xor_val) j -= 1;      
 
                         while (values[j] == xor_val && j < num_comb) {
-                            if (no_intersection(used, indices + j * d, (k - d), d)) {
-                                vector<uint8_t> res(used, used + (k - d));
-                                res.insert(res.end(), indices + j * d, indices + j * d + d);
+                            if (no_intersection(used, indices + j * d, k - d, d) && !found) {
+                                found.store(true);
 
-                                delete[] values;
-                                delete[] indices;
+                                vector<uint8_t> res(used, used + (k - d));
+                                res.insert(res.end(), indices+ j * d, indices + j * d + d);
                                 print_cards(res, cards);
                                 cout << ((float) (clock() - begin) * 1000 / (float) CLOCKS_PER_SEC) << " ms \n";
+
+                                delete[] indices;
+                                delete[] values;
                                 exit(EXIT_SUCCESS);
                             }
                             j += 1;
