@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <thread>
 #include <atomic>
-#include <ctime>
+#include <chrono>
 #include "io.hpp"
 using namespace std;
 
@@ -112,7 +112,7 @@ void xor_to_zero(vector<T> cards, int n, int k) {
     while (binom(n, d) * (sizeof (T) + d) > memory_limit) d -= 1;
     long long num_comb = binom(n, d);
 
-    int begin = clock();
+    auto begin = chrono::system_clock::now();
 
     T* values = new T[num_comb];
     uint8_t* indices = new uint8_t[num_comb * d];
@@ -166,7 +166,8 @@ void xor_to_zero(vector<T> cards, int n, int k) {
                                 vector<uint8_t> res(used, used + (k - d));
                                 res.insert(res.end(), indices+ j * d, indices + j * d + d);
                                 print_cards(res, cards);
-                                cout << ((float) (clock() - begin) * 1000 / (float) CLOCKS_PER_SEC) << " ms \n";
+                                cout << ((chrono::duration<float>) 
+                                    (chrono::system_clock::now() - begin)).count() << " s \n";
 
                                 delete[] indices;
                                 delete[] values;
