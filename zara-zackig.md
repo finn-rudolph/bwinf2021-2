@@ -20,7 +20,7 @@ $$
 
 ## Lösungsidee
 
-### Teil a)
+### Teilaufgabe a)
 
 Im Gegensatz zum Müllabfuhr-Problem ist eine Heuristik hier unangebracht, denn fast richtige Schlüsselkarten helfen Zara nicht weiter. Das Ziel ist es also, die exponentielle Laufzeit, die ein optimaler Algorithmus haben wird, mit einigen Tricks im Rahmen zu halten. Dafür verwende ich den Brute-Force Ansatz _Meet in the Middle_ (Sannemo, 2018, S. 138). Das bedeutet, einen Teil, meist die Hälfte, aller möglichen Lösungen im Voraus zu berechnen.
 
@@ -45,11 +45,11 @@ $$
 
 Damit ist das Problem für $k = 4$ in $O(n^2 \log_2 n)$ lösbar, weil die Erstellung von $L$ in $O(n^2)$, und das Überprüfen der Existenz jedes $\text{xor}$-verknüpften Paares in $L$ in $O(n^2 )$ ausgeführt werden kann.
 
-Für allgemeine $k$. Sei $d$ die Anzahl an Zahlen, die für einen Eintrag in $L$ mit $\text{xor}$ verknüpft werden (im obigen Fall $d = 2$). Das heißt $L$ hat $\binom nd = O(n^d)$ Einträge. Um die Karten im Auge zu behalten, die für einen vorberechneten $\text{xor}$-Wert benutzt wurden, wird eine zweite Liste $M$ mit Länge $|L| \cdot d$ angelegt, in der die Indizes der verwendeten Karten in $S$ gespeichert. Die verwendeten Karten des $i$´ten $\text{xor}$-Werts in $L$ stehen in $M$ von Position $i \cdot d$ bis $i \cdot d + d$. $L$ und $M$ können durch folgende Rekursion erzeugt werden. $\larr$ bedeutet die Zuweisung einer Variable.
+Für allgemeine $k$. Sei $d$ die Anzahl an Zahlen, die für einen Eintrag in $L$ mit $\text{xor}$ verknüpft werden (im obigen Fall $d = 2$). Das heißt $L$ hat $\binom nd = O(n^d)$ Einträge. Um die Karten im Auge zu behalten, die für einen vorberechneten $\text{xor}$-Wert benutzt wurden, wird eine zweite Liste $Q$ angelegt, in der jeweils die Indizes in $S$ der verwendeten Karten gespeichert werden. $L$ und $Q$ können durch folgende Rekursion erzeugt werden. $\larr$ bedeutet die Zuweisung einer Variable.
 
 $$
 \text{comb}(d, x, u) = \begin{cases}
-L \larr L \cup x; \space M \larr M \cup u& \quad d = 0 \\
+L \larr L \cup x; \space Q \larr Q \cup u& \quad d = 0 \\
 \text{comb}(d - 1, x \text{ xor }s, u \cup s) \space \forall \space s \in S
 & \quad \text{else}
 \end{cases}
@@ -61,7 +61,7 @@ $x$ ist der $\text{xor}$-verknüpfte Wert aller $s$ der höher liegenden rekursi
 
 **Limitierung durch die Speicherkomplexität.** Bei großen Eingabedateien muss der Speicherverbrauch beachtet werden. Z. B. bei `stapel4.txt`: Mit der oben genannten Einschätzung der Speicherkomplexität $\binom {n}{d}$ müssten $\binom {181}{5} \approx 1,53 \cdot 10^9$ 128-Bit Zahlen gespeichert werden, was ungefähr 24,5 Gigabyte Arbeitsspeicher erfordern würde. Wenn der Computer nicht so viel Arbeitsspeicher besitzt, muss $d$ entsprechend verringert werden.
 
-Zusammenfassend sieht der Pseudocode des Algorithmus folgendermaßen aus:
+Zusammenfassend sieht der Pseudocode des Algorithmus wie folgt aus. $q_i$ ist der $i$´te Eintrag in $Q$. 
 
 ```pseudocode
 prcoedure Xor0(S, k)
@@ -69,20 +69,46 @@ prcoedure Xor0(S, k)
 	while (Speicher von L und M > Arbeitsspeicher) d ← d - 1;
 
 	L ← ∅;
-	M ← ∅;
+	Q ← ∅;
 	Erstelle L und M mit comb(d, 0, ∅);
 
-	RadixSort(L, M);
+	RadixSort(L, Q, m);
 
 	for T ⊆ S | (|T| = k - d) ∧ (tᵢ ≠ tⱼ ∀ 1 ≤ i < j ≤ k - d)
 		x ← t₁ xor t₂ xor ... xor tₖ;
 		i ← BinarySearch(L, x);
-		P ← M[i ∙ d] ... M[i ∙ d + d];
-		if (i ≠ -1 ∧ T ∩ P = ∅);
-			return T ∪ P;
+		if (i ≠ -1 ∧ T ∩ qᵢ = ∅);
+			return T ∪ qᵢ;
 ```
 
-#### Radix Sort
+#### Radix Sort (MSD)
+
+Radix Sort eignet sich besonders, um Zahlen mit gleicher oder ähnlicher Länge zu sortieren, weil er in diesem Fall in $O(n^d \cdot m)$ Zeit läuft. Jeder vergleichsbasierte Algorithmus würde mindestens $O(n^d \log_2 n^d)$ Zeit benötigen, was asymptotisch schlechter ist, wenn man $m$ mit 128 begrenzt. Ich habe mich für die _Most Significant Digit (MSD)_ Variante von Radix Sort entschieden, um keinen zusätzlichen Speicherplatz zu verbrauchen. 
+
+Die Zahlen werden sortiert, indem sie zunächst nach dem wichtigsten Bit gruppiert werden, dann beide Gruppen rekursiv nach dem zweitwichtigsten Bit etc., bis alle Bits ausgewertet wurden. Ein Rekursionsschritt, der die Liste nach dem $h$´ten Bit (vom niedrigstwertigen Bit aus gezählt, d. h. $h = m$ zu Beginn) gruppiert, läuft wie folgt ab: Zwei Indizes $u$ und $v$ werden mit dem Anfangs- und Endindex von $L$ initialisiert. Vor $u$ befinden sich alle Zahlen mit $h$´ten Bit $0$, nach $v$ alle Zahlen mit $h$´ten Bit $1$. Wenn der $h$´te Bit des $u$´ten Eintrags in $L$ ($l_u$) $0$ ist, wird $u$ einfach um $1$ vergrößert (Z. 12). Andernfalls wird $l_u$ dem Teil mit $h$´ten Bit $1$ hinzugefügt, indem es mit $l_v$ getauscht wird (Z. 8). Dann wird der $1$-Abschnitt um $1$ vergrößert, indem $v$ um $1$ verringert wird. So werden alle Einträge der Liste betrachtet, bis $u$ und $v$ gleich sind. Bevor der $0$- und $1$-Abschnitt jeweils rekursiv sortiert werden können muss beachtet werden, dass $u$ am Ende des $0$-Abschnitts steht, falls der $h$´te Bit von $l_u$ beim letzten Iterationsschritt $1$ war. Damit das weitere Sortieren fehlerlos funktioniert, soll $u$ immer am Anfang des $1$-Abschnitts stehen, das wird in Z. 14 - 15 sichergestellt.
+
+Damit die Einträge in $Q$ nach dem Sortieren noch stimmen, wird jede Veränderung von $L$ auch für $Q$ übernommen (Z. 9).
+
+```pseudocode
+procedure RadixSort(L, M, h)
+	if (bit = 0) return;
+	
+	u ← 1;
+	v ← |L|;
+	while (u < v)
+		if (h`ter Bit von lᵤ = 1)
+			tausche lᵤ und lᵥ;
+			tausche qᵤ und qᵥ;
+			v ← v - 1;
+		else
+			u ← u + 1;
+			
+	if (h`ter Bit von lᵤ = 0) 
+		u ← u + 1;
+			
+	RadixSort(L bis u, Q bis u, h - 1);
+	RadixSort(L ab u, Q ab u, h - 1);
+```
 
 #### Binärsuche
 
@@ -106,9 +132,9 @@ Neben Binärsuche habe ich als Suchalgorithmus auch Interpolationssuche in Betra
 
 #### Möglicher Divide and Conquer-Ansatz
 
-Ich hatte die Idee, bei nicht ausreichendem Speicher jede Zahl in kleinere Zahlen mit $c$ Bits aufzuteilen, um $\frac mc$ neue Kartensets zu erhalten. Nachdem alle Lösungen für jedes dieser Sets berechnet wurden, wird die Schnittmenge aller Lösungen genommen, die die Lösung des gesamten Problems ist. Beispielsweise würde sich bei 128-Bit Zahlen mit $c = 8$ der Speicherverbrauch auf $\frac 1{16}$ reduzieren. Ich habe diesen Ansatz implementiert und getestet, er war aber nicht gewinnbringend. Die Testergebnisse finden sich im [Anhang](#teilung-der-zahlen). Ein weiteres Problem war, dass bei großem $n$ und $k$ und gleichzeitig kleinem $c$ die Anzahl an Lösungen jedes Kartensets sehr groß ist, wodurch teilweise mehr Speicher als ohne Teilung verbraucht wurde.
+Ich hatte die Idee, bei nicht ausreichendem Speicher jede Zahl in kleinere Zahlen mit $c$ Bits aufzuteilen, um $\frac mc$ neue Kartensets zu erhalten. Nachdem alle Lösungen für jedes dieser Sets berechnet wurden, wird die Schnittmenge aller Lösungen genommen, die die Lösung des gesamten Problems ist. Beispielsweise würde sich bei 128-Bit Zahlen mit $c = 8$ der Speicherverbrauch auf $\frac 1{16}$ reduzieren. Ich habe diesen Ansatz implementiert und getestet, er war aber nicht gewinnbringend. Die Testergebnisse finden sich im [Anhang](#teilung-der-zahlen). Ein weiteres Problem war, dass bei großem $n$ und $k$, also genau den speicherkritischen Fällen, und gleichzeitig kleinem $c$ die Anzahl an Lösungen jedes Kartensets sehr groß ist, wodurch teilweise mehr Speicher als ohne Teilung verbraucht wurde. Wenn man noch größere $m$ als 128 mit einbeziehen würde, kann die Idee hilfreich sein.
 
-### Teil b)
+### Teilaufgabe b)
 
 // sortiert ausgeben
 
