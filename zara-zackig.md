@@ -57,6 +57,8 @@ $$
 
 $a$ ist die verbleibende Anzahl von Zahlen, die noch für eine vollständige Kombination hinzugefügt werden müssen, also zu Beginn $d$. $x$ ist der $\text{xor}$-verknüpfte Wert aller $s$ der höher liegenden rekursiven Aufrufe. Für den ersten Aufruf eignet sich $x=0$, da $0$ der Identitätsoperand von $\text{xor}$ ist. $b$ ist die Liste aller bisher benutzten $s$ und sollte zu Beginn leer sein. Bei größeren $k$ muss beachtet werden, dass der Speicherbedarf sowie die Zeit zur Erstellung von $L$ mit $O(n^d)$ zunimmt, weshlb es nicht immer sinnvoll ist $d = k - 2$ zu wählen, wie in den bisherigen Beispielen. Man stößt hier auf ein _Space-Time-Tradeoff_, das durch ein gut ausgewähltes $d$ optimiert werden kann.
 
+// aufgerundet k / 2, begründung??
+
 **Optimierung der Zeitkomplexität.** Wenn $d \neq k - 2$, kann das spätere Durchsuchen der Liste auch nicht mehr in $O(n^2 \log_2 n)$ geschehen, weil nicht alle Paare, sondern alle Kombinationen von $k - d$ Zahlen überprüft werden müssen. Da es davon $\binom {n}{k-d}$ gibt, ist die Zeitkomplexität des Durchsuchens $O(n^{k - d} \log_2 n^d)$. Die gesamte Zeitkomplexität ist also $O(n^d + n^{k - d} \log_2n^d)$. Daran sieht man, dass $d = \lfloor \frac k2 \rfloor$ die sinnvollste Wahl ist, denn für die asymptotische Zeitkomplexität ist allein der Summand mit dem größten Exponenten entscheidend, der so minimiert wird. Bei ungeradem $k$ ist abrunden sinnvoller als aufrunden, weil der Speicherbedarf von $L$ exponentiell mit $d$ steigt.
 
 **Limitierung durch die Speicherkomplexität.** Bei großen Eingabedateien muss der Speicherverbrauch beachtet werden. Z. B. bei `stapel4.txt`: Mit der oben genannten Einschätzung der Speicherkomplexität $\binom {n}{d}$ müssten $\binom {181}{5} \approx 1,53 \cdot 10^9$ 128-Bit Zahlen gespeichert werden, was ungefähr 24,5 Gigabyte Arbeitsspeicher erfordern würde. Wenn der Computer nicht so viel Arbeitsspeicher besitzt, muss $d$ entsprechend verringert werden.
@@ -128,9 +130,9 @@ procedure BinarySearch(L, x)
 
 	while (u < v)
 		h ← ⌊(u + v) / 2⌋;
-		if (lₕ = x) return h;
 		if (lₕ < x) u ← h + 1;
-		else v ← h - 1;
+		else if (lₕ > x) v ← h - 1;
+		else return h;
 
 	return -1;
 ```
@@ -151,15 +153,19 @@ Die Idee setzte ich in C++ mit dem Compiler clang um. Das Programm ist auf x86-6
 
 ### Der Hauptalgorithmus
 
+// Zeilenangaben
+
+// Variablennamen ändern
+
 #### Initialisierung
 
 &rarr; zugehörige Funktion: `xor_to_zero` (Z. 1 - 13)
 
-Ich werde zunächst nur die Teile des Codes berücksichtigen, die für das eigentliche Berechnen der Lösung zuständig sind. Teile, die die Parallelisierung betreffen, werden im Abschnitt [_Parallelisierun_](#parallelisierung) erklärt.
+Ich werde zunächst nur die Teile des Codes berücksichtigen, die für das eigentliche Berechnen der Lösung zuständig sind. Teile, die die Parallelisierung betreffen, werden im Abschnitt [_Parallelisierung_](#parallelisierung) erklärt.
 
 // memory
 
-Die Liste an vorberechneten $\text{xor}$-Werten $L$ wird mit dem Namen `val` genau wie im Pseudocode umgesetzt, nur $Q$ wird als eindimensionale Liste `ind` mit $|L| \cdot d$ Einträgen gehandhabt. Die zum $i$´ten Eintrag in `val` zugehörigen Indizes stehen in `ind` bei Index $i \cdot d$ bis $i \cdot d + d$. `val` und `ind` sind C-style Arrays, um nur so wie Speicherplatz wie nötig zu verbrauchen.
+Die Liste an vorberechneten $\text{xor}$-Werten $L$ wird mit dem Namen `val` genau wie im Pseudocode umgesetzt, nur $Q$ wird als eindimensionale Liste `ind` mit $|L| \cdot d$ Einträgen gehandhabt. Die zum $i$´ten Eintrag in `val` zugehörigen Indizes stehen in `ind` bei Index $i \cdot d$ bis $i \cdot d + d$. `val` und `ind` sind C-style Arrays, um nur so wie Speicherplatz wie nötig zu verbrauchen. Ein C-style Array besteht nur aus sequentiell angeordneten Werten des angegebenen Typs, der Variablenname ist ein Zeiger zum ersten dieser Werte.
 
 Zunächst wird $d$ zu dem optimalen Wert $\lfloor \frac k2 \rfloor$ initialisiert (Z. 6). Da die Länge von `val` $\binom nd$ sein wird und jeder Eintrag in `val` ein `T` ist, kann die Menge an verbrauchtem Arbeitsspeicher einfach vorhergesehen werden. Denn jedes `T` verbraucht wiederum `sizeof (T)` Bytes (Z. 7). Dazu kommen für jeden Eintrag in `val` $d$ Einträge in `ind`, für die aber jeweils ein 8-Bit, also 1-Byte positiver Integer ausreicht, da die Anzahl an Karten in keiner Eingabedatei 255 überschreitet. Nachdem $d$ festgesetzt wurde, wird in `num_comb` die Länge von `val` gespeichert, die für den weiteren Verlauf häufig benötigt wird.
 
@@ -167,17 +173,69 @@ Zunächst wird $d$ zu dem optimalen Wert $\lfloor \frac k2 \rfloor$ initialisier
 
 &rarr; zugehörige Funktion: `xor_combine`
 
-Wie schon in den Rekursionsformeln bei der Lösungsidee ersichtlich war, liegt für das Vorberechnen der $\text{xor}$-Werte und das spätere Suchen eines passenden Gegenstücks die gleiche Rekursion zugrunde. Nur bei den Anweisungen nach Eintreten der Abbruchbedingung $a=0$ werden unterschiedliche Befehle ausgeführt. Um Codewiederholung zu vermeiden, implementiere ich eine höherwertige, rekursive Funktion `xor_combine`, die ein `std::function`-Objekt, also irgendeine Art Funktion, als Parameter nimmt. Sie wird beim Eintreten der Abbruchbedingung ausgeführt.
+Wie schon in den Rekursionsformeln bei der Lösungsidee ersichtlich war, liegt für das Vorberechnen der $\text{xor}$-Werte und das spätere Suchen eines passenden Gegenstücks die gleiche Rekursion zugrunde. Nur bei den Anweisungen nach Eintreten der Abbruchbedingung $a=0$ werden unterschiedliche Befehle ausgeführt. Um Codewiederholung zu vermeiden, implementiere ich eine höherwertige, rekursive Funktion `xor_combine`, die ein `std::function`-Objekt, also irgendeine Art Funktion, als Parameter nimmt. Diese wird beim Eintreten der Abbruchbedingung ausgeführt.
+
+`xor_combine` erstellt alle $\text{xor}$-Verknüpfungen aus `a` Zahlen, indem eine Zahl fixiert wird und dann rekursiv alle Kombinationen aus `a - 1` Zahlen mit der fixierten Zahl $\text{xor}$-verknüpft werden. Das Fixieren geschieht für jede Zahl, allerdings werden beim rekursiven Aufruf nur noch Zahlen in Betracht gezogen, die in `cards` nach der gewählten Zahl stehen, um Dopplungen zu vermeiden.
 
 #### Vorberechnung
 
+Das Vorberechnen funktioniert mithilfe der Funktion `xor_combine`, der eine Lambdafunktion als Callback mitgegeben wird. In dieser sind die Schritte festgelegt, die für eine generierte Kombination ausgeführt werden. In `pos` ist die Position in dem Array `val` abgespeichert, in die der nächste $\text{xor}$-Wert vom aktuellen Thread geschrieben werden soll, die genaue Initialisierung dieser Variable wird bei [_Parallelisierung_](#parallelisierung) erklärt. Nachdem der $\text{xor}$-verknüpfte Wert der aktuellen Zahlenkombination dort eingetragen wurden, und die Indizes der verwendeten Zahlen in `ind`, wird `pos` um eins vergrößert.
+
+// copy statt move
+
 #### Suche nach Gegenstücken
+
+Auch hier wird `xor_combine` eine Lambdafunktion mitgegeben. Zunächst wird durch [Binärsuche](#binärsuche-2) über `val` überprüft, ob es zu der als Argument mitgegebenen Zahl ($\text{xor}$-Verknüpfung meherer Karten) einen vorberechnete gibt. Ist das nicht der Fall, kann die zugehörige Kombination sofort verworfen werden. Andernfalls muss die Möglichkeit beachtet werden, dass es mehrere vorberechnete Kombinationen mit dieser Zahl als $\text{xor}$-Summe gibt und Binärsuche nur eine davon gefunden hat. Daher wird die Position der gefundenen Zahl `j`  zum Anfang der Folge gleicher Zahlen bewegt. Im Folgenden wird für jede Zahl / vorberechnete Kombination in dieser Folge überprüft, ob sich ihre zugehörigen Karten mit denen der aktuell betrachteten Kombination überschneiden (&rarr; [Überprüfen von Überschneidungen](#überprüfen-von-überschneidungen)). Wenn das nicht der Fall ist, wird die gefundene Lösung ausgegeben, der Arbeitsspeciher von `val` und `ind` freigegeben und der Prozess beendet.
+
+#### Überprüfen von Überschneidungen
+
+&rarr; zugehörige Funktion: `no_intersection`
+
+Die Funktion liefert einen Wahrheitswert, ob zwei gleiche Zahlen in den zwei mitgegebenen Arrays auftreten, was in diesem Fall die doppelte Benutzung einer Karte bedeuten würde. Dazu wird ein `std::unordered_set` aus der zweiten der beiden Listen erstellt. So kann dann für jedes Element des ersten Arrays in $O(1)$ Zeit überprüft werden, ob es ebenfalls im zweiten Array vohanden ist.
+
+#### Der Binomialkoeffizient
+
+&rarr; zugehörige Funktion: `binom`
+
+Würde man zur Berechnung des Binomialkoeffizienten einfach die Formel anwenden, über die er definiert ist, würde durch $n!$ ein Integer Overflow entstehen. Daher implementiere ich ihn rekursiv über folgende Beziehungen:
+$$
+\binom nk = \frac nk \binom {n-1}{k-1} \\
+\binom n0 = 1
+$$
+Die Erste Beziehung kann wie folgt bewiesen werden:
+$$
+\binom nk = \frac {n!}{k!(n - k)!} = \\
+\frac {n \cdot (n - 1)!}{k \cdot (k - 1)!(n - k)!} = \\
+\frac nk \cdot \frac {(n-1)!}{(k-1)!(n - 1 - (k - 1))!} = \\
+\frac nk \binom {n-1}{k-1}
+$$
+Die zweite Beziehung kann man durch die Überlegung bestätigen, dass man nur eine Möglichkeit hat, eine leere Menge aus einer Menge auszuwählen, nämlich indem man einfach kein Element nimmt.
 
 ### Radix Sort
 
-### Binary Search
+Meine Implementierung von RadixSort unterscheidet sich kaum vom Pseudocode. Unterschiede sind, dass die Indexierung der Arrays in der Implementierung mit 0 statt mit 1 beginnt. Der `h`´te Bit der betrachteten Zahl wird herausgefunden, indem die Bits `h` mal nach rechts verschoben werden und die verbleibende Zahl mit 1 $\text{und}$-verknüpft wird. So bleibt eine 1 übrig, wenn der `h`´te Bit 1 war, was in C++ gleich zu `true` ist.
+
+// h als bit impl.
+
+### Binärsuche
+
+Binärsuche ist genau wie im Pseudocode beschrieben implementiert, daher werde ich die dort beschriebene Funktionsweise nicht wiederholen. Ein Detail habe ich mir bei der Implementierung aber überlegt: In den meisten Fällen findet Binärsuche bei dieser Anwendung keine Lösung, weswegen fast immer eine der Bedingungen `val[mid] < target` oder `val[mid] > target` zutrifft. Es ist daher sinnvoll, die Codezeilen so anzuordnen, dass diese zuerst überprüft werden, um insgesamt weniger Überprüfungen durchführen zu müssen. Normalerweise wäre so etwas irrelevant, aber Binärsuche wird bei meinem Algorithmus sehr oft durchgeführt und ist das begrenzende Element der Laufzeit.
+
+// Anordnung der Bedingungen ändern
 
 ### Parallelisierung
+
+Ich parallelisiere das Vorberechnen und das spätere Durchsuchen der vorberechneten Werte durch Multithreading. Optimalerweise soll die Anzahl an Threads `cores` gleich zur Anzahl der Prozessorkerne des Computers sein, die in Z. ? abgefragt wird. Wenn dazu keine Informationen vorhanden sind, wird 8 verwendet.
+
+Das Aufteilen der Arbeit der `xor_combine` Funktion geschieht, indem sie `cores`-mal aufgerufen wird, wobei jeweils der Umfang der Zahlen (in `xor_combine` die Parameter `start` bis `end`), die auf der obersten Rekursionsebene betrachtet werden, begrenzt ist. Die von `assign_threads` zurückgegebene Aufteilung enthält für den `i`´ten Thread den Index der Karte, bei der er beginnen soll, bei Index `i * 2`. Darauf folgt jeweils bei `i * 2 + 1` die Anzahl an Kombinationen, die von allen niedriger nummerierten Threads berechnet werden. Das ist entscheidend, weil so jedem Thread ein Teil von `val` und `ind` zugeteilt wird, in den er seine Kombinationen hineinschreiben kann. Damit ist keine Synchronsierung erforderlich, was die Performance erheblich verbessert. Diese Zuteilung geschieht durch die entsprechende Initialisierung von `pos`. Nachdem alle Threads erstellt wurden, wird bei jedem die `std::thread::join` Methode aufgerufen, um mit der weiteren Ausführung des Hauptthreads auf die nebenläufigen Threads zu warten.
+
+Beim späteren Durchsuchen unterscheidet sich die Parallelisierung nur darin, dass eine gewisse Synchronisation notwendig ist. Denn sobald ein Thread eine Lösung gefunden und ausgegeben hat, gibt er den Arbeitsspeicher von `val` und `ind` frei, und beendet erst danach den Prozess und damit die anderen Threads. Da `val` und `ind` bei großen Eingabedateien mehrere Gigabyte groß sind, benötigt das Freigeben relativ viel Zeit, während der die anderen Threads auf diese Arrays zugreifen. Es kommt sehr wahrscheinlich zu einem Speicherzugriffsfehler / _Segmentation Fault_ und das Program stürzt ab. Auch wenn die korrekte Lösung bereits ausgegeben wurde, ist das natürlich kein geeigneter Weg, ein Programm zu beenden. Mit einer `std::atomic_bool` Variable wird daher überwacht, ob eine Lösung gefunden wurde. Ist sie `true`, greift kein Thread mehr auf `val` bzw. `ind` zu, weil die Lambdafunktion sofort beendet wird. Der erste Thread, der eine Lösung findet, setzt `found` also auf `true`.
+
+#### Zuteilung der Arbeit
+
+&rarr; zugehörige Funktion: `assign_threads`
+
+Da von `xor_combine` auf unteren Rekursionsebenen immer alle nachfolgenden Zahlen betrachtet werden, ist der Aufwand für Karten höher, die früher in `cards` stehen. Die Indizes von `cards` in gleiche Teile zu teilen führt also zu einer ungleichmäßigen Verteiling. `assign_threads` teilt die Indizes auf, indem als Mindestpensum `min` zunächst $\frac {\text{Gesamtanzahl Kombinationen}}{\text{Anzahl Threads}}$ festgelegt wird. Dann wird über jeden Index iteriert und eine Zuteilung für den `j`´ten Thread zu den Zuteilungen `alloc` hinzugefügt, sobald die bisherige Gesamtanzahl zu erstellender Kombinationen das `j`-fach des Mindestpensums überschritten hat. Die Anzahl an Kombinationen, die für die `i`´te Karte anfallen, sind $\binom{n-i-1}{a-1}$, weil durch Fixierung der `i`´ten Karte noch $a-1$ Karten gewählt werden müssen. Dafür sind aber nicht mehr alle $n$ Karten verfügbar, sondern eine weniger für die fixierte, und $i$ weniger, weil durch `xor_combine` nur die nachfolgenden Karten einbezogen werden.   
 
 ## Zeitkomplexität
 
