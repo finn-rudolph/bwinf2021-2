@@ -15,22 +15,22 @@
 template <typename T>
 void xor_combine(
     std::vector<T> &cards,
-    int d,
+    int a,
     std::function<void (T&)> cb,
     uint8_t* used,
     uint8_t start,
     uint8_t end,
     T xor_val = 0
 ) {
-    if (d == 0) {
+    if (a == 0) {
         cb(xor_val);
         return;
     }
 
     for (uint8_t i = start; i < end; i++) {
         xor_val ^= cards[i];
-        used[d - 1] = i;
-        xor_combine<T>(cards, d - 1, cb, used, i + 1, cards.size(), xor_val);
+        used[a - 1] = i;
+        xor_combine<T>(cards, a - 1, cb, used, i + 1, cards.size(), xor_val);
         xor_val ^= cards[i];
     }
 }
@@ -46,34 +46,45 @@ bool no_intersection(uint8_t* arr1, uint8_t* arr2, int len1, int len2) {
 }
 
 template <typename T>
-void radix_sort_msd(T* val, uint8_t* ind, long long length, int d, int bit = sizeof (T) * 8 - 1) {
-    if (length <= 1 || bit == 0) return;
+void radix_sort_msd(T* val, uint8_t* ind, long long length, int d, int t_depth, int h) {
+    if (length <= 1 || h == 0) return;
 
-    long long a = 0, b = length - 1;
-    while (a < b) {
-        if ((val[a] >> bit) & (T) 1) {
-            std::swap(val[a], val[b]);
-            std::swap_ranges(ind + a * d, ind + a * d + d, ind + b * d);
-            b -= 1;
+    long long u = 0, v = length - 1;
+    while (u < v) {
+        if ((val[u] >> h) & (T) 1) {
+            std::swap(val[u], val[v]);
+            std::swap_ranges(ind + u * d, ind + u * d + d, ind + v * d);
+            v -= 1;
         } else {
-            a += 1;
+            u += 1;
         }
     }
 
-    if (!((val[a] >> bit) & (T) 1)) a += 1;
-    radix_sort_msd<T>(val, ind, a, d, bit - 1);
-    radix_sort_msd<T>(val + a, ind + a * d, length - a, d, bit - 1);
+    if (!((val[u] >> h) & (T) 1)) u += 1;
+    if (t_depth != 0) {
+        std::thread t1([&] {
+            radix_sort_msd<T>(val, ind, u, d, t_depth - 1, h - 1);
+        });
+        std::thread t2([&] {
+            radix_sort_msd<T>(val + u, ind + u * d, length - u, d, t_depth - 1, h - 1);
+        });
+        t1.join();
+        t2.join();
+    } else {
+        radix_sort_msd<T>(val, ind, u, d, t_depth, h - 1);
+        radix_sort_msd<T>(val + u, ind + u * d, length - u, d, t_depth, h - 1);
+    }
 }
 
 template <typename T>
 long long bs(T* val, long long length, T target) {
-    long long a = 0, b = length - 1;
+    long long u = 0, v = length - 1;
 
-    while (a < b) {
-        int mid = (a + b) / 2;
-        if (val[mid] == target) return mid;
-        else if (val[mid] < target) a = mid + 1;
-        else b = mid - 1;
+    while (u < v) {
+        int mid = (u + v) / 2;
+        if (val[mid] < target) u = mid + 1;
+        else if (val[mid] > target) v = mid - 1;
+        else return mid;
     }
     return -1;
 }
@@ -131,7 +142,7 @@ void xor_to_zero(std::vector<T> cards, int n, int k) {
             xor_combine<T>(cards, d, 
                 [&val, &ind, &used, &pos, &d](T &xor_val) {
                     val[pos] = xor_val;
-                    std::move(used, used + d, ind + pos * d);
+                    std::copy(used, used + d, ind + pos * d);
                     pos += 1;
                 },
                 used, alloc[i * 2], i == cores - 1 ? n : alloc[i * 2 + 2]);
@@ -140,9 +151,12 @@ void xor_to_zero(std::vector<T> cards, int n, int k) {
 
     for (std::thread &t: threads) t.join();
 
-    std::cout << "Precomputed " << num_comb << " combinations, d = " << d << "\n";
-    radix_sort_msd<T>(val, ind, num_comb, d);
-    std::cout << "Sorted\n";
+    std::cout << "Precomputed " << num_comb << " combinations, d = " << d << " after " 
+        << ((std::chrono::duration<float>) (std::chrono::system_clock::now() - begin)).count() << " s \n";
+
+    radix_sort_msd<T>(val, ind, num_comb, d, floor(log2(cores)), sizeof (T) * 8 - 1);
+    std::cout << "Sorted after " << ((std::chrono::duration<float>) 
+        (std::chrono::system_clock::now() - begin)).count() << " s \n";
 
     alloc = assign_threads(num_comb, cores, n, k - d);
     threads.clear();
