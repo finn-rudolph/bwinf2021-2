@@ -45,7 +45,7 @@ $$
 
 Damit ist das Problem für $k = 4$ in $O(n^2 \log_2 n)$ lösbar, weil die Erstellung von $L$ in $O(n^2)$, und das Überprüfen der Existenz jedes $\text{xor}$-verknüpften Paares in $L$ in $O(n^2 )$ ausgeführt werden kann.
 
-Für allgemeine $k$. Sei $d$ die Anzahl an Zahlen, die für einen Eintrag in $L$ mit $\text{xor}$ verknüpft werden (im obigen Fall $d = 2$). Das heißt $L$ hat $\binom nd = O(n^d)$ Einträge. Um die Karten im Auge zu behalten, die für einen vorberechneten $\text{xor}$-Wert benutzt wurden, wird eine zweite Liste $Q$ angelegt, in der jeweils die Indizes in $S$ der verwendeten Karten gespeichert werden. $L$ und $Q$ können durch folgende Rekursion erzeugt werden. $\larr$ bedeutet die Zuweisung einer Variable.
+Für allgemeine $k$: Sei $d$ die Anzahl an Zahlen, die für einen Eintrag in $L$ mit $\text{xor}$ verknüpft werden (im obigen Fall $d = 2$). Das heißt $L$ hat $\binom nd$ Einträge und benötigt $O(n^d)$ Zeit zur Erstellung sowie Speicherplatz. Um die Karten im Auge zu behalten, die für einen vorberechneten $\text{xor}$-Wert benutzt wurden, wird eine zweite Liste $Q$ angelegt, in der jeweils die Indizes in $S$ der verwendeten Karten gespeichert werden. $L$ und $Q$ können durch folgende Rekursion erzeugt werden. $\larr$ bedeutet die Zuweisung einer Variable.
 
 $$
 \text{Vorberechnen}(a, x, b) = \begin{cases}
@@ -100,7 +100,7 @@ Damit die Einträge in $Q$ nach dem Sortieren noch stimmen, wird jede Veränderu
 
 ```pseudocode
 procedure RadixSort(L, M, h)
-	if (bit = 0) return;
+	if (h = 0) return;
 
 	u ← 1;
 	v ← |L|;
@@ -145,17 +145,29 @@ Ich hatte die Idee, bei nicht ausreichendem Speicher jede Zahl in kleinere Zahle
 
 ### Teilaufgabe b)
 
-// sortiert ausgeben
+Damit Zara sicher weniger als zwei Fehlversuche benötigt, muss sie wissen, welches Haus sie gerade öffnen möchte, daher setzt ich das voraus. Außerdem muss sie die Karten aufsteigend sortieren. Möchte sie das $i$´te Haus öffnen, sollte sie es zunächst mit der $i$´ten Karte versuchen. Für die Position der $\text{xor}$-Sicherungskarte ergeben sich drei Fälle.
+
+1. **Hinter der ausgwählten Karte.** Die ausgewählte Karte ist die richtige.
+2. **Vor der ausgewählten Karte. ** Die $i$´te Karte ist ein Fehlversuch. Die $i+1$´te Karte ist die richtige, da die Schlüsselkarte des Hauses durch die vorhergehende $\text{xor}$-Karte um eins nach hinten geschoben wurde.
+3. **Die $\text{xor}$-Karte ist die ausgewählte Karte.** Auch hier ist die $i$´te Karte ein Fehlversuch. Aber aufgrund der selben Logik wie bei 2. ist die $i+1$´te Karte die richtige.
+
+Zusammenfassend sind die Anweisungen für das $i$´te Haus also wie folgt:
+
+1. Sortiere die Karten aufsteigend.
+2. Probiere es mit der $i$´ten Karte.
+3. Wenn das fehlgeschlagen ist, probiere es mit der $i+1$´ten Karte.
+
+Um wieder herauszufinden, welche der Karten ihre Sicherungskarte war, gibt es keine andere Möglichkeit, als die oben beschriebenen Schritte bei allen Häusern anzuwenden. Währenddessen sollte Zara sich natürlich merken, welche Karten ein Haus öffnen konnten, die am Ende übrig bleibende ist die Sicherungskarte.
 
 ## Implementierung
 
 Die Idee setzte ich in C++ mit dem Compiler clang um. Das Programm ist auf x86-64 Linux Systemen ausführbar. Da Schlüsselwörter und Ähnliches in C++ englisch sind, schreibe ich meine Code auch in Englisch. C++ eignet sich sehr gut für diese Aufgabe, weil $\text{xor}$ mit dem `^`-Operator und 128-Bit Zahlen nativ unterstützt werden. Auch werde ich den Code durch parametrischen Polymorphismus mit C++ Templatefunktionen generisch halten, sodass er für alle Bitlängen funktioniert. Der Teil des Programms, der die Karten findet, ist in Funktionen unterteilt und steht in `k_xor.hpp`. Weil viele der Funktionen generisch sind, muss eine Headerdatei benutzt werden. In `main.cpp` wird mit der Bitlänge $m$ der entsprechende Integertyp ausgewählt, die Karten eingelesen und die `xor_to_zero` Funktion mit dem Integertyp als Templateparameter `T` aufgerufen. Ab hier läuft alles generisch ab, wobei `T` auch bei jeder anderen Funktion der zu $m$ zugegötige Integertyp ist.
 
+Das Programm gibt die $k$ Zahlen aus, deren $\text{xor } 0$ ist. Logischerweise sind alle nicht ausgegebenen Zahlen die hinzugefügten Karten.
+
 ### Der Hauptalgorithmus
 
 // Zeilenangaben
-
-// Variablennamen ändern
 
 #### Initialisierung
 
@@ -181,11 +193,9 @@ Wie schon in den Rekursionsformeln bei der Lösungsidee ersichtlich war, liegt f
 
 Das Vorberechnen funktioniert mithilfe der Funktion `xor_combine`, der eine Lambdafunktion als Callback mitgegeben wird. In dieser sind die Schritte festgelegt, die für eine generierte Kombination ausgeführt werden. In `pos` ist die Position in dem Array `val` abgespeichert, in die der nächste $\text{xor}$-Wert vom aktuellen Thread geschrieben werden soll, die genaue Initialisierung dieser Variable wird bei [_Parallelisierung_](#parallelisierung) erklärt. Nachdem der $\text{xor}$-verknüpfte Wert der aktuellen Zahlenkombination dort eingetragen wurden, und die Indizes der verwendeten Zahlen in `ind`, wird `pos` um eins vergrößert.
 
-// copy statt move
-
 #### Suche nach Gegenstücken
 
-Auch hier wird `xor_combine` eine Lambdafunktion mitgegeben. Zunächst wird durch [Binärsuche](#binärsuche-2) über `val` überprüft, ob es zu der als Argument mitgegebenen Zahl ($\text{xor}$-Verknüpfung meherer Karten) einen vorberechnete gibt. Ist das nicht der Fall, kann die zugehörige Kombination sofort verworfen werden. Andernfalls muss die Möglichkeit beachtet werden, dass es mehrere vorberechnete Kombinationen mit dieser Zahl als $\text{xor}$-Summe gibt und Binärsuche nur eine davon gefunden hat. Daher wird die Position der gefundenen Zahl `j`  zum Anfang der Folge gleicher Zahlen bewegt. Im Folgenden wird für jede Zahl / vorberechnete Kombination in dieser Folge überprüft, ob sich ihre zugehörigen Karten mit denen der aktuell betrachteten Kombination überschneiden (&rarr; [Überprüfen von Überschneidungen](#überprüfen-von-überschneidungen)). Wenn das nicht der Fall ist, wird die gefundene Lösung ausgegeben, der Arbeitsspeciher von `val` und `ind` freigegeben und der Prozess beendet.
+Auch hier wird `xor_combine` eine Lambdafunktion mitgegeben. Zunächst wird durch [Binärsuche](#binärsuche-2) über `val` überprüft, ob es zu der als Argument mitgegebenen Zahl ($\text{xor}$-Verknüpfung meherer Karten) einen vorberechnete gibt. Ist das nicht der Fall, kann die zugehörige Kombination sofort verworfen werden. Andernfalls muss die Möglichkeit beachtet werden, dass es mehrere vorberechnete Kombinationen mit dieser Zahl als $\text{xor}$-Summe gibt und Binärsuche nur eine davon gefunden hat. Daher wird die Position der gefundenen Zahl `j` zum Anfang der Folge gleicher Zahlen bewegt. Im Folgenden wird für jede Zahl / vorberechnete Kombination in dieser Folge überprüft, ob sich ihre zugehörigen Karten mit denen der aktuell betrachteten Kombination überschneiden (&rarr; [Überprüfen von Überschneidungen](#überprüfen-von-überschneidungen)). Wenn das nicht der Fall ist, wird die gefundene Lösung ausgegeben, der Arbeitsspeciher von `val` und `ind` freigegeben und der Prozess beendet.
 
 #### Überprüfen von Überschneidungen
 
@@ -198,30 +208,30 @@ Die Funktion liefert einen Wahrheitswert, ob zwei gleiche Zahlen in den zwei mit
 &rarr; zugehörige Funktion: `binom`
 
 Würde man zur Berechnung des Binomialkoeffizienten einfach die Formel anwenden, über die er definiert ist, würde durch $n!$ ein Integer Overflow entstehen. Daher implementiere ich ihn rekursiv über folgende Beziehungen:
+
 $$
 \binom nk = \frac nk \binom {n-1}{k-1} \\
 \binom n0 = 1
 $$
+
 Die Erste Beziehung kann wie folgt bewiesen werden:
+
 $$
 \binom nk = \frac {n!}{k!(n - k)!} = \\
 \frac {n \cdot (n - 1)!}{k \cdot (k - 1)!(n - k)!} = \\
 \frac nk \cdot \frac {(n-1)!}{(k-1)!(n - 1 - (k - 1))!} = \\
 \frac nk \binom {n-1}{k-1}
 $$
+
 Die zweite Beziehung kann man durch die Überlegung bestätigen, dass man nur eine Möglichkeit hat, eine leere Menge aus einer Menge auszuwählen, nämlich indem man einfach kein Element nimmt.
 
 ### Radix Sort
 
 Meine Implementierung von RadixSort unterscheidet sich kaum vom Pseudocode. Unterschiede sind, dass die Indexierung der Arrays in der Implementierung mit 0 statt mit 1 beginnt. Der `h`´te Bit der betrachteten Zahl wird herausgefunden, indem die Bits `h` mal nach rechts verschoben werden und die verbleibende Zahl mit 1 $\text{und}$-verknüpft wird. So bleibt eine 1 übrig, wenn der `h`´te Bit 1 war, was in C++ gleich zu `true` ist.
 
-// h als bit impl.
-
 ### Binärsuche
 
 Binärsuche ist genau wie im Pseudocode beschrieben implementiert, daher werde ich die dort beschriebene Funktionsweise nicht wiederholen. Ein Detail habe ich mir bei der Implementierung aber überlegt: In den meisten Fällen findet Binärsuche bei dieser Anwendung keine Lösung, weswegen fast immer eine der Bedingungen `val[mid] < target` oder `val[mid] > target` zutrifft. Es ist daher sinnvoll, die Codezeilen so anzuordnen, dass diese zuerst überprüft werden, um insgesamt weniger Überprüfungen durchführen zu müssen. Normalerweise wäre so etwas irrelevant, aber Binärsuche wird bei meinem Algorithmus sehr oft durchgeführt und ist das begrenzende Element der Laufzeit.
-
-// Anordnung der Bedingungen ändern
 
 ### Parallelisierung
 
@@ -235,7 +245,7 @@ Beim späteren Durchsuchen unterscheidet sich die Parallelisierung nur darin, da
 
 &rarr; zugehörige Funktion: `assign_threads`
 
-Da von `xor_combine` auf unteren Rekursionsebenen immer alle nachfolgenden Zahlen betrachtet werden, ist der Aufwand für Karten höher, die früher in `cards` stehen. Die Indizes von `cards` in gleiche Teile zu teilen führt also zu einer ungleichmäßigen Verteiling. `assign_threads` teilt die Indizes auf, indem als Mindestpensum `min` zunächst $\frac {\text{Gesamtanzahl Kombinationen}}{\text{Anzahl Threads}}$ festgelegt wird. Dann wird über jeden Index iteriert und eine Zuteilung für den `j`´ten Thread zu den Zuteilungen `alloc` hinzugefügt, sobald die bisherige Gesamtanzahl zu erstellender Kombinationen das `j`-fach des Mindestpensums überschritten hat. Die Anzahl an Kombinationen, die für die `i`´te Karte anfallen, sind $\binom{n-i-1}{a-1}$, weil durch Fixierung der `i`´ten Karte noch $a-1$ Karten gewählt werden müssen. Dafür sind aber nicht mehr alle $n$ Karten verfügbar, sondern eine weniger für die fixierte, und $i$ weniger, weil durch `xor_combine` nur die nachfolgenden Karten einbezogen werden.   
+Da von `xor_combine` auf unteren Rekursionsebenen immer alle nachfolgenden Zahlen betrachtet werden, ist der Aufwand für Karten höher, die früher in `cards` stehen. Die Indizes von `cards` in gleiche Teile zu teilen führt also zu einer ungleichmäßigen Verteiling. `assign_threads` teilt die Indizes auf, indem als Mindestpensum `min` zunächst $\frac {\text{Gesamtanzahl Kombinationen}}{\text{Anzahl Threads}}$ festgelegt wird. Dann wird über jeden Index iteriert und eine Zuteilung für den `j`´ten Thread zu den Zuteilungen `alloc` hinzugefügt, sobald die bisherige Gesamtanzahl zu erstellender Kombinationen das `j`-fach des Mindestpensums überschritten hat. Die Anzahl an Kombinationen, die für die `i`´te Karte anfallen, sind $\binom{n-i-1}{a-1}$, weil durch Fixierung der `i`´ten Karte noch $a-1$ Karten gewählt werden müssen. Dafür sind aber nicht mehr alle $n$ Karten verfügbar, sondern eine weniger für die fixierte, und $i$ weniger, weil durch `xor_combine` nur die nachfolgenden Karten einbezogen werden.
 
 ## Zeitkomplexität
 
