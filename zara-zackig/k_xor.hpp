@@ -198,6 +198,7 @@ void xor_to_zero(std::vector<T> cards, int n, int k) {
 
     for (std::thread &t: threads) t.join();
 
+    std::cout << "No solution found\n";
     delete[] val;
     delete[] ind;
 }

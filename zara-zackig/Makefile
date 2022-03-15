@@ -6,8 +6,7 @@ all:
 	$(CPP) $(CFLAGS) main.o -o main
 
 test: all
-	$(CPP) $(CFLAGS) test.cpp test.hpp -c
-	$(CPP) $(CFLAGS) test.o -o test
+	$(CPP) $(CFLAGS) test.cpp -o test
 
 clean:
 	rm *.o *.gch
