@@ -154,7 +154,7 @@ void xor_to_zero(std::vector<T> cards, int n, int k) {
     std::cout << "Precomputed " << num_comb << " combinations, d = " << d << " after " 
         << ((std::chrono::duration<float>) (std::chrono::system_clock::now() - begin)).count() << " s \n";
 
-    radix_sort_msd<T>(val, ind, num_comb, d, floor(log2(cores)), sizeof (T) * 8 - 1);
+    radix_sort_msd<T>(val, ind, num_comb, d, ceil(log2(cores)), sizeof (T) * 8 - 1);
     std::cout << "Sorted after " << ((std::chrono::duration<float>) 
         (std::chrono::system_clock::now() - begin)).count() << " s \n";
 
