@@ -10,6 +10,7 @@
 #include <thread>
 #include <atomic>
 #include <chrono>
+#include <cassert>
 #include "io.hpp"
 
 template <typename T>
@@ -98,6 +99,13 @@ long long memory() {
     return sysconf(_SC_PHYS_PAGES) * sysconf(_SC_PAGE_SIZE);
 }
 
+template <typename T>
+bool is_valid(std::vector<uint8_t> &res, std::vector<T> &cards) {
+    T xor_val = 0;
+    for (uint8_t i: res) xor_val ^= cards[i];
+    return xor_val == 0 ? 1 : 0;
+}
+
 std::vector<int> assign_threads(long long num_comb, int cores, int n, int d) {
     std::vector<int> alloc(cores * 2, 0);
     int j = 1;
@@ -178,7 +186,9 @@ void xor_to_zero(std::vector<T> cards, int n, int k) {
                                 found.store(true);
 
                                 std::vector<uint8_t> res(used, used + (k - d));
-                                res.insert(res.end(), ind+ j * d, ind + j * d + d);
+                                res.insert(res.end(), ind + j * d, ind + j * d + d);
+                                assert(is_valid<T>(res, cards));
+                                
                                 print_cards(res, cards);
                                 std::cout << ((std::chrono::duration<float>) 
                                     (std::chrono::system_clock::now() - begin)).count() 
