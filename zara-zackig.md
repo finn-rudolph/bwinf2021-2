@@ -255,6 +255,14 @@ Radix Sort teilt die Arbeit schon von sich aus rekursiv mit einem Verzweigungsfa
 
 ## Zeitkomplexität
 
+Die Zeitkomplexität wird durch das Vorberechnen, Radix Sort und das Durchsuchen der vorberechneten Lösungen dominiert. Es werden insgesamt $\binom nd$ Kombinationen vorberechnet, für die jeweils die $d$ Indizes der verwendeten Karten nach `ind` kopiert werden. Das Vorberechnen wird immer vollständig ausgeführt, daher ist seine Best- und Worst-Case Komplexität $O(\binom nd \cdot d)$. Radix Sort iteriert im schlechtesten Fall $m$-mal über alle Elemente von `val` und führt dabei im schlechtesten Fall jeweils $d$ Swaps aus. Daher ist seine Worst-Case Komplexität $O(\binom nd \cdot d \cdot m)$. Im besten Fall müssen keine Swaps ausgeführt werden und es werden deutlich weniger als $m$ Bits betrachtet. Daher ist die Best Case Komplexität $O(\binom nk)$. Beim nachträglichen Durchsuchen werden im schlechtesten Fall $\binom n{k-d}$ Kombinationen überprüft, für die jeweils eine Binärsuche über `val` durchgeführt wird. Für diese Binärsuche wird im Worst-Case und Average-Case $O(\log_2\binom nd)$ Zeit benötigt, da meist keine passende Zahl gefunden wird. In einem sehr ungünsigen Fall würde für jede dieser Kombinationen ein passendes Gegenstück in `val` gefunden werden und `no_intersection` augeführt werden, und sich dann herausstellen, dass sich die Indizes überschneiden. Da `no_intersection` in $O(d)$ läuft, ergibt sich für die (Worst-)Worst-Case Zeitkomplexität des Durchsuchens $O(\binom n{k-d} \cdot \log_2 \binom nd \cdot d)$. Dieser zweite Fall ist aber sehr unwahrscheinlich, da Binärsuche, wie oben gesagt, so gut wie immer kein Ergebnis findet. Es ist also nicht falsch, für die Worst-Case Zeitkomplexität des Durchsuchens $O(\binom n{k-d} \log_2 \binom nd)$ anzugeben. Eine Average- oder Best-Case Komplexität abzuschätzen ist sehr schwierig bzw. nicht sinnvoll, weil der Algorithmus beendet wird, sobald eine Lösung gefunden wurde. Der Zeitpunkt der Lösungsfindung ist aber allein von der Anordnung der Karten abhängt, die zufällig ist. Die  Worst-Case Komplexität des gesamten Programms ist folglich
+
+$$
+O \Bigg (\binom nd \cdot d + \binom nd \cdot m \cdot d + \binom n{k-d} \log_2 \binom nd \Bigg)
+$$
+
+_Anmerkung:_ Wenn man voraussetzt, dass jede Verteilung der Schlüsselkarten gleich wahrscheinlich ist, wäre es möglich, eine Average-Case Abschätzung für das Durchsuchen zu anzugeben. Aber dann müsste auch die Threadzuteilung beachtet werden, weil von ihr maßgeblich abhängt, welche Kombinationen zuerst betrachtet werden.
+
 ## Beispiele
 
 ## Quellcode
