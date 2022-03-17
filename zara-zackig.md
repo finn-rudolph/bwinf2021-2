@@ -55,11 +55,24 @@ L \larr L \cup x; \space Q \larr Q \cup b& \quad a = 0 \\
 \end{cases}
 $$
 
-$a$ ist die verbleibende Anzahl von Zahlen, die noch für eine vollständige Kombination hinzugefügt werden müssen, also zu Beginn $d$. $x$ ist der $\text{xor}$-verknüpfte Wert aller $s$ der höher liegenden rekursiven Aufrufe. Für den ersten Aufruf eignet sich $x=0$, da $0$ der Identitätsoperand von $\text{xor}$ ist. $b$ ist die Liste aller bisher benutzten $s$ und sollte zu Beginn leer sein. Bei größeren $k$ muss beachtet werden, dass der Speicherbedarf sowie die Zeit zur Erstellung von $L$ mit $O(n^d)$ zunimmt, weshlb es nicht immer sinnvoll ist $d = k - 2$ zu wählen, wie in den bisherigen Beispielen. Man stößt hier auf ein _Space-Time-Tradeoff_, das durch ein gut ausgewähltes $d$ optimiert werden kann.
+$a$ ist die verbleibende Anzahl von Zahlen, die noch für eine vollständige Kombination hinzugefügt werden müssen, also zu Beginn $d$. $x$ ist der $\text{xor}$-verknüpfte Wert aller $s$ der höher liegenden rekursiven Aufrufe. Für den ersten Aufruf eignet sich $x=0$, da $0$ der Identitätsoperand von $\text{xor}$ ist. $b$ ist die Liste aller bisher benutzten $s$ und sollte zu Beginn leer sein. Bei größeren $k$ muss beachtet werden, dass der Speicherbedarf sowie die Zeit zur Erstellung von $L$ mit $O(\binom nd)$ zunimmt, weshlb es nicht immer sinnvoll ist $d = k - 2$ zu wählen, wie in den bisherigen Beispielen. Man stößt hier auf ein _Space-Time-Tradeoff_, das durch ein gut ausgewähltes $d$ optimiert werden kann.
 
-// aufgerundet k / 2, begründung??
+**Optimierung der Zeitkomplexität.** Wenn $d \neq k - 2$, kann das spätere Durchsuchen der Liste auch nicht mehr in $O(n^2 \log_2 n)$ geschehen, weil nicht alle Paare, sondern alle Kombinationen von $k - d$ Zahlen überprüft werden müssen. Um zu begründen, welches $d$ sich allgemein gut eignet, muss ich vorwegnehmen, dass die Average-Case Zeitkomplexität der Implementierung 
+$$
+O \Bigg ( \frac 32 \binom nd \cdot d + \frac 12 \binom n{k-d} \log_2 \binom nd \Bigg)
+$$
+ist. Weshalb das so ist, wird im Abschnitt [_Zeitkomplexität_](#zeitkomplexität) erklärt. Damit ist es nicht schwierig, das optimale $d$ genau festzumachen, denn es liegt bei dem einzigen Minimum der Funktion
 
-**Optimierung der Zeitkomplexität.** Wenn $d \neq k - 2$, kann das spätere Durchsuchen der Liste auch nicht mehr in $O(n^2 \log_2 n)$ geschehen, weil nicht alle Paare, sondern alle Kombinationen von $k - d$ Zahlen überprüft werden müssen. Da es davon $\binom {n}{k-d}$ gibt, ist die Zeitkomplexität des Durchsuchens $O(n^{k - d} \log_2 n^d)$. Die gesamte Zeitkomplexität ist also $O(n^d + n^{k - d} \log_2n^d)$. Daran sieht man, dass $d = \lfloor \frac k2 \rfloor$ die sinnvollste Wahl ist, denn für die asymptotische Zeitkomplexität ist allein der Summand mit dem größten Exponenten entscheidend, der so minimiert wird. Bei ungeradem $k$ ist abrunden sinnvoller als aufrunden, weil der Speicherbedarf von $L$ exponentiell mit $d$ steigt.
+$$
+f_{n, k}(d) = \frac 32 \binom nd \cdot d + \frac 12 \binom n{k-d} \log_2 \binom nd
+$$
+ist also eine Lösung der Gleichung
+$$
+\Bigg [\frac 32 \binom nd \cdot d + \frac 12 \binom n{k-d} \log_2 \binom nd \Bigg ]' = 0
+$$
+Weil diese Ableitung aber sehr lang, kompliziert und schwierig umzusetzen ist, wird eine Annäherung benutzt. Ich stelle die Anforderungen, dass die Annäherung für $k < n$ , $2 \leq k < 30$ und $3 < n < 200$ bis auf wenige Außnahmen den gleichen Wert für $d$ wie die gerundete Lösung der zweiten Gleichung liefert. Nach einigen Experimenten im Grafikrechner stellte sich heraus, dass $d = \big \lceil \frac k2 \big \rceil$ das sehr gut macht. Wenn die Annäherung falsch liegt, dann schätzt sie $d$ eher zu groß ein. Das ist besser als eine zu kleine Einschätzung, da ein viel zu großes $d$ durch den Arbeitsspeicher ohnehin begrenzt würde.
+
+// Bild vom Graph der Funktion und Ableitung, Verweis auf geogebra Datei
 
 **Limitierung durch die Speicherkomplexität.** Bei großen Eingabedateien muss der Speicherverbrauch beachtet werden. Z. B. bei `stapel4.txt`: Mit der oben genannten Einschätzung der Speicherkomplexität $\binom {n}{d}$ müssten $\binom {181}{5} \approx 1,53 \cdot 10^9$ 128-Bit Zahlen gespeichert werden, was ungefähr 24,5 Gigabyte Arbeitsspeicher erfordern würde. Wenn der Computer nicht so viel Arbeitsspeicher besitzt, muss $d$ entsprechend verringert werden.
 
@@ -255,17 +268,30 @@ Radix Sort teilt die Arbeit schon von sich aus rekursiv mit einem Verzweigungsfa
 
 ## Zeitkomplexität
 
-Die Zeitkomplexität wird durch das Vorberechnen, Radix Sort und das Durchsuchen der vorberechneten Lösungen dominiert. Es werden insgesamt $\binom nd$ Kombinationen vorberechnet, für die jeweils die $d$ Indizes der verwendeten Karten nach `ind` kopiert werden. Das Vorberechnen wird immer vollständig ausgeführt, daher ist seine Best- und Worst-Case Komplexität $O(\binom nd \cdot d)$. Radix Sort iteriert im schlechtesten Fall $m$-mal über alle Elemente von `val` und führt dabei im schlechtesten Fall jeweils einen Swap von $d$ Zahlen aus. Daher ist seine Worst-Case Komplexität $O(\binom nd \cdot d \cdot m)$. Im besten Fall müssen keine Swaps ausgeführt werden und es werden deutlich weniger als $m$ Bits betrachtet. Daher ist die Best-Case Komplexität $O(\binom nk)$. Beim nachträglichen Durchsuchen müssen zwei schlechteste Fälle unterschieden werden:
+Die Zeitkomplexität wird durch das Vorberechnen, Radix Sort und das Durchsuchen der vorberechneten Lösungen dominiert. Es werden insgesamt $\binom nd$ Kombinationen vorberechnet, für die jeweils die $d$ Indizes der verwendeten Karten nach `ind` kopiert werden. Da das Vorberechnen wird immer vollständig ausgeführt und die Rechenschritte unabhängig von den bearbeiteten Zahlen sind, ist seine Best- und Worst-Case Komplexität $O(\binom nd \cdot d)$. Mit _unabhänig_ meine ich, dass die ausgeführten Codezeilen immer die gleichen sind und nicht von den Zahlen abhängen, was z. B. bei Radix Sort nicht der Fall ist.
+
+Radix Sort iteriert im schlechtesten Fall $m$-mal über alle Elemente von `val` und führt dabei im schlechtesten Fall jeweils einen Swap von $d$ Zahlen aus. Daher ist seine Worst-Case Komplexität $O(\binom nd \cdot d \cdot m)$. Im besten Fall müssen keine Swaps ausgeführt werden und es werden deutlich weniger als $m$ Bits betrachtet, folglich ist die Best-Case Komplexität $O(\binom nk)$. Da meistens $\binom nd \ll 2^m$, werden deutlich weniger als $m$ Bits betrachtet werden, weil die Rekursion auch bei Arraylänge $1$ abbricht. Unter der Voraussetzung, dass ein zufällig gewählter Bit aus dem Kartenset mit gleicher Wahrscheinlichkeit $0$ und $1$ ist, wird durchschnittlich nur in jedem zweiten Fall ein Swap von $d$ Zahlen ausgeführt. Mit diesen Annahmen schätze ich die Average-Case Komplexität auf $O(\binom nd \cdot \frac 12 d)$
+
+Beim nachträglichen Durchsuchen müssen zwei schlechteste Fälle unterschieden werden:
 
 1. In dem schlechtesten Fall, dass erst bei der letzten geprüften Kombination eine Lösung gefunden wird, werden insgesamt $\binom n{k-d}$ Kombinationen überprüft. Für die jeweils über `val` durchgeführte Binärsuche wird im Worst-Case und Average-Case $O(\log_2\binom nd)$ Zeit benötigt, da meist keine passende Zahl gefunden wird. Dadurch wird `no_intersection` fast nie ausgeführt und kann vernachlässigt werden. Damit ist die Worst-Case Komplexität des Durchsuchens $O(\binom n{k-d} \log_2 \binom nd)$.
 2. In einem sehr ungünsigen Fall würde für jede dieser Kombinationen ein passendes Gegenstück in `val` gefunden werden und `no_intersection` augeführt werden, und sich dann herausstellen, dass sich die Indizes überschneiden. Da `no_intersection` in $O(d)$ läuft, ergibt sich für die (Worst-)Worst-Case Zeitkomplexität des Durchsuchens $O(\binom n{k-d} \cdot (\log_2 \binom nd + d))$. 
 
-Der zweite Fall ist aber extrem unwahrscheinlich und kann nur bei sehr speziellen Kartensets, z. B. einem, das nur aus Nullen besteht, eintreffen. Es ist also nicht falsch, für die Worst-Case Zeitkomplexität des Durchsuchens mit $O(\binom n{k-d} \log_2 \binom nd)$ anzugeben. Eine Average- oder Best-Case Komplexität abzuschätzen ist sehr schwierig bzw. nicht sinnvoll, weil der Algorithmus beendet wird, sobald eine Lösung gefunden wurde. Der Zeitpunkt der Lösungsfindung ist aber allein von der Anordnung der Karten abhängt, die zufällig ist. Die  Worst-Case Komplexität des gesamten Programms ist folglich
+Der zweite Fall ist aber extrem unwahrscheinlich und kann nur bei sehr speziellen Kartensets, z. B. einem, das nur aus Nullen besteht, eintreffen. Es ist also nicht falsch, für die Worst-Case Zeitkomplexität des Durchsuchens mit $O(\binom n{k-d} \log_2 \binom nd)$ anzugeben. Wenn man davon ausgeht, dass bei jedem Suchschritt mit gleicher Wahrscheinlichkeit die Lösung gefunden wird, ist die Average-Case Komplexität $O(\frac 12 \binom n{k-d} \log_2 \binom nd)$.
+
+Die Worst-Case Komplexität des gesamten Programms ist folglich
 $$
-O \Bigg (\binom nd \cdot d + \binom nd \cdot m \cdot d + \binom n{k-d} \log_2 \binom nd \Bigg)
+O \Bigg (\binom nd \cdot d + \binom nd \cdot m \cdot d + \binom n{k-d} \log_2 \binom nd \Bigg) = \\
+O \Bigg (\binom nd \cdot m \cdot d + \binom n{k-d} \log_2 \binom nd \Bigg)
 $$
 
-_Anmerkung:_ Wenn man voraussetzt, dass jede Verteilung der Schlüsselkarten gleich wahrscheinlich ist, wäre es möglich, eine Average-Case Abschätzung für das Durchsuchen zu anzugeben. Aber dann müsste auch die Threadzuteilung beachtet werden, weil von ihr maßgeblich abhängt, welche Kombinationen zuerst betrachtet werden.
+Mit den oben erklärten Annahmen ist die Average-Case Zeitkomplexität
+$$
+O \Bigg ( \binom nd \cdot d + \binom nd \cdot \frac 12 d + \frac 12 \binom n{k-d} \log_2 \binom nd \Bigg) = \\
+
+O \Bigg ( \frac 32 \binom nd \cdot d + \frac 12 \binom n{k-d} \log_2 \binom nd \Bigg)
+$$
+
 
 ## Beispiele
 
