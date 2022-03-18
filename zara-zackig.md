@@ -179,6 +179,10 @@ Zusammenfassend sind die Anweisungen für das $i$´te Haus also wie folgt:
 
 Um wieder herauszufinden, welche der Karten ihre Sicherungskarte war, gibt es keine andere Möglichkeit, als die oben beschriebenen Schritte bei allen Häusern anzuwenden. Währenddessen sollte Zara sich natürlich merken, welche Karten ein Haus öffnen konnten, die am Ende übrig bleibende ist die Sicherungskarte.
 
+## Erweiterungen
+
+Eine einfache und naheliegende Erweiterung ist, neben 32-, 64- und 128-Bit Zahlen auch 8- und 16-Bit Karten zu unterstützen (auch wenn man sie aus Sicherheitsgründen besser nicht zum Absperren eines Hauses benutzt).
+
 ## Implementierung
 
 Die Idee setzte ich in C++ mit dem Compiler clang um. Das Programm ist auf x86-64 Linux Systemen ausführbar. Es kann im Ordner `zara-zackig` folgendermaßen ausgeführt werden:
