@@ -55,24 +55,31 @@ L \larr L \cup x; \space Q \larr Q \cup b& \quad a = 0 \\
 \end{cases}
 $$
 
-$a$ ist die verbleibende Anzahl von Zahlen, die noch für eine vollständige Kombination hinzugefügt werden müssen, also zu Beginn $d$. $x$ ist der $\text{xor}$-verknüpfte Wert aller $s$ der höher liegenden rekursiven Aufrufe. Für den ersten Aufruf eignet sich $x=0$, da $0$ der Identitätsoperand von $\text{xor}$ ist. $b$ ist die Liste aller bisher benutzten $s$ und sollte zu Beginn leer sein. Bei größeren $k$ muss beachtet werden, dass der Speicherbedarf sowie die Zeit zur Erstellung von $L$ mit $O(\binom nd)$ zunimmt, weshlb es nicht immer sinnvoll ist $d = k - 2$ zu wählen, wie in den bisherigen Beispielen. Man stößt hier auf ein _Space-Time-Tradeoff_, das durch ein gut ausgewähltes $d$ optimiert werden kann.
+$a$ ist die verbleibende Anzahl von Zahlen, die noch für eine vollständige Kombination hinzugefügt werden müssen, also zu Beginn $d$. $x$ ist der $\text{xor}$-verknüpfte Wert aller $s$ der höher liegenden rekursiven Aufrufe. Für den ersten Aufruf eignet sich $x=0$, da $0$ der Identitätsoperand von $\text{xor}$ ist. $b$ ist die Liste aller bisher benutzten $s$ und sollte zu Beginn leer sein. Bei größeren $k$ muss beachtet werden, dass der Speicherbedarf sowie die Zeit zur Erstellung von $L$ mit $\Theta(\binom nd)$ zunimmt, weshlb es nicht immer sinnvoll ist $d = k - 2$ zu wählen, wie in den bisherigen Beispielen. Man stößt hier auf ein _Space-Time-Tradeoff_, das durch ein gut ausgewähltes $d$ optimiert werden kann.
 
-**Optimierung der Zeitkomplexität.** Wenn $d \neq k - 2$, kann das spätere Durchsuchen der Liste auch nicht mehr in $O(n^2 \log_2 n)$ geschehen, weil nicht alle Paare, sondern alle Kombinationen von $k - d$ Zahlen überprüft werden müssen. Um zu begründen, welches $d$ sich allgemein gut eignet, muss ich vorwegnehmen, dass die Average-Case Zeitkomplexität der Implementierung 
-$$
-O \Bigg ( \frac 32 \binom nd \cdot d + \frac 12 \binom n{k-d} \log_2 \binom nd \Bigg)
-$$
-ist. Weshalb das so ist, wird im Abschnitt [_Zeitkomplexität_](#zeitkomplexität) erklärt. Damit ist es nicht schwierig, das optimale $d$ genau festzumachen, denn es liegt bei dem einzigen Minimum der Funktion
+**Optimierung der Zeitkomplexität.** Wenn $d \neq k - 2$, kann das spätere Durchsuchen der Liste auch nicht mehr in $O(n^2 \log_2 n)$ geschehen, weil nicht alle Paare, sondern alle Kombinationen von $k - d$ Zahlen überprüft werden müssen. Um zu begründen, welches $d$ sich allgemein gut eignet, muss ich vorwegnehmen, dass die Average-Case Zeitkomplexität der Implementierung
 
 $$
-f_{n, k}(d) = \frac 32 \binom nd \cdot d + \frac 12 \binom n{k-d} \log_2 \binom nd
+\Theta \Bigg (\binom nd \cdot d + \binom n{k-d} \log_2 \binom nd \Bigg)
 $$
-ist also eine Lösung der Gleichung
-$$
-\Bigg [\frac 32 \binom nd \cdot d + \frac 12 \binom n{k-d} \log_2 \binom nd \Bigg ]' = 0
-$$
-Weil diese Ableitung aber sehr lang, kompliziert und schwierig umzusetzen ist, wird eine Annäherung benutzt. Ich stelle die Anforderungen, dass die Annäherung für $k < n$ , $2 \leq k < 30$ und $3 < n < 200$ bis auf wenige Außnahmen den gleichen Wert für $d$ wie die gerundete Lösung der zweiten Gleichung liefert. Nach einigen Experimenten im Grafikrechner stellte sich heraus, dass $d = \big \lceil \frac k2 \big \rceil$ das sehr gut macht. Wenn die Annäherung falsch liegt, dann schätzt sie $d$ eher zu groß ein. Das ist besser als eine zu kleine Einschätzung, da ein viel zu großes $d$ durch den Arbeitsspeicher ohnehin begrenzt würde.
 
-// Bild vom Graph der Funktion und Ableitung, Verweis auf geogebra Datei
+ist. Weshalb das so ist, wird im Abschnitt [_Zeitkomplexität_](#zeitkomplexität) erklärt. Wenn man damit eine von $d$ abhängige Funktion aufstellt, ist es nicht schwierig, das optimale $d$ genau festzumachen.
+
+$$
+f_{n, k}(d) = \binom nd \cdot d + \binom n{k-d} \log_2 \binom nd
+$$
+
+Denn es liegt bei dem einzigen Minimum von $f_{n,k}(d)$, ist also eine Lösung der Gleichung
+
+$$
+\Bigg [\binom nd \cdot d + \binom n{k-d} \log_2 \binom nd \Bigg ]' = 0
+$$
+
+Natürlich muss die Lösung noch zur nächsten Ganzzahl gerundet werden. Weil diese Ableitung aber sehr lang, kompliziert und schwierig umzusetzen ist, wird eine Annäherung benutzt. Die Anforderungen sind, dass die Annäherung für $k < n$ , $2 \leq k < 30$ und $3 < n < 200$ bis auf wenige Ausnahmen den gleichen Wert für $d$ wie die gerundete Lösung der zweiten Gleichung liefert. Nach einigen Experimenten im Grafikrechner stellte sich heraus, dass $d = \big \lceil \frac k2 \big \rceil$ das sehr gut macht.
+
+![](komplexität-graph.png)
+
+Beispiel: Graphische Darstellung der von $d$ abhängigen Zeitkomplexitätsfunktion $f_{n,k}(d)$ für $n=52, k=9$. violett: $f_{n,k}(d)$, grün: $f_{n,k}'(d)$, gelb: $d= \big \lceil \frac nk \big \rceil$. $d$ ist auf der x-Achse angetragen. Die verwendete GeoGebra Datei befindet sich ebenfalls im Projektordner.
 
 **Limitierung durch die Speicherkomplexität.** Bei großen Eingabedateien muss der Speicherverbrauch beachtet werden. Z. B. bei `stapel4.txt`: Mit der oben genannten Einschätzung der Speicherkomplexität $\binom {n}{d}$ müssten $\binom {181}{5} \approx 1,53 \cdot 10^9$ 128-Bit Zahlen gespeichert werden, was ungefähr 24,5 Gigabyte Arbeitsspeicher erfordern würde. Wenn der Computer nicht so viel Arbeitsspeicher besitzt, muss $d$ entsprechend verringert werden.
 
@@ -174,9 +181,15 @@ Um wieder herauszufinden, welche der Karten ihre Sicherungskarte war, gibt es ke
 
 ## Implementierung
 
-Die Idee setzte ich in C++ mit dem Compiler clang um. Das Programm ist auf x86-64 Linux Systemen ausführbar. Da Schlüsselwörter und Ähnliches in C++ englisch sind, schreibe ich meine Code auch in Englisch. C++ eignet sich sehr gut für diese Aufgabe, weil $\text{xor}$ mit dem `^`-Operator und 128-Bit Zahlen nativ unterstützt werden. Auch werde ich den Code durch parametrischen Polymorphismus mit C++ Templatefunktionen generisch halten, sodass er für alle Bitlängen funktioniert. Der Teil des Programms, der die Karten findet, ist in Funktionen unterteilt und steht in `k_xor.hpp`. Weil viele der Funktionen generisch sind, muss eine Headerdatei benutzt werden. In `main.cpp` wird mit der Bitlänge $m$ der entsprechende Integertyp ausgewählt, die Karten eingelesen und die `xor_to_zero` Funktion mit dem Integertyp als Templateparameter `T` aufgerufen. Ab hier läuft alles generisch ab, wobei `T` auch bei jeder anderen Funktion der zu $m$ zugegötige Integertyp ist.
+Die Idee setzte ich in C++ mit dem Compiler clang um. Das Programm ist auf x86-64 Linux Systemen ausführbar. Es kann im Ordner `zara-zackig` folgendermaßen ausgeführt werden:
 
-Das Programm gibt die $k$ Zahlen aus, deren $\text{xor } 0$ ist. Logischerweise sind alle nicht ausgegebenen Zahlen die hinzugefügten Karten.
+```
+./main < [Eingabedatei] [Arbeitsspeicherlimit in Megabyte]
+```
+
+Das Arbeitsspeicherlimit ist optional, wird keines angegeben, rechnet das Programm mit dem gesamten vorhandenen Arbeitsspeicher minus 2 Gigabyte. Ein zu großes, manuell eingegebenes Limit kann zum Absturz des Programms führen. Das Programm gibt die $k$ Zahlen aus, deren $\text{xor } 0$ ist. Logischerweise sind alle nicht ausgegebenen Zahlen die hinzugefügten Karten.
+
+Da Schlüsselwörter und Ähnliches in C++ englisch sind, schreibe ich meine Code auch in Englisch. C++ eignet sich sehr gut für diese Aufgabe, weil $\text{xor}$ mit dem `^`-Operator und 128-Bit Zahlen nativ unterstützt werden. Auch werde ich den Code durch parametrischen Polymorphismus mit C++ Templatefunktionen generisch halten, sodass er für alle Bitlängen funktioniert. Der Teil des Programms, der die Karten findet, ist in Funktionen unterteilt und steht in `k_xor.hpp`. Weil viele der Funktionen generisch sind, muss eine Headerdatei benutzt werden. In `main.cpp` wird mit der Bitlänge $m$ der entsprechende Integertyp ausgewählt, die Karten eingelesen und die `xor_to_zero` Funktion mit dem Integertyp als Templateparameter `T` aufgerufen. Ab hier läuft alles generisch ab, wobei `T` auch bei jeder anderen Funktion der zu $m$ zugegötige Integertyp ist.
 
 ### Der Hauptalgorithmus
 
@@ -188,11 +201,9 @@ Das Programm gibt die $k$ Zahlen aus, deren $\text{xor } 0$ ist. Logischerweise 
 
 Ich werde zunächst nur die Teile des Codes berücksichtigen, die für das eigentliche Berechnen der Lösung zuständig sind. Teile, die die Parallelisierung betreffen, werden im Abschnitt [_Parallelisierung_](#parallelisierung) erklärt.
 
-// memory
+Zunächst wird der verfügbare Arbeitsspeicher vom System abgefragt, falls vom Benutzer kein Limit gesetzt wurde. Das, minus $2^{31}$, also ca. 2 Mrd., wird als Limit dann als Limit gesetzt. Kurz zur Implementierung von $L$ und $Q$, da das für die Auswahl von $d$ relevant ist: $L$ wird mit dem Namen `val` genau wie im Pseudocode umgesetzt, nur $Q$ wird als eindimensionale Liste `ind` mit $|L| \cdot d$ Einträgen gehandhabt. Die zum $i$´ten Eintrag in `val` zugehörigen Indizes stehen in `ind` bei Index $i \cdot d$ bis $i \cdot d + d$. `val` und `ind` sind C-style Arrays, um nur so wie Speicherplatz wie nötig zu verbrauchen. Ein C-style Array besteht nur aus sequentiell angeordneten Werten des angegebenen Typs, der Variablenname ist ein Zeiger zum ersten dieser Werte. Sein Speicherverbrauch ist der Speicherverbrauch eines Eintrags $\cdot$ die Länge.
 
-Die Liste an vorberechneten $\text{xor}$-Werten $L$ wird mit dem Namen `val` genau wie im Pseudocode umgesetzt, nur $Q$ wird als eindimensionale Liste `ind` mit $|L| \cdot d$ Einträgen gehandhabt. Die zum $i$´ten Eintrag in `val` zugehörigen Indizes stehen in `ind` bei Index $i \cdot d$ bis $i \cdot d + d$. `val` und `ind` sind C-style Arrays, um nur so wie Speicherplatz wie nötig zu verbrauchen. Ein C-style Array besteht nur aus sequentiell angeordneten Werten des angegebenen Typs, der Variablenname ist ein Zeiger zum ersten dieser Werte.
-
-Zunächst wird $d$ zu dem optimalen Wert $\lfloor \frac k2 \rfloor$ initialisiert (Z. 6). Da die Länge von `val` $\binom nd$ sein wird und jeder Eintrag in `val` ein `T` ist, kann die Menge an verbrauchtem Arbeitsspeicher einfach vorhergesehen werden. Denn jedes `T` verbraucht wiederum `sizeof (T)` Bytes (Z. 7). Dazu kommen für jeden Eintrag in `val` $d$ Einträge in `ind`, für die aber jeweils ein 8-Bit, also 1-Byte positiver Integer ausreicht, da die Anzahl an Karten in keiner Eingabedatei 255 überschreitet. Nachdem $d$ festgesetzt wurde, wird in `num_comb` die Länge von `val` gespeichert, die für den weiteren Verlauf häufig benötigt wird.
+$d$ wird zu dem angenähert optimalen Wert $\big \lceil \frac k2 \big \rceil$ initialisiert. Da die Länge von `val` $\binom nd$ sein wird und jeder Eintrag in `val` ein `T` ist, kann die Menge an verbrauchtem Arbeitsspeicher einfach vorhergesehen werden. Denn jedes `T` verbraucht wiederum `sizeof (T)` Bytes (Z. 7). Dazu kommen für jeden Eintrag in `val` $d$ Einträge in `ind`, für die aber jeweils ein 8-Bit, also 1-Byte positiver Integer ausreicht, da die Anzahl an Karten in keiner Eingabedatei 255 überschreitet. $d$ wird also verringert, bis `val` und `ind` in das Arbeitsspeicherlimit passen. In `num_comb` wird die Länge von `val` gespeichert, die für den weiteren Verlauf häufig benötigt wird.
 
 #### Zusammensetzung von Kartenkombinationen
 
@@ -268,32 +279,31 @@ Radix Sort teilt die Arbeit schon von sich aus rekursiv mit einem Verzweigungsfa
 
 ## Zeitkomplexität
 
-Die Zeitkomplexität wird durch das Vorberechnen, Radix Sort und das Durchsuchen der vorberechneten Lösungen dominiert. Es werden insgesamt $\binom nd$ Kombinationen vorberechnet, für die jeweils die $d$ Indizes der verwendeten Karten nach `ind` kopiert werden. Da das Vorberechnen wird immer vollständig ausgeführt und die Rechenschritte unabhängig von den bearbeiteten Zahlen sind, ist seine Best- und Worst-Case Komplexität $O(\binom nd \cdot d)$. Mit _unabhänig_ meine ich, dass die ausgeführten Codezeilen immer die gleichen sind und nicht von den Zahlen abhängen, was z. B. bei Radix Sort nicht der Fall ist.
+Die Zeitkomplexität wird durch das Vorberechnen, Radix Sort und das Durchsuchen der vorberechneten Lösungen dominiert. Auch wenn es etwas unüblich ist, werden Komplexitäten häufig mit dem Binomialkoeffizienten angegeben, weil sich damit die Anzahl an Ausführungsschritten genauer eingrenzen lässt. Es kann natürlich immer $O(\binom nk)$ mit $O(n^k)$ (für beliebige $n, k \in \N_0 \space | \space k \leq n$) ersetzt werden, letzteres ist aber eine wesentlich höhere und damit ungenauere Oberschranke. Und das Ziel bei der Angabe einer Oberschranke ist, sie möglichst gering zu halten. Es werden insgesamt $\binom nd$ Kombinationen vorberechnet, für die jeweils die $d$ Indizes der verwendeten Karten nach `ind` kopiert werden. Da das Vorberechnen wird immer vollständig ausgeführt und die Rechenschritte unabhängig von den bearbeiteten Zahlen sind, ist seine Best-, Worst- und Average-Case Komplexität $\Theta (\binom nd \cdot d)$. Mit _unabhängig_ meine ich, dass die ausgeführten Codezeilen immer die gleichen sind und nicht von den Zahlen abhängen, was z. B. bei Radix Sort nicht der Fall ist.
 
-Radix Sort iteriert im schlechtesten Fall $m$-mal über alle Elemente von `val` und führt dabei im schlechtesten Fall jeweils einen Swap von $d$ Zahlen aus. Daher ist seine Worst-Case Komplexität $O(\binom nd \cdot d \cdot m)$. Im besten Fall müssen keine Swaps ausgeführt werden und es werden deutlich weniger als $m$ Bits betrachtet, folglich ist die Best-Case Komplexität $O(\binom nk)$. Da meistens $\binom nd \ll 2^m$, werden deutlich weniger als $m$ Bits betrachtet werden, weil die Rekursion auch bei Arraylänge $1$ abbricht. Unter der Voraussetzung, dass ein zufällig gewählter Bit aus dem Kartenset mit gleicher Wahrscheinlichkeit $0$ und $1$ ist, wird durchschnittlich nur in jedem zweiten Fall ein Swap von $d$ Zahlen ausgeführt. Mit diesen Annahmen schätze ich die Average-Case Komplexität auf $O(\binom nd \cdot \frac 12 d)$
+Radix Sort iteriert im schlechtesten Fall $m$-mal über alle Elemente von `val` und führt dabei im schlechtesten Fall jeweils einen Swap von $d$ Zahlen aus. Daher ist seine Worst-Case Komplexität $O(\binom nd \cdot d \cdot m)$. Im besten Fall müssen keine Swaps ausgeführt werden und es werden deutlich weniger als $m$ Bits betrachtet, folglich ist die Best-Case Komplexität $\Omega (\binom nk)$. Da meistens $\binom nd \ll 2^m$, werden deutlich weniger als $m$ Bits betrachtet werden, weil die Rekursion ebenfalls bei Arraylänge $1$ abbricht. Unter der Voraussetzung, dass ein zufällig gewählter Bit aus dem Kartenset mit gleicher Wahrscheinlichkeit $0$ und $1$ ist, wird durchschnittlich nur in jedem zweiten Fall ein Swap von $d$ Zahlen ausgeführt. Mit diesen Annahmen schätze ich die Average-Case Komplexität auf $\Theta(\binom nd \cdot \frac 12 d) = \Theta(\binom nd \cdot d) $.
 
 Beim nachträglichen Durchsuchen müssen zwei schlechteste Fälle unterschieden werden:
 
 1. In dem schlechtesten Fall, dass erst bei der letzten geprüften Kombination eine Lösung gefunden wird, werden insgesamt $\binom n{k-d}$ Kombinationen überprüft. Für die jeweils über `val` durchgeführte Binärsuche wird im Worst-Case und Average-Case $O(\log_2\binom nd)$ Zeit benötigt, da meist keine passende Zahl gefunden wird. Dadurch wird `no_intersection` fast nie ausgeführt und kann vernachlässigt werden. Damit ist die Worst-Case Komplexität des Durchsuchens $O(\binom n{k-d} \log_2 \binom nd)$.
-2. In einem sehr ungünsigen Fall würde für jede dieser Kombinationen ein passendes Gegenstück in `val` gefunden werden und `no_intersection` augeführt werden, und sich dann herausstellen, dass sich die Indizes überschneiden. Da `no_intersection` in $O(d)$ läuft, ergibt sich für die (Worst-)Worst-Case Zeitkomplexität des Durchsuchens $O(\binom n{k-d} \cdot (\log_2 \binom nd + d))$. 
+2. In einem sehr ungünsigen Fall würde für jede dieser Kombinationen ein passendes Gegenstück in `val` gefunden werden und `no_intersection` augeführt werden, und sich dann herausstellen, dass sich die Indizes überschneiden. Da `no_intersection` in $O(d)$ läuft, ergibt sich für die (Worst-)Worst-Case Zeitkomplexität des Durchsuchens $O(\binom n{k-d} \cdot (\log_2 \binom nd + d))$.
 
-Der zweite Fall ist aber extrem unwahrscheinlich und kann nur bei sehr speziellen Kartensets, z. B. einem, das nur aus Nullen besteht, eintreffen. Es ist also nicht falsch, für die Worst-Case Zeitkomplexität des Durchsuchens mit $O(\binom n{k-d} \log_2 \binom nd)$ anzugeben. Wenn man davon ausgeht, dass bei jedem Suchschritt mit gleicher Wahrscheinlichkeit die Lösung gefunden wird, ist die Average-Case Komplexität $O(\frac 12 \binom n{k-d} \log_2 \binom nd)$.
+Der zweite Fall ist aber extrem unwahrscheinlich und könn nur bei sehr speziellen Kartensets eintreffen. Dass er nie eintreffen kann, konnte ich leider nicht beweisen. Daher muss ich die Worst-Case Zeitkomplexität des Durchsuchens mit $O(\binom n{k-d} (\log_2 \binom nd + d))$ angeben. Im Average-Case kann das aber vernachlässigt werden. Bei der Average-Case Abschätzung kann man einen Faktor $\frac 12$ hinzufügen, wenn man davon ausgeht, dass bei jedem Suchschritt mit gleicher Wahrscheinlichkeit die Lösung gefunden wird. Dieser wird bei der asymptotischen Zeitkomplexität natürlich wieder verworfen, ist aber in der Realität nicht irrelevant. Daher ist die Average-Case Komplexität $\Theta(\binom n{k-d} \log_2 \binom nd)$.
 
 Die Worst-Case Komplexität des gesamten Programms ist folglich
+
 $$
-O \Bigg (\binom nd \cdot d + \binom nd \cdot m \cdot d + \binom n{k-d} \log_2 \binom nd \Bigg) = \\
-O \Bigg (\binom nd \cdot m \cdot d + \binom n{k-d} \log_2 \binom nd \Bigg)
+O \Bigg (\binom nd \cdot d + \binom nd \cdot m \cdot d + \binom n{k-d} \bigg( \log_2 \binom nd + d \bigg )\Bigg) = \\
+O \Bigg (\binom nd \cdot m \cdot d + \binom n{k-d} \bigg( \log_2 \binom nd + d \bigg ) \Bigg)
 $$
 
 Mit den oben erklärten Annahmen ist die Average-Case Zeitkomplexität
+
 $$
-O \Bigg ( \binom nd \cdot d + \binom nd \cdot \frac 12 d + \frac 12 \binom n{k-d} \log_2 \binom nd \Bigg) = \\
+\Theta \Bigg ( \binom nd \cdot d + \binom nd \cdot d + \frac 12 \binom n{k-d} \log_2 \binom nd \Bigg) = \\
 
-O \Bigg ( \frac 32 \binom nd \cdot d + \frac 12 \binom n{k-d} \log_2 \binom nd \Bigg)
+\Theta \Bigg (\binom nd \cdot d + \binom n{k-d} \log_2 \binom nd \Bigg)
 $$
-
-
-## Beispiele
 
 ## Quellcode
 
