@@ -122,12 +122,12 @@ std::vector<int> assign_threads(long long num_comb, int cores, int n, int d) {
 }
 
 template <typename T>
-void xor_to_zero(std::vector<T> cards, int n, int k) {
-    long long memory_limit = memory() - (((long long) 1) << 31);
-    std::cout << "Memory Limit: " << (memory_limit) / pow(10, 6) << " MB\n";
+void xor_to_zero(std::vector<T> cards, int n, int k, long long mem_limit) {
+    if (mem_limit == 0) mem_limit = memory() - (((long long) 1) << 31);
+    std::cout << "Memory Limit: " << (mem_limit) / pow(10, 6) << " MB\n";
 
     int d = k / 2;
-    while (binom(n, d) * (sizeof (T) + d) > memory_limit) d -= 1;
+    while (binom(n, d) * (sizeof (T) + d) > mem_limit) d -= 1;
     long long num_comb = binom(n, d);
 
     auto begin = std::chrono::system_clock::now();

@@ -14,7 +14,7 @@ T random_T() {
 }  
 
 template <typename T>
-void test(int n, int k) {
+void test(int n, int k, long long mem_limit) {
     std::vector<T> cards(n - 1);
 
     std::srand(time(NULL));
@@ -32,28 +32,38 @@ void test(int n, int k) {
 
     std::random_shuffle(cards.begin(), cards.end());
 
-    xor_to_zero<T>(cards, n, k);
+    xor_to_zero<T>(cards, n, k, mem_limit);
 
 }
 
-int main () {
-    int n, k, m; std::cin >> n >> k >> m;
+int main (int argc, char* argv[]) {
+    long long mem_limit = 0;
+    if (argc > 2) {
+        std::cout << "Too many arguments. Run with: ./test [memory limit in megabytes]\n";
+        exit(EXIT_FAILURE);
+    } else if (argc == 2) {
+        mem_limit = std::stold(argv[1]) * 1000000;
+    }
+    
+    std::cout << "n, k, m: ";
+    int n, k, m;
+    std::cin >> n >> k >> m;
 
     switch (m) {
         case 8:
-            test<uint8_t>(n, k);
+            test<uint8_t>(n, k, mem_limit);
             break;
         case 16:
-            test<uint16_t>(n, k);
+            test<uint16_t>(n, k, mem_limit);
             break;
         case 32:
-            test<uint32_t>(n, k);
+            test<uint32_t>(n, k, mem_limit);
             break;
         case 64:
-            test<uint64_t>(n, k);
+            test<uint64_t>(n, k, mem_limit);
             break;
         case 128:
-            test<__uint128_t>(n, k);
+            test<__uint128_t>(n, k, mem_limit);
             break;
         default:
             std::cout << "Invalid number of bits\n";
