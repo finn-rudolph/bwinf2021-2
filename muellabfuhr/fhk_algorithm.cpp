@@ -4,9 +4,7 @@
 #include "fhk_algorithm.hpp"
 #include "io.hpp"
 
-const int num_tours = 5;
-
-std::vector<std::vector<int>> fhk(adj_map &graph) {
+std::vector<std::vector<int>> fhk(adj_map &graph, int k) {
     matrix_2d dis, pre;
     for (int v = 0; v < graph.size(); v++) {
         auto [distances, predecessors] = dijkstra(graph, v);
@@ -24,8 +22,8 @@ std::vector<std::vector<int>> fhk(adj_map &graph) {
     int cost = 0;
     std::vector<std::vector<int>> tours;
 
-    for (int i = 1; i <= num_tours - 1; i++) {
-        int max_cost = ((float) i / (float) num_tours) * 
+    for (int i = 1; i <= k - 1; i++) {
+        int max_cost = ((float) i / (float) k) * 
             (float) (cpp_cost - lower_bound) + 0.5 * (float) lower_bound;
 
         int split = pre_split; // index in cpp_tour, not actual vertex
