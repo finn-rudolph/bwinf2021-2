@@ -78,7 +78,7 @@ void radix_sort_msd(T* val, uint8_t* ind, long long length, int d, int t_depth, 
 }
 
 template <typename T>
-long long bs(T* val, long long length, T target) {
+long long binary_search(T* val, long long length, T target) {
     long long u = 0, v = length - 1;
 
     while (u < v) {
@@ -139,21 +139,22 @@ void xor_to_zero(std::vector<T> cards, int n, int k, long long mem_limit) {
     if (cores == 0) cores = sysconf(_SC_NPROCESSORS_ONLN);
     if (cores == 0) cores = 8;
 
-    std::vector<int> alloc = assign_threads(num_comb, cores, n, d);
+    std::vector<int> distr = assign_threads(num_comb, cores, n, d);
     std::cout << "Using " << cores << " threads\n";
     std::vector<std::thread> threads;
 
     for (int i = 0; i < cores; i++) {
-        threads.emplace_back([i, &cards, &val, &ind, &n, &d, &cores, &alloc] {
-            int pos = alloc[i * 2 + 1];
+        threads.emplace_back([i, &cards, &val, &ind, &n, &d, &cores, &distr] {
+            int pos = distr[i * 2 + 1];
             uint8_t used[d];
+            
             xor_combine<T>(cards, d, 
                 [&val, &ind, &used, &pos, &d](T &xor_val) {
                     val[pos] = xor_val;
                     std::copy(used, used + d, ind + pos * d);
                     pos += 1;
                 },
-                used, alloc[i * 2], i == cores - 1 ? n : alloc[i * 2 + 2]);
+                used, distr[i * 2], i == cores - 1 ? n : distr[i * 2 + 2]);
         });
     }
 
@@ -166,18 +167,19 @@ void xor_to_zero(std::vector<T> cards, int n, int k, long long mem_limit) {
     std::cout << "Sorted after " << ((std::chrono::duration<float>) 
         (std::chrono::system_clock::now() - begin)).count() << " s \n";
 
-    alloc = assign_threads(num_comb, cores, n, k - d);
+    distr = assign_threads(num_comb, cores, n, k - d);
     threads.clear();
     std::atomic_bool found(false);
 
     for (int i = 0; i < cores; i++) {
         threads.emplace_back([i, &cards, &val, &ind, &num_comb, 
-            &n, &k, &d, &cores, &alloc, &begin, &found] {
+            &n, &k, &d, &cores, &distr, &begin, &found] {
             uint8_t used[k - d];
+
             xor_combine<T>(cards, k - d,
                 [&cards, &val, &ind, &num_comb, &k, &d, &used, &begin, &found](T &xor_val) {
                     if (found) return;
-                    long long j = bs<T>(val, num_comb, xor_val);
+                    long long j = binary_search<T>(val, num_comb, xor_val);
                     if (j != -1) {
                         while (j > 0 && val[j - 1] == xor_val) j -= 1;      
 
@@ -202,7 +204,7 @@ void xor_to_zero(std::vector<T> cards, int n, int k, long long mem_limit) {
                         }
                     }
                 },
-                used, alloc[i * 2], i == cores - 1 ? n : alloc[i * 2 + 2]);
+                used, distr[i * 2], i == cores - 1 ? n : distr[i * 2 + 2]);
         });
     }
 

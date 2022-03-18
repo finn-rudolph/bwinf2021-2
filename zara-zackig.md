@@ -3,6 +3,8 @@
 <p style="text-align: center;">Bearbeiter: Finn Rudolph</p>
 <p style="text-align: center;">02.03.2022</p>
 
+[TOC]
+
 ## Problembeschreibung
 
 Zunächst einige wichtige Eigenschaften des $\text{xor}$ Operators. Das exklusive Oder zweier gleicher Zahlen ist immer 0, weil sich bei diesen Zahlen kein Bit unterscheidet. Auch ist $\text{xor}$ kommutativ sowie assoziativ, d. h. die Anwendungsreihenfolge auf mehrere Operanden und Anordnung der Operanden sind irrelevant für das Ergebnis (Lewin, 2012). Die Aufgabenstellung verlangt es, aus einer Menge $S$ von Karten oder Binärzahlen, $k$ verschiedene Zahlen zu finden, deren $\text{xor}$ gleich irgendeiner anderen Zahl $\in S$ ist. Mit den oben genannten Eigenschaften kann das Problem umformuliert werden: Finde $k + 1$ Zahlen aus $S$, deren $\text{xor}$ gleich $0$ ist. Von hier an werde ich $k$ für die Anzahl an Zahlen, deren $\text{xor}$ gleich 0 sein soll verwenden, und nicht $k + 1$, weil das der Standard in allen Quellen ist.
@@ -197,11 +199,9 @@ Da Schlüsselwörter und Ähnliches in C++ englisch sind, schreibe ich meine Cod
 
 ### Der Hauptalgorithmus
 
-// Zeilenangaben
-
 #### Initialisierung
 
-&rarr; zugehörige Funktion: `xor_to_zero` (Z. 1 - 13)
+&rarr; zugehörige Funktion: [`xor_to_zero`](#xortozero) (Z. 1 - 13)
 
 Ich werde zunächst nur die Teile des Codes berücksichtigen, die für das eigentliche Berechnen der Lösung zuständig sind. Teile, die die Parallelisierung betreffen, werden im Abschnitt [_Parallelisierung_](#parallelisierung) erklärt.
 
@@ -211,29 +211,29 @@ $d$ wird zu dem angenähert optimalen Wert $\big \lceil \frac k2 \big \rceil$ in
 
 #### Zusammensetzung von Kartenkombinationen
 
-&rarr; zugehörige Funktion: `xor_combine`
+&rarr; zugehörige Funktion: [`xor_combine`](#xorcombine)
 
-Wie schon in den Rekursionsformeln bei der Lösungsidee ersichtlich war, liegt für das Vorberechnen der $\text{xor}$-Werte und das spätere Suchen eines passenden Gegenstücks die gleiche Rekursion zugrunde. Nur bei den Anweisungen nach Eintreten der Abbruchbedingung $a=0$ werden unterschiedliche Befehle ausgeführt. Um Codewiederholung zu vermeiden, implementiere ich eine höherwertige, rekursive Funktion `xor_combine`, die ein `std::function`-Objekt, also irgendeine Art Funktion, als Parameter nimmt. Diese wird beim Eintreten der Abbruchbedingung ausgeführt.
+Wie schon in den Rekursionsformeln bei der Lösungsidee ersichtlich war, liegt für das Vorberechnen der $\text{xor}$-Werte und das spätere Suchen eines passenden Gegenstücks die gleiche Rekursion zugrunde. Nur bei den Anweisungen nach Eintreten der Abbruchbedingung $a=0$ werden unterschiedliche Befehle ausgeführt. Um Codewiederholung zu vermeiden, implementiere ich eine höherwertige, rekursive Funktion [`xor_combine`](#xorcombine), die ein `std::function`-Objekt, also irgendeine Art Funktion, als Parameter nimmt. Diese wird beim Eintreten der Abbruchbedingung ausgeführt.
 
-`xor_combine` erstellt alle $\text{xor}$-Verknüpfungen aus `a` Zahlen, indem eine Zahl fixiert wird und dann rekursiv alle Kombinationen aus `a - 1` Zahlen mit der fixierten Zahl $\text{xor}$-verknüpft werden. Das Fixieren geschieht für jede Zahl, allerdings werden beim rekursiven Aufruf nur noch Zahlen in Betracht gezogen, die in `cards` nach der gewählten Zahl stehen, um Dopplungen zu vermeiden.
+[`xor_combine`](#xorcombine) erstellt alle $\text{xor}$-Verknüpfungen aus `a` Zahlen, indem eine Zahl fixiert wird und dann rekursiv alle Kombinationen aus `a - 1` Zahlen mit der fixierten Zahl $\text{xor}$-verknüpft werden. Das Fixieren geschieht für jede Zahl, allerdings werden beim rekursiven Aufruf nur noch Zahlen in Betracht gezogen, die in `cards` nach der gewählten Zahl stehen, um Dopplungen zu vermeiden.
 
 #### Vorberechnung
 
-Das Vorberechnen funktioniert mithilfe der Funktion `xor_combine`, der eine Lambdafunktion als Callback mitgegeben wird. In dieser sind die Schritte festgelegt, die für eine generierte Kombination ausgeführt werden. In `pos` ist die Position in dem Array `val` abgespeichert, in die der nächste $\text{xor}$-Wert vom aktuellen Thread geschrieben werden soll, die genaue Initialisierung dieser Variable wird bei [_Parallelisierung_](#parallelisierung) erklärt. Nachdem der $\text{xor}$-verknüpfte Wert der aktuellen Zahlenkombination dort eingetragen wurden, und die Indizes der verwendeten Zahlen in `ind`, wird `pos` um eins vergrößert.
+Das Vorberechnen funktioniert mithilfe der Funktion [`xor_combine`](#xorcombine), der eine Lambdafunktion als Callback mitgegeben wird. In dieser sind die Schritte festgelegt, die für eine generierte Kombination ausgeführt werden. In `pos` ist die Position in dem Array `val` abgespeichert, in die der nächste $\text{xor}$-Wert vom aktuellen Thread geschrieben werden soll, die genaue Initialisierung dieser Variable wird bei [_Parallelisierung_](#parallelisierung) erklärt. Nachdem der $\text{xor}$-verknüpfte Wert der aktuellen Zahlenkombination dort eingetragen wurden, und die Indizes der verwendeten Zahlen in `ind`, wird `pos` um eins vergrößert.
 
 #### Suche nach Gegenstücken
 
-Auch hier wird `xor_combine` eine Lambdafunktion mitgegeben. Zunächst wird durch [Binärsuche](#binärsuche-2) über `val` überprüft, ob es zu der als Argument mitgegebenen Zahl ($\text{xor}$-Verknüpfung meherer Karten) einen vorberechnete gibt. Ist das nicht der Fall, kann die zugehörige Kombination sofort verworfen werden. Andernfalls muss die Möglichkeit beachtet werden, dass es mehrere vorberechnete Kombinationen mit dieser Zahl als $\text{xor}$-Summe gibt und Binärsuche nur eine davon gefunden hat. Daher wird die Position der gefundenen Zahl `j` zum Anfang der Folge gleicher Zahlen bewegt. Im Folgenden wird für jede Zahl / vorberechnete Kombination in dieser Folge überprüft, ob sich ihre zugehörigen Karten mit denen der aktuell betrachteten Kombination überschneiden (&rarr; [Überprüfen von Überschneidungen](#überprüfen-von-überschneidungen)). Wenn das nicht der Fall ist, wird die gefundene Lösung ausgegeben, der Arbeitsspeciher von `val` und `ind` freigegeben und der Prozess beendet.
+Auch hier wird [`xor_combine`](#xorcombine) eine Lambdafunktion mitgegeben. Zunächst wird durch [Binärsuche](#binarysearch) über `val` überprüft, ob es zu der als Argument mitgegebenen Zahl ($\text{xor}$-Verknüpfung meherer Karten) einen vorberechnete gibt. Ist das nicht der Fall, kann die zugehörige Kombination sofort verworfen werden. Andernfalls muss die Möglichkeit beachtet werden, dass es mehrere vorberechnete Kombinationen mit dieser Zahl als $\text{xor}$-Summe gibt und Binärsuche nur eine davon gefunden hat. Daher wird die Position der gefundenen Zahl `j` zum Anfang der Folge gleicher Zahlen bewegt. Im Folgenden wird für jede Zahl / vorberechnete Kombination in dieser Folge überprüft, ob sich ihre zugehörigen Karten mit denen der aktuell betrachteten Kombination überschneiden (&rarr; [Überprüfen von Überschneidungen](#überprüfen-von-überschneidungen)). Wenn das nicht der Fall ist, wird die gefundene Lösung ausgegeben, der Arbeitsspeciher von `val` und `ind` freigegeben und der Prozess beendet.
 
 #### Überprüfen von Überschneidungen
 
-&rarr; zugehörige Funktion: `no_intersection`
+&rarr; zugehörige Funktion: [`no_intersection`](#nointersection)
 
 Die Funktion liefert einen Wahrheitswert, ob zwei gleiche Zahlen in den zwei mitgegebenen Arrays auftreten, was in diesem Fall die doppelte Benutzung einer Karte bedeuten würde. Dazu wird ein `std::unordered_set` aus der zweiten der beiden Listen erstellt. So kann dann für jedes Element des ersten Arrays in $O(1)$ Zeit überprüft werden, ob es ebenfalls im zweiten Array vohanden ist.
 
 #### Der Binomialkoeffizient
 
-&rarr; zugehörige Funktion: `binom`
+&rarr; zugehörige Funktion: [`binom`](#binom)
 
 Würde man zur Berechnung des Binomialkoeffizienten einfach die Formel anwenden, über die er definiert ist, würde durch $n!$ ein Integer Overflow entstehen. Daher implementiere ich ihn rekursiv über folgende Beziehungen:
 
@@ -255,9 +255,13 @@ Die zweite Beziehung kann man durch die Überlegung bestätigen, dass man nur ei
 
 ### Radix Sort
 
+&rarr; zugehörige Funktion: [`radix_sort`](#radixsortmsd)
+
 Meine Implementierung von RadixSort unterscheidet sich kaum vom Pseudocode. Unterschiede sind, dass die Indexierung der Arrays in der Implementierung mit 0 statt mit 1 beginnt. Der `h`´te Bit der betrachteten Zahl wird herausgefunden, indem die Bits `h` mal nach rechts verschoben werden und die verbleibende Zahl mit 1 $\text{und}$-verknüpft wird. So bleibt eine 1 übrig, wenn der `h`´te Bit 1 war, was in C++ gleich zu `true` ist.
 
 ### Binärsuche
+
+&rarr; zugehörige Funktion: [`binary_search`](#binarysearch)
 
 Binärsuche ist genau wie im Pseudocode beschrieben implementiert, daher werde ich die dort beschriebene Funktionsweise nicht wiederholen. Ein Detail habe ich mir bei der Implementierung aber überlegt: In den meisten Fällen findet Binärsuche bei dieser Anwendung keine Lösung, weswegen fast immer eine der Bedingungen `val[mid] < target` oder `val[mid] > target` zutrifft. Es ist daher sinnvoll, die Codezeilen so anzuordnen, dass diese zuerst überprüft werden, um insgesamt weniger Überprüfungen durchführen zu müssen. Normalerweise wäre so etwas irrelevant, aber Binärsuche wird bei meinem Algorithmus sehr oft durchgeführt und ist das begrenzende Element der Laufzeit.
 
@@ -265,17 +269,17 @@ Binärsuche ist genau wie im Pseudocode beschrieben implementiert, daher werde i
 
 Ich parallelisiere das Vorberechnen und das spätere Durchsuchen der vorberechneten Werte durch Multithreading. Optimalerweise soll die Anzahl an Threads `cores` gleich zur Anzahl der Prozessorkerne des Computers sein, die in Z. ? abgefragt wird. Wenn dazu keine Informationen vorhanden sind, wird 8 verwendet.
 
-#### Parallelisierung von `xor_combine`
+#### Parallelisierung von xor_combine
 
-Das Aufteilen der Arbeit der `xor_combine` Funktion geschieht, indem sie `cores`-mal aufgerufen wird, wobei jeweils der Umfang der Zahlen (in `xor_combine` die Parameter `start` bis `end`), die auf der obersten Rekursionsebene betrachtet werden, begrenzt ist. Die von `assign_threads` zurückgegebene Aufteilung enthält für den `i`´ten Thread den Index der Karte, bei der er beginnen soll, bei Index `i * 2`. Darauf folgt jeweils bei `i * 2 + 1` die Anzahl an Kombinationen, die von allen niedriger nummerierten Threads berechnet werden. Das ist entscheidend, weil so jedem Thread ein Teil von `val` und `ind` zugeteilt wird, in den er seine Kombinationen hineinschreiben kann. Damit ist keine Synchronsierung erforderlich, was die Performance erheblich verbessert. Diese Zuteilung geschieht durch die entsprechende Initialisierung von `pos`. Nachdem alle Threads erstellt wurden, wird bei jedem die `std::thread::join` Methode aufgerufen, um mit der weiteren Ausführung des Hauptthreads auf die nebenläufigen Threads zu warten.
+Das Aufteilen der Arbeit von [`xor_combine`](#xorcombine) geschieht, indem es `cores`-mal aufgerufen wird, wobei jeweils der Umfang der Zahlen (in [`xor_combine`](#xorcombine) die Parameter `start` bis `end`), die auf der obersten Rekursionsebene betrachtet werden, begrenzt ist. Die von [`assign_threads`](#assignthreads) zurückgegebene Aufteilung enthält für den `i`´ten Thread den Index der Karte, bei der er beginnen soll, bei Index `i * 2`. Darauf folgt jeweils bei `i * 2 + 1` die Anzahl an Kombinationen, die von allen niedriger nummerierten Threads berechnet werden. Das ist entscheidend, weil so jedem Thread ein Teil von `val` und `ind` zugeteilt wird, in den er seine Kombinationen hineinschreiben kann. Damit ist keine Synchronsierung erforderlich, was die Performance erheblich verbessert. Diese Zuteilung geschieht durch die entsprechende Initialisierung von `pos`. Nachdem alle Threads erstellt wurden, wird bei jedem die `std::thread::join` Methode aufgerufen, um mit der weiteren Ausführung des Hauptthreads auf die nebenläufigen Threads zu warten.
 
-Beim späteren Durchsuchen unterscheidet sich die Parallelisierung nur darin, dass eine gewisse Synchronisation notwendig ist. Denn sobald ein Thread eine Lösung gefunden und ausgegeben hat, gibt er den Arbeitsspeicher von `val` und `ind` frei, und beendet erst danach den Prozess und damit die anderen Threads. Da `val` und `ind` bei großen Eingabedateien mehrere Gigabyte groß sind, benötigt das Freigeben relativ viel Zeit, während der die anderen Threads auf diese Arrays zugreifen. Es kommt sehr wahrscheinlich zu einem Speicherzugriffsfehler / _Segmentation Fault_ und das Program stürzt ab. Auch wenn die korrekte Lösung bereits ausgegeben wurde, ist das natürlich kein geeigneter Weg, ein Programm zu beenden. Mit einer `std::atomic_bool` Variable wird daher überwacht, ob eine Lösung gefunden wurde. Ist sie `true`, greift kein Thread mehr auf `val` bzw. `ind` zu, weil die Lambdafunktion sofort beendet wird. Der erste Thread, der eine Lösung findet, setzt `found` also auf `true`.
+Beim späteren Durchsuchen unterscheidet sich die Parallelisierung nur darin, dass eine gewisse Synchronisation notwendig ist. Denn sobald ein Thread eine Lösung gefunden und ausgegeben hat, gibt er den Arbeitsspeicher von `val` und `ind` frei, und beendet erst danach den Prozess und damit die anderen Threads. Da `val` und `ind` bei großen Eingabedateien mehrere Gigabyte groß sind, benötigt das Freigeben relativ viel Zeit, während der die anderen Threads auf diese Arrays zugreifen. Es kommt sehr wahrscheinlich zu einem Speicherzugriffsfehler / Segmentation Fault und das Program stürzt ab. Auch wenn die korrekte Lösung bereits ausgegeben wurde, ist das natürlich kein geeigneter Weg, ein Programm zu beenden. Mit einer `std::atomic_bool` Variable wird daher überwacht, ob eine Lösung gefunden wurde. Ist sie `true`, greift kein Thread mehr auf `val` bzw. `ind` zu, weil die Lambdafunktion sofort beendet wird. Der erste Thread, der eine Lösung findet, setzt `found` also auf `true`.
 
-#### Zuteilung der Arbeit
+#### Zuteilung der Arbeit an Threads
 
-&rarr; zugehörige Funktion: `assign_threads`
+&rarr; zugehörige Funktion: [`assign_threads`](#assignthreads)
 
-Da von `xor_combine` auf unteren Rekursionsebenen immer alle nachfolgenden Zahlen betrachtet werden, ist der Aufwand für Karten höher, die früher in `cards` stehen. Die Indizes von `cards` in gleiche Teile zu teilen führt also zu einer ungleichmäßigen Verteiling. `assign_threads` teilt die Indizes auf, indem als Mindestpensum `min` zunächst $\frac {\text{Gesamtanzahl Kombinationen}}{\text{Anzahl Threads}}$ festgelegt wird. Dann wird über jeden Index iteriert und eine Zuteilung für den `j`´ten Thread zu den Zuteilungen `alloc` hinzugefügt, sobald die bisherige Gesamtanzahl zu erstellender Kombinationen das `j`-fach des Mindestpensums überschritten hat. Die Anzahl an Kombinationen, die für die `i`´te Karte anfallen, sind $\binom{n-i-1}{a-1}$, weil durch Fixierung der `i`´ten Karte noch $a-1$ Karten gewählt werden müssen. Dafür sind aber nicht mehr alle $n$ Karten verfügbar, sondern eine weniger für die fixierte, und $i$ weniger, weil durch `xor_combine` nur die nachfolgenden Karten einbezogen werden.
+Da von [`xor_combine`](#xorcombine) auf unteren Rekursionsebenen immer alle nachfolgenden Zahlen betrachtet werden, ist der Aufwand für Karten höher, die früher in `cards` stehen. Die Indizes von `cards` in gleiche Teile zu teilen führt also zu einer ungleichmäßigen Verteiling. [`assign_threads`](#assignthreads) teilt die Indizes auf, indem als Mindestpensum `min` zunächst $\frac {\text{Gesamtanzahl Kombinationen}}{\text{Anzahl Threads}}$ festgelegt wird. Dann wird über jeden Index iteriert und eine Zuteilung für den `j`´ten Thread zu den Zutsieeilungen `alloc` hinzugefügt, sobald die bisherige Gesamtanzahl zu erstellender Kombinationen das `j`-fach des Mindestpensums überschritten hat. Die Anzahl an Kombinationen, die für die `i`´te Karte anfallen, sind $\binom{n-i-1}{a-1}$, weil durch Fixierung der `i`´ten Karte noch $a-1$ Karten gewählt werden müssen. Dafür sind aber nicht mehr alle $n$ Karten verfügbar, sondern eine weniger für die fixierte, und $i$ weniger, weil durch [`xor_combine`](#xorcombine) nur die nachfolgenden Karten einbezogen werden.
 
 #### Parallelisierung von Radix Sort
 
@@ -289,8 +293,8 @@ Radix Sort iteriert im schlechtesten Fall $m$-mal über alle Elemente von `val` 
 
 Beim nachträglichen Durchsuchen müssen zwei schlechteste Fälle unterschieden werden:
 
-1. In dem schlechtesten Fall, dass erst bei der letzten geprüften Kombination eine Lösung gefunden wird, werden insgesamt $\binom n{k-d}$ Kombinationen überprüft. Für die jeweils über `val` durchgeführte Binärsuche wird im Worst-Case und Average-Case $O(\log_2\binom nd)$ Zeit benötigt, da meist keine passende Zahl gefunden wird. Dadurch wird `no_intersection` fast nie ausgeführt und kann vernachlässigt werden. Damit ist die Worst-Case Komplexität des Durchsuchens $O(\binom n{k-d} \log_2 \binom nd)$.
-2. In einem sehr ungünsigen Fall würde für jede dieser Kombinationen ein passendes Gegenstück in `val` gefunden werden und `no_intersection` augeführt werden, und sich dann herausstellen, dass sich die Indizes überschneiden. Da `no_intersection` in $O(d)$ läuft, ergibt sich für die (Worst-)Worst-Case Zeitkomplexität des Durchsuchens $O(\binom n{k-d} \cdot (\log_2 \binom nd + d))$.
+1. In dem schlechtesten Fall, dass erst bei der letzten geprüften Kombination eine Lösung gefunden wird, werden insgesamt $\binom n{k-d}$ Kombinationen überprüft. Für die jeweils über `val` durchgeführte Binärsuche wird im Worst-Case und Average-Case $O(\log_2\binom nd)$ Zeit benötigt, da meist keine passende Zahl gefunden wird. Dadurch wird [`no_intersection`](#nointersection) fast nie ausgeführt und kann vernachlässigt werden. Damit ist die Worst-Case Komplexität des Durchsuchens $O(\binom n{k-d} \log_2 \binom nd)$.
+2. In einem sehr ungünsigen Fall würde für jede dieser Kombinationen ein passendes Gegenstück in `val` gefunden werden und [`no_intersection`](#nointersection) augeführt werden, und sich dann herausstellen, dass sich die Indizes überschneiden. Da [`no_intersection`](#nointersection) in $O(d)$ läuft, ergibt sich für die (Worst-)Worst-Case Zeitkomplexität des Durchsuchens $O(\binom n{k-d} \cdot (\log_2 \binom nd + d))$.
 
 Der zweite Fall ist aber extrem unwahrscheinlich und könn nur bei sehr speziellen Kartensets eintreffen. Dass er nie eintreffen kann, konnte ich leider nicht beweisen. Daher muss ich die Worst-Case Zeitkomplexität des Durchsuchens mit $O(\binom n{k-d} (\log_2 \binom nd + d))$ angeben. Im Average-Case kann das aber vernachlässigt werden. Bei der Average-Case Abschätzung kann man einen Faktor $\frac 12$ hinzufügen, wenn man davon ausgeht, dass bei jedem Suchschritt mit gleicher Wahrscheinlichkeit die Lösung gefunden wird. Dieser wird bei der asymptotischen Zeitkomplexität natürlich wieder verworfen, ist aber in der Realität nicht irrelevant. Daher ist die Average-Case Komplexität $\Theta(\binom n{k-d} \log_2 \binom nd)$.
 
@@ -309,18 +313,169 @@ $$
 \Theta \Bigg (\binom nd \cdot d + \binom n{k-d} \log_2 \binom nd \Bigg)
 $$
 
+## Beispiele
+
+Um sicherzustellen, dass das Programm korrekt arbeitet, wird vor jeder Ausgabe einer Lösung mithilfe von `assert` und der Funktion [`is_valid`](#isvalid) überprüft, ob das $\text{xor}$ der ausgewählten Zahlen 0 ist. Das ist bzgl. der benötigten Zeit absolut vertretbar, weil dafür nur $k$ Rechenschritte benötigt werden. Weil dieses `assert` bei bisher keinem durchgeführten Test [ANZAHL DURCHGEFÜHRTER TESTS] fehlgeschlagen ist, fokussiere ich mich auf die benötigte Laufzeit. Die Tests werden auf einem PC mit Manjaro Linux i3 als Betriebssystem, einem ... Prozessor und 16 Gigabyte RAM (14,5 Gigabyte verfügbar) durchgeführt.
+
+### Beispiele der Bwinf-Website
+
+#### Stapel 0
+
+```
+00111101010111000110100110011001
+10101100111111011010100011100000
+10111000011001110000101010111110
+11010111111010111101101111110000
+11111110001011010001000000110111
+```
+
+Zeit:
+
+#### Stapel 1
+
+```
+00010001110100110001111101100100
+00100000111100111110111101111100
+00100011100111011010111011100011
+00110100001010100100001111010010
+00110110000110101101011111111010
+11000111111010110100000101110100
+11010011010110110101001101010111
+11110011101011001001000010111110
+11110111100100010100100001001110
+```
+
+Zeit:
+
+#### Stapel 2
+
+```
+00101000011000010010111011101011011010111000100100110101111011011110111100101100001001110010100001101001110001000100010011111100
+00101011111000101011010110111100100110000000000011010011001111011001011001000010001101010110110010101110100100001011100011010001
+01101001001011000101001111111101011000001000101100111010100101011011000100000001100001100011010110101011110110100000100101001011
+01101011101000110111010001100001110000011000110101100010111011100110011011110111011100110101101111000011110111011101011111100111
+01110110011110001110011110001101101110100101000000100000101100001010001110101000000011010011000011010010110110100101111101101000
+10000000000100100110011001000110000000000101010110100100100001000111010110110101010010101000101110101100101000110010100100111011
+10101011000001101100000101111111110011000110011100101011011111011000111111101111101000111111010000001011011011111111010011011110
+10101111110010010010100111101100010011111000010101001100100001111000100010010010011010010101011111101011000001111110000000111011
+11000011000100110111000101100100101101010110011011010101101001000011110100010001001010000110010101010010001100010001101110100000
+11011110000101001101111100110000111010011011101111010111110110110111011010001001101101100111010001000011000001010111100101111111
+11101110101011100111101111000111001101111011010101011111000110100011010001100000111101000010001100100000011101100010001011101000
+```
+
+Zeit: 50.6s
+
+#### Stapel 3
+
+```
+
+```
+
+Zeit:
+
+#### Stapel 4
+
+```
+
+```
+
+Zeit:
+
+#### Stapel 5
+
+```
+0101111111000111000000101111100010111010110101000100000011001000
+1000010011101010001111100100110110011011100101010100010000001001
+1010000110101100101110111001100011011110111111010111000101111110
+1010111011001100100110001100110001011101001000000011011111100100
+1101010001001101000111111110000110100010100111000100001001011011
+```
+
+Zeit:
+
+### Testprogramm
+
+Damit das Programm einfach mit verschiedensten Kartensets getestet werden kann, habe ich ein Testprogramm in `test.cpp` geschrieben, dass ein zufälliges Kartenset generiert. Daraus werden $k$ Karten ausgewählt und eine Schlüsselkarte erstellt. Bevor damit dann [`xor_to_zero`]() aufgerufen wird, werden die Karten noch zufällig vertauscht. Dieses Programm kann aus dem Ordner `zara-zackig` wie folgt benutzt werden:
+
+```
+./test [Arbeitsspeicherlimit in Megabyte]
+```
+
+Der Benutzer wird dann aufgefordert, $n, k$ und $m$ anzugeben, wobei dazwischen jeweils ein Leerzeichen sein sollte. Ausgegeben wird das generierte Kartenset und dann die errechnete Lösung. Es wurden Tests für $n$ von 20 bis 300, $k$ von 2 bis und $m$ von 8 bis 128 durchgeführt. Da das Programm für jede Parameterwahl jeweils viermal ausgeführt wurde, um ungewöhnliche Abweichungen zu vermeiden, sind die Ergebnisse in Durchschnitt $\pm$ Standardabweichung angegeben.
+
+| n   | m   | k   | Zeit |
+| --- | --- | --- | ---- |
+| 20  | 8   |     |      |
+| 20  | 32  |     |      |
+| 60  | 16  |     |      |
+| 60  | 64  |     |      |
+| 100 | 32  |     |      |
+| 100 | 128 |     |      |
+| 180 | 64  |     |      |
+| 180 | 128 |     |      |
+| 300 | 64  |     |      |
+| 300 | 128 |     |      |
+| 300 | 128 |     |      |
+
 ## Quellcode
 
-### Der Hauptalgorithmus
+_Anmerkung:_ In den eigentlichen Quelldateien vorhandene Befehlszeilen, die Informationen über den aktuellen Zwischenstand ausgeben, sind hier nicht abgedruckt.
+
+### main
+
+```c++
+int main(int argc, char* argv[]) {
+    long long mem_limit = 0;
+    if (argc > 2) {
+        std::cout << "Too many arguments. Run with: ./main < [input file] [memory limit in megabytes]\n";
+        exit(EXIT_FAILURE);
+    } else if (argc == 2) {
+        mem_limit = std::stold(argv[1]) * 1000000;
+    }
+
+    int n, k, m;
+    std::cin >> n >> k >> m;
+    k += 1;
+
+    switch (m) {
+        case 8: {
+            std::vector<uint8_t> cards = read_cards<uint8_t>(n);
+            xor_to_zero<uint8_t>(cards, n, k, mem_limit);
+            break;
+        }
+        case 16: {
+            std::vector<uint16_t> cards = read_cards<uint16_t>(n);
+            xor_to_zero<uint16_t>(cards, n, k, mem_limit);
+            break;
+        }
+        case 32: {
+            std::vector<uint32_t> cards = read_cards<uint32_t>(n);
+            xor_to_zero<uint32_t>(cards, n, k, mem_limit);
+            break;
+        }
+        case 64: {
+            std::vector<uint64_t> cards = read_cards<uint64_t>(n);
+            xor_to_zero<uint64_t>(cards, n, k, mem_limit);
+            break;
+        }
+        case 128: {
+            std::vector<__uint128_t> cards = read_cards<__uint128_t>(n);
+            xor_to_zero<__uint128_t>(cards, n, k, mem_limit);
+            break;
+        }
+    }
+}
+```
+
+### xor_to_zero
 
 ```c++
 template <typename T>
-void xor_to_zero(std::vector<T> cards, int n, int k) {
-    long long memory_limit = memory() - (((long long) 1) << 31);
-    std::cout << "Memory Limit: " << (memory_limit) / pow(10, 6) << " MB\n";
+void xor_to_zero(std::vector<T> cards, int n, int k, long long mem_limit) {
+    if (mem_limit == 0) mem_limit = memory() - (((long long) 1) << 31);
 
-    int d = k / 2;
-    while (binom(n, d) * (sizeof (T) + d) > memory_limit) d -= 1;
+    int d = ceil((float) k / 2);
+    while (binom(n, d) * (sizeof (T) + d) > mem_limit) d -= 1;
     long long num_comb = binom(n, d);
 
     auto begin = std::chrono::system_clock::now();
@@ -332,42 +487,41 @@ void xor_to_zero(std::vector<T> cards, int n, int k) {
     if (cores == 0) cores = sysconf(_SC_NPROCESSORS_ONLN);
     if (cores == 0) cores = 8;
 
-    std::vector<int> alloc = assign_threads(num_comb, cores, n, d);
-    std::cout << "Using " << cores << " threads\n";
+    std::vector<int> distr = assign_threads(num_comb, cores, n, d);
     std::vector<std::thread> threads;
 
     for (int i = 0; i < cores; i++) {
-        threads.emplace_back([i, &cards, &val, &ind, &n, &d, &cores, &alloc] {
-            int pos = alloc[i * 2 + 1];
+        threads.emplace_back([i, &cards, &val, &ind, &n, &d, &cores, &distr] {
+            int pos = distr[i * 2 + 1];
             uint8_t used[d];
+
             xor_combine<T>(cards, d,
                 [&val, &ind, &used, &pos, &d](T &xor_val) {
                     val[pos] = xor_val;
-                    std::move(used, used + d, ind + pos * d);
+                    std::copy(used, used + d, ind + pos * d);
                     pos += 1;
                 },
-                used, alloc[i * 2], i == cores - 1 ? n : alloc[i * 2 + 2]);
+                used, distr[i * 2], i == cores - 1 ? n : distr[i * 2 + 2]);
         });
     }
 
     for (std::thread &t: threads) t.join();
 
-    std::cout << "Precomputed " << num_comb << " combinations, d = " << d << "\n";
-    radix_sort_msd<T>(val, ind, num_comb, d);
-    std::cout << "Sorted\n";
+    radix_sort_msd<T>(val, ind, num_comb, d, ceil(log2(cores)), sizeof (T) * 8 - 1);
 
-    alloc = assign_threads(num_comb, cores, n, k - d);
+    distr = assign_threads(num_comb, cores, n, k - d);
     threads.clear();
     std::atomic_bool found(false);
 
     for (int i = 0; i < cores; i++) {
         threads.emplace_back([i, &cards, &val, &ind, &num_comb,
-            &n, &k, &d, &cores, &alloc, &begin, &found] {
+            &n, &k, &d, &cores, &distr, &begin, &found] {
             uint8_t used[k - d];
+
             xor_combine<T>(cards, k - d,
-                [&cards, &val, &ind, &num_comb, &k, &d, &used, &begin, &found] (T &xor_val) {
+                [&cards, &val, &ind, &num_comb, &k, &d, &used, &begin, &found](T &xor_val) {
                     if (found) return;
-                    long long j = bs<T>(val, num_comb, xor_val);
+                    long long j = binary_search<T>(val, num_comb, xor_val);
                     if (j != -1) {
                         while (j > 0 && val[j - 1] == xor_val) j -= 1;
 
@@ -376,11 +530,9 @@ void xor_to_zero(std::vector<T> cards, int n, int k) {
                                 found.store(true);
 
                                 std::vector<uint8_t> res(used, used + (k - d));
-                                res.insert(res.end(), ind+ j * d, ind + j * d + d);
+                                res.insert(res.end(), ind + j * d, ind + j * d + d);
+                                assert(is_valid<T>(res, cards));
                                 print_cards(res, cards);
-                                std::cout << ((std::chrono::duration<float>)
-                                    (std::chrono::system_clock::now() - begin)).count()
-                                    << " s \n";
 
                                 delete[] ind;
                                 delete[] val;
@@ -390,14 +542,155 @@ void xor_to_zero(std::vector<T> cards, int n, int k) {
                         }
                     }
                 },
-                used, alloc[i * 2], i == cores - 1 ? n : alloc[i * 2 + 2]);
+                used, distr[i * 2], i == cores - 1 ? n : distr[i * 2 + 2]);
         });
     }
 
     for (std::thread &t: threads) t.join();
 
+    std::cout << "No solution found\n";
     delete[] val;
     delete[] ind;
+}
+```
+
+#### xor_combine
+
+```c++
+template <typename T>
+void xor_combine(
+    std::vector<T> &cards,
+    int a,
+    std::function<void (T&)> cb,
+    uint8_t* used,
+    uint8_t start,
+    uint8_t end,
+    T xor_val = 0
+) {
+    if (a == 0) {
+        cb(xor_val);
+        return;
+    }
+
+    for (uint8_t i = start; i < end; i++) {
+        xor_val ^= cards[i];
+        used[a - 1] = i;
+        xor_combine<T>(cards, a - 1, cb, used, i + 1, cards.size(), xor_val);
+        xor_val ^= cards[i];
+    }
+}
+```
+
+#### binom
+
+```c++
+long long binom(int n, int k) {
+    if (k == 0) return 1;
+    return ((double) n / (double) k) * (double) binom(n - 1, k - 1);
+}
+```
+
+#### memory
+
+```c++
+long long memory() {
+    return sysconf(_SC_PHYS_PAGES) * sysconf(_SC_PAGE_SIZE);
+}
+```
+
+#### no_intersection
+
+```c++
+bool no_intersection(uint8_t* arr1, uint8_t* arr2, int len1, int len2) {
+    std::unordered_set<uint8_t> arr_set(arr2, arr2 + len2);
+    for (int i = 0; i < len1; i++) {
+        if (arr_set.find(arr1[i]) != arr_set.end()) {
+            return false;
+        }
+    }
+    return true;
+}
+```
+
+#### is_valid
+
+```c++
+template <typename T>
+bool is_valid(std::vector<uint8_t> &res, std::vector<T> &cards) {
+    T xor_val = 0;
+    for (uint8_t i: res) xor_val ^= cards[i];
+    return xor_val == 0 ? 1 : 0;
+}
+```
+
+### radix_sort_msd
+
+```c++
+template <typename T>
+void radix_sort_msd(T* val, uint8_t* ind, long long length, int d, int t_depth, int h) {
+    if (length <= 1 || h == 0) return;
+
+    long long u = 0, v = length - 1;
+    while (u < v) {
+        if ((val[u] >> h) & (T) 1) {
+            std::swap(val[u], val[v]);
+            std::swap_ranges(ind + u * d, ind + u * d + d, ind + v * d);
+            v -= 1;
+        } else {
+            u += 1;
+        }
+    }
+
+    if (!((val[u] >> h) & (T) 1)) u += 1;
+    if (t_depth != 0) {
+        std::thread t1([&] {
+            radix_sort_msd<T>(val, ind, u, d, t_depth - 1, h - 1);
+        });
+        std::thread t2([&] {
+            radix_sort_msd<T>(val + u, ind + u * d, length - u, d, t_depth - 1, h - 1);
+        });
+        t1.join();
+        t2.join();
+    } else {
+        radix_sort_msd<T>(val, ind, u, d, t_depth, h - 1);
+        radix_sort_msd<T>(val + u, ind + u * d, length - u, d, t_depth, h - 1);
+    }
+}
+```
+
+### binary_search
+
+```c++
+template <typename T>
+long long binary_search(T* val, long long length, T target) {
+    long long u = 0, v = length - 1;
+
+    while (u < v) {
+        int mid = (u + v) / 2;
+        if (val[mid] < target) u = mid + 1;
+        else if (val[mid] > target) v = mid - 1;
+        else return mid;
+    }
+    return -1;
+}
+```
+
+### assign_threads
+
+```c++
+std::vector<int> assign_threads(long long num_comb, int cores, int n, int d) {
+    std::vector<int> alloc(cores * 2, 0);
+    int j = 1;
+    long long min = num_comb / cores, sum = 0;
+    for (int i = 0; i < n && j < cores; i++) {
+        if (sum >= min * j) {
+            alloc[j * 2] = i;
+            alloc[j * 2 + 1] = sum;
+            j += 1;
+        }
+        sum += binom(n - i - 1, d - 1);
+    }
+    return alloc;
 }
 ```
 
