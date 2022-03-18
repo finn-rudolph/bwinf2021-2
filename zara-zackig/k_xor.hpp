@@ -110,7 +110,7 @@ std::vector<int> assign_threads(long long num_comb, int cores, int n, int d) {
     std::vector<int> alloc(cores * 2, 0);
     int j = 1;
     long long min = num_comb / cores, sum = 0;
-    for (int i = 0; j < cores; i++) {
+    for (int i = 0; i < n && j < cores; i++) {
         if (sum >= min * j) {
             alloc[j * 2] = i;
             alloc[j * 2 + 1] = sum;
