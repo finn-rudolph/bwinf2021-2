@@ -6,9 +6,7 @@
 std::pair<std::vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_2d &pre) {
     std::set<int> odds;
     for (int v = 0; v < graph.size(); v++) {
-        if (graph[v].size() % 2 == 1) {
-            odds.insert(v);
-        }
+        if (graph[v].size() % 2 == 1) odds.insert(v);
     }
 
     map_2d odds_graph;

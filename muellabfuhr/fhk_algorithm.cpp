@@ -14,7 +14,7 @@ std::vector<std::vector<int>> fhk(adj_map &graph, int k) {
 
     auto [cpp_tour, cpp_cost] = postman(graph, dis, pre);
 
-    std::cout << "Chinese Postman Tour mit Kosten: " << cpp_cost << "\n";
+    std::cout << "Chinese Postman Tour erstellt, Kosten: " << cpp_cost << "\n";
     print_vector(cpp_tour);
 
     int lower_bound = farthest_edge_cost(graph, dis);
@@ -35,8 +35,7 @@ std::vector<std::vector<int>> fhk(adj_map &graph, int k) {
         int residual = max_cost - cost - graph[cpp_tour[split]][cpp_tour[split + 1]];
 
         if (
-            dis[cpp_tour[split]][0] <= 
-                graph[cpp_tour[split]][cpp_tour[split + 1]] 
+            dis[cpp_tour[split]][0] <= graph[cpp_tour[split]][cpp_tour[split + 1]] 
                 + dis[cpp_tour[split + 1]][0]
                 - 2 * residual
         ) {
