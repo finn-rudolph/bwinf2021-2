@@ -50,6 +50,11 @@ int main (int argc, char* argv[]) {
     int n, k, m;
     std::cin >> n >> k >> m;
 
+    if (n > 255) {
+        std::cout << "Limit for n: 255 (using uint8_t for indexing cards)";
+        exit(EXIT_FAILURE);
+    }
+
     switch (m) {
         case 8:
             test<uint8_t>(n, k, mem_limit);
