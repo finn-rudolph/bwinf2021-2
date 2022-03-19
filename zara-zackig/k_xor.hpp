@@ -106,19 +106,19 @@ bool is_valid(std::vector<uint8_t> &res, std::vector<T> &cards) {
     return xor_val == 0 ? 1 : 0;
 }
 
-std::vector<long long> assign_threads(long long num_comb, int cores, int n, int d) {
-    std::vector<long long> alloc(cores * 2, 0);
+std::vector<long long> assign_threads(long long num_comb, int cores, int n, int a) {
+    std::vector<long long> distr(cores * 2, 0);
     int j = 1;
     long long min = num_comb / cores, sum = 0;
     for (int i = 0; i < n && j < cores; i++) {
         if (sum >= min * j) {
-            alloc[j * 2] = i;
-            alloc[j * 2 + 1] = sum;
+            distr[j * 2] = i;
+            distr[j * 2 + 1] = sum;
             j += 1;
         } 
-        sum += binom(n - i - 1, d - 1);
+        sum += binom(n - i - 1, a - 1);
     }
-    return alloc;
+    return distr;
 }
 
 template <typename T>
