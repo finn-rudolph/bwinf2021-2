@@ -106,8 +106,8 @@ bool is_valid(std::vector<uint8_t> &res, std::vector<T> &cards) {
     return xor_val == 0 ? 1 : 0;
 }
 
-std::vector<int> assign_threads(long long num_comb, int cores, int n, int d) {
-    std::vector<int> alloc(cores * 2, 0);
+std::vector<long long> assign_threads(long long num_comb, int cores, int n, int d) {
+    std::vector<long long> alloc(cores * 2, 0);
     int j = 1;
     long long min = num_comb / cores, sum = 0;
     for (int i = 0; i < n && j < cores; i++) {
@@ -139,19 +139,19 @@ void xor_to_zero(std::vector<T> cards, int n, int k, long long mem_limit) {
     if (cores == 0) cores = sysconf(_SC_NPROCESSORS_ONLN);
     if (cores == 0) cores = 8;
 
-    std::vector<int> distr = assign_threads(num_comb, cores, n, d);
+    std::vector<long long> distr = assign_threads(num_comb, cores, n, d);
     std::cout << "Using " << cores << " threads\n";
     std::vector<std::thread> threads;
 
     for (int i = 0; i < cores; i++) {
         threads.emplace_back([i, &cards, &val, &ind, &n, &d, &cores, &distr] {
-            int pos = distr[i * 2 + 1];
+            long long pos = distr[i * 2 + 1];
             uint8_t used[d];
             
             xor_combine<T>(cards, d, 
                 [&val, &ind, &used, &pos, &d](T &xor_val) {
                     val[pos] = xor_val;
-                    std::copy(used, used + d, ind + pos * d);
+                    std::copy(used, used + d, ind + (pos * d));
                     pos += 1;
                 },
                 used, distr[i * 2], i == cores - 1 ? n : distr[i * 2 + 2]);
@@ -184,11 +184,11 @@ void xor_to_zero(std::vector<T> cards, int n, int k, long long mem_limit) {
                         while (j > 0 && val[j - 1] == xor_val) j -= 1;      
 
                         while (val[j] == xor_val && j < num_comb) {
-                            if (no_intersection(used, ind + j * d, k - d, d) && !found) {
+                            if (no_intersection(used, ind + (j * d), k - d, d) && !found) {
                                 found.store(true);
 
                                 std::vector<uint8_t> res(used, used + (k - d));
-                                res.insert(res.end(), ind + j * d, ind + j * d + d);
+                                res.insert(res.end(), ind + (j * d), ind + (j * d + d));
                                 assert(is_valid<T>(res, cards));
                                 
                                 print_cards(res, cards);
