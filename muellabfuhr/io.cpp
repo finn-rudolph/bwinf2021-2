@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include "io.hpp"
 
 adj_map to_adjacency_map(int n, int m) {
@@ -56,4 +57,19 @@ void print_vector(std::vector<int> &vec) {
         std::cout << e << " ";
     }
     std::cout << "\n" << std::endl;
+}
+
+void write_complete_graph(map_2d &graph, std::string filename) {
+    std::ofstream out_file(filename);
+    int n = graph.size();
+    out_file << n << ' ' << (n * (n - 1) / 2) << '\n';
+
+    int i = 0, j = 1;
+    for (auto &[u, edges]: graph) {
+        for (auto &[v, w]: edges) {
+            if (i < j) out_file << i << ' ' << j << ' ' << w << '\n'; 
+            j += 1;
+        }
+        i += 1; j = 1;
+    }
 }
