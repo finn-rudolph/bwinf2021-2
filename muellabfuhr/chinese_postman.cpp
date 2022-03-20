@@ -1,6 +1,7 @@
 #include <set>
 #include <stack>
 #include "chinese_postman.hpp"
+#include "io.hpp"
 #include "perfect_matching.hpp"
 
 std::pair<std::vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_2d &pre) {
@@ -25,6 +26,8 @@ std::pair<std::vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_
             }
         }
     }
+
+    write_complete_graph(odds_graph, "graph.txt");
 
     std::set<std::pair<int, int>> matching = perfect_matching(odds_graph, largest_edge);
 
