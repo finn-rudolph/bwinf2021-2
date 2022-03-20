@@ -2,6 +2,7 @@
 #include <set>
 #include <queue>
 #include <cmath>
+#include <iostream>
 #include "perfect_matching.hpp"
 
 // This algorithm only works for complete and metric graphs.
@@ -36,6 +37,7 @@ std::set<std::pair<int, int>> perfect_matching(map_2d &graph, std::pair<int, int
     }
 
     std::set<std::pair<int, int>> matching;
+    int cost_sum = 0;
 
     while (!order.empty()) {
         int a = order.top();
@@ -43,8 +45,10 @@ std::set<std::pair<int, int>> perfect_matching(map_2d &graph, std::pair<int, int
         int b = order.top();
         order.pop();
 
+        cost_sum += graph[a][b];
         matching.insert({ a, b });
     }
+    std::cout << "Computed Minimum Weighted Perfect Matching with cost " << cost_sum << '\n'; 
 
     return matching;
 }
