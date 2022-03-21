@@ -7,7 +7,7 @@
 
 // This algorithm only works for complete and metric graphs.
 
-std::set<std::pair<int, int>> perfect_matching(map_2d &graph, std::pair<int, int> &largest_edge) {
+std::vector<edge> perfect_matching(map_2d &graph, edge &largest_edge) {
     if (graph.empty()) return { };
     auto [max1, max2] = largest_edge;
     int max_cost = graph.at(max1).at(max2);
@@ -36,7 +36,7 @@ std::set<std::pair<int, int>> perfect_matching(map_2d &graph, std::pair<int, int
         }
     }
 
-    std::set<std::pair<int, int>> matching;
+    std::vector<edge> matching;
     int cost_sum = 0;
 
     while (!order.empty()) {
@@ -46,7 +46,7 @@ std::set<std::pair<int, int>> perfect_matching(map_2d &graph, std::pair<int, int
         order.pop();
 
         cost_sum += graph[a][b];
-        matching.insert({ a, b });
+        matching.push_back({ a, b });
     }
     std::cout << "Computed Minimum Weighted Perfect Matching with cost " << cost_sum << '\n'; 
 
@@ -57,13 +57,10 @@ float circle_intersection(float r1, float r2, float distance) {
     return (std::pow(distance, 2) + std::pow(r1, 2) - std::pow(r2, 2)) / (2 * distance);
 }
 
-std::vector<edge> two_opt(map_2d &graph) {
-    std::vector<edge> mat;
-    for (auto it = graph.begin(); it != graph.end(); it++) 
-        mat.push_back({ it->first, (++it)->first });
-
-    for (auto p: mat) std::cout << p.a << " " << p.b << "\n";
-
+std::vector<edge> two_opt(map_2d &graph, std::vector<edge> mat) {
+    if (mat.empty()) 
+        for (auto it = graph.begin(); it != graph.end(); it++) 
+            mat.push_back({ it->first, (++it)->first });
 
     edge exchange[2] = { { 0, 0 } };
     int best_ind[2] = { 0 };
@@ -73,17 +70,17 @@ std::vector<edge> two_opt(map_2d &graph) {
         for (int i = 0; i < mat.size(); i++) {
             for (int j = i + 1; j < mat.size(); j++) {
                 int curr_cost = graph[mat[i].a][mat[i].b] + graph[mat[j].a][mat[j].b];
-                if (graph[mat[i].a][mat[j].a] + graph[mat[i].b][mat[j].b] - curr_cost > impr) {
+                if (curr_cost - graph[mat[i].a][mat[j].a] - graph[mat[i].b][mat[j].b] > impr) {
                     exchange[0] = { mat[i].a, mat[j].a };
                     exchange[1] = { mat[i].b, mat[j].b };
                     best_ind[0] = i; best_ind[1] = j;
-                    impr = graph[mat[i].a][mat[j].a] + graph[mat[i].b][mat[j].b] - curr_cost;
+                    impr = curr_cost - graph[mat[i].a][mat[j].a] - graph[mat[i].b][mat[j].b];
                 }
-                if (graph[mat[i].a][mat[j].b] + graph[mat[i].b][mat[j].a] - curr_cost > impr) {
+                if (curr_cost - graph[mat[i].a][mat[j].b] - graph[mat[i].b][mat[j].a] > impr) {
                     exchange[0] = { mat[i].a, mat[j].b };
                     exchange[1] = { mat[i].b, mat[j].a };
                     best_ind[0] = i; best_ind[1] = j;
-                    impr = graph[mat[i].a][mat[j].b] + graph[mat[i].b][mat[j].a] - curr_cost;
+                    impr = curr_cost - graph[mat[i].a][mat[j].b] - graph[mat[i].b][mat[j].a];
                 }
             }
         }
@@ -92,12 +89,10 @@ std::vector<edge> two_opt(map_2d &graph) {
             mat[best_ind[1]] = exchange[1];
         }
     }
+
     int sum = 0; 
-    std::cout << "2-opt matching:\n";
-    for (auto &[a, b]: mat) {
-        std::cout << a << " " << b << '\n';
-        sum += graph[a][b];
-    }
-    std::cout << sum <<  '\n' << std::endl;
+    for (auto &[a, b]: mat) sum += graph[a][b];
+    std::cout << "2-opt matching with weight " << sum << '\n';
+
     return mat;
 }

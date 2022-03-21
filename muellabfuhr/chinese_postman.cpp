@@ -12,7 +12,7 @@ std::pair<std::vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_
 
     map_2d odds_graph;
     int max_cost = 0;
-    std::pair<int, int> largest_edge;
+    edge largest_edge;
 
     for (const auto &a: odds) {
         for (const auto &b: odds) {
@@ -28,9 +28,7 @@ std::pair<std::vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_
     }
 
     write_complete_graph(odds_graph, "graph.txt");
-    two_opt(odds_graph);
-
-    std::set<std::pair<int, int>> matching = perfect_matching(odds_graph, largest_edge);
+    std::vector<edge> matching = two_opt(odds_graph, perfect_matching(odds_graph, largest_edge));
 
     map_2d augmented;
     int weight_sum = 0;
@@ -43,7 +41,7 @@ std::pair<std::vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_
     }
     weight_sum /= 2;
 
-    for (auto [start, target]: matching) {
+    for (auto &[start, target]: matching) {
         int b = pre[target][start];
         int a = start;
 
