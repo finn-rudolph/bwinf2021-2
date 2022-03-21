@@ -28,6 +28,7 @@ std::pair<std::vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_
     }
 
     write_complete_graph(odds_graph, "graph.txt");
+    two_opt(odds_graph);
 
     std::set<std::pair<int, int>> matching = perfect_matching(odds_graph, largest_edge);
 
