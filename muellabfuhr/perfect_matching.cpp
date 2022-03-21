@@ -56,3 +56,48 @@ std::set<std::pair<int, int>> perfect_matching(map_2d &graph, std::pair<int, int
 float circle_intersection(float r1, float r2, float distance) {
     return (std::pow(distance, 2) + std::pow(r1, 2) - std::pow(r2, 2)) / (2 * distance);
 }
+
+std::vector<edge> two_opt(map_2d &graph) {
+    std::vector<edge> mat;
+    for (auto it = graph.begin(); it != graph.end(); it++) 
+        mat.push_back({ it->first, (++it)->first });
+
+    for (auto p: mat) std::cout << p.a << " " << p.b << "\n";
+
+
+    edge exchange[2] = { { 0, 0 } };
+    int best_ind[2] = { 0 };
+    int impr = 1;
+    while (impr > 0) {   
+        impr = 0;    
+        for (int i = 0; i < mat.size(); i++) {
+            for (int j = i + 1; j < mat.size(); j++) {
+                int curr_cost = graph[mat[i].a][mat[i].b] + graph[mat[j].a][mat[j].b];
+                if (graph[mat[i].a][mat[j].a] + graph[mat[i].b][mat[j].b] - curr_cost > impr) {
+                    exchange[0] = { mat[i].a, mat[j].a };
+                    exchange[1] = { mat[i].b, mat[j].b };
+                    best_ind[0] = i; best_ind[1] = j;
+                    impr = graph[mat[i].a][mat[j].a] + graph[mat[i].b][mat[j].b] - curr_cost;
+                }
+                if (graph[mat[i].a][mat[j].b] + graph[mat[i].b][mat[j].a] - curr_cost > impr) {
+                    exchange[0] = { mat[i].a, mat[j].b };
+                    exchange[1] = { mat[i].b, mat[j].a };
+                    best_ind[0] = i; best_ind[1] = j;
+                    impr = graph[mat[i].a][mat[j].b] + graph[mat[i].b][mat[j].a] - curr_cost;
+                }
+            }
+        }
+        if (impr > 0) {
+            mat[best_ind[0]] = exchange[0];
+            mat[best_ind[1]] = exchange[1];
+        }
+    }
+    int sum = 0; 
+    std::cout << "2-opt matching:\n";
+    for (auto &[a, b]: mat) {
+        std::cout << a << " " << b << '\n';
+        sum += graph[a][b];
+    }
+    std::cout << sum <<  '\n' << std::endl;
+    return mat;
+}
