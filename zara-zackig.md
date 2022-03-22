@@ -7,7 +7,7 @@
 
 ## Problembeschreibung
 
-Zunächst einige wichtige Eigenschaften des $\text{xor}$ Operators. Das exklusive Oder zweier gleicher Zahlen ist immer 0, weil sich bei diesen Zahlen kein Bit unterscheidet. Auch ist $\text{xor}$ kommutativ sowie assoziativ, d. h. die Anwendungsreihenfolge auf mehrere Operanden und Anordnung der Operanden sind irrelevant für das Ergebnis (Lewin, 2012). Die Aufgabenstellung verlangt es, aus einer Menge $S$, bestehend aus Binärzahlen, $k$ verschiedene Zahlen zu finden, deren $\text{xor}$ gleich irgendeiner anderen Zahl $\in S$ ist. Mit den oben genannten Eigenschaften kann das Problem umformuliert werden: Finde $k + 1$ Zahlen aus $S$, deren $\text{xor}$ gleich $0$ ist. Von hier an werde ich $k$ für die Anzahl an Zahlen, deren $\text{xor}$ gleich 0 sein soll verwenden, und nicht $k + 1$, weil das in Quellen zu ähnlichen Problemen (z. B. das $k$-Summen Problem) ebenfalls so getan wird.
+Zunächst einige wichtige Eigenschaften des $\text{xor}$ Operators. Das exklusive Oder zweier gleicher Zahlen ist immer 0, weil sich bei diesen Zahlen kein Bit unterscheidet. Auch ist $\text{xor}$ kommutativ sowie assoziativ, d. h. die Anwendungsreihenfolge auf mehrere Operanden und Anordnung der Operanden sind irrelevant für das Ergebnis (Lewin, 2012). Die Aufgabenstellung verlangt es, aus einer Menge $S$, bestehend aus Binärzahlen, $k$ verschiedene Zahlen zu finden, deren $\text{xor}$ gleich irgendeiner anderen Zahl $\in S$ ist. Mit den oben genannten Eigenschaften kann das Problem umformuliert werden: Finde $k + 1$ Zahlen aus $S$, deren $\text{xor}$ gleich $0$ ist. Von hier an bezeichnet $k$ die Anzahl an Karten plus Schlüsselkarte, oder die Anzahl Zahlen, deren $\text{xor}$ gleich 0 sein soll, da das formale Beschreibungen deutlich vereinfacht.
 
 Das Problem ist Variation des Teilsummenproblems, das ein Spezialfall des Rucksackproblems ist. Das Teilsummenproblem verlangt es, von einer Menge an ganzen Zahlen $S$ eine Teilmenge $T$ zu bestimmen, deren Summe gleich 0 ist. In diesem Fall wird statt des $+$ Operators der $\text{xor}$ Operator verwendet. Diese Eigenschaft allein würde das Problem, im Gegensatz zum Teilsummenproblem, in polynomialer Zeit lösbar machen (Jafargholi & Viola, 2018, S. 2). Aber da die Größe von $T$ mit $k$ ebenfalls vorgegeben ist, ist es NP-schwer, kann also nur in exponentieller Zeit optimal gelöst werden (S. 2).
 
@@ -101,7 +101,7 @@ Hier muss $a$ beim ersten Aufruf $k - d$ sein. $q_i$ ist der $i$´te Eintrag in 
 Zusammenfassend sieht der Pseudocode des Algorithmus wie folgt aus.
 
 ```pseudocode
-prcoedure XorNull(S, k)
+procedure XorNull(S, k)
 	d ← ⌈k / 2⌉;
 	while (Speicher von L und Q > Arbeitsspeicher) d ← d - 1;
 
@@ -575,6 +575,7 @@ void xor_combine(
     }
 
     for (uint8_t i = start; i < end; i++) {
+        if (i + 1 + a >= cards.size()) break;
         xor_val ^= cards[i];
         used[a - 1] = i;
         xor_combine<T>(cards, a - 1, cb, used, i + 1, cards.size(), xor_val);
