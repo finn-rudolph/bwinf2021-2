@@ -77,7 +77,7 @@ $$
 \Bigg [\binom nd \cdot d + \binom n{k-d} \log_2 \binom nd \Bigg ]' = 0
 $$
 
-Natürlich muss die Lösung noch zur nächsten Ganzzahl gerundet werden. Weil diese Ableitung aber sehr lang, kompliziert und schwierig umzusetzen ist, wird eine Annäherung benutzt. Die Anforderungen sind, dass die Annäherung für $k \leq \frac n2$ , $2 \leq k < 30$ und $3 < n < 255$ bis auf wenige Ausnahmen den gleichen Wert für $d$ wie die gerundete Lösung der zweiten Gleichung liefert. Nach einigen Experimenten im Grafikrechner stellte sich heraus, dass $d = \big \lceil \frac k2 \big \rceil$ das sehr gut macht.
+Natürlich muss die Lösung noch zur nächsten Ganzzahl gerundet werden. Weil diese Ableitung aber sehr lang, kompliziert und schwierig umzusetzen ist, wird eine Annäherung benutzt. Die Anforderungen sind, dass die Annäherung für $2 \leq k < 30$ und $3 < n < 255$ bis auf wenige Ausnahmen den gleichen Wert für $d$ wie die gerundete Lösung der zweiten Gleichung liefert. Nach einigen Experimenten im Grafikrechner stellte sich heraus, dass $d = \big \lceil \frac k2 \big \rceil$ dafür gut geeignet ist.
 
 ![](komplexität-graph.png)
 
@@ -211,7 +211,7 @@ $d$ wird zu dem angenähert optimalen Wert $\big \lceil \frac k2 \big \rceil$ in
 
 Wie schon in den Rekursionsformeln bei der Lösungsidee ersichtlich war, liegt für das Vorberechnen der $\text{xor}$-Werte und das spätere Suchen eines passenden Gegenstücks die gleiche Rekursion zugrunde. Nur die Anweisungen nach Eintreten der Abbruchbedingung $a=0$ sind unterschiedlich. Um Codewiederholung zu vermeiden, implementiere ich eine höherwertige, rekursive Funktion [`xor_combine`](#xorcombine), die ein `std::function`-Objekt als Parameter nimmt (Z. 5). Diese wird beim Eintreten der Abbruchbedingung ausgeführt.
 
-[`xor_combine`](#xorcombine) erstellt alle $\text{xor}$-Verknüpfungen aus `a` Zahlen, indem eine Zahl fixiert wird und dann rekursiv alle Kombinationen aus `a - 1` Zahlen mit der fixierten Zahl $\text{xor}$-verknüpft werden (Z. 16 - 21). Das Fixieren geschieht für jede Zahl, allerdings werden beim rekursiven Aufruf nur noch Zahlen in Betracht gezogen, die in `cards` nach der gewählten Zahl stehen, um Dopplungen zu vermeiden.
+[`xor_combine`](#xorcombine) erstellt alle $\text{xor}$-Verknüpfungen aus `a` Zahlen, indem eine Zahl fixiert wird und dann rekursiv alle Kombinationen aus `a - 1` Zahlen mit der fixierten Zahl $\text{xor}$-verknüpft werden (Z. 16 - 22). Das Fixieren geschieht für jede Zahl, allerdings werden beim rekursiven Aufruf nur noch Zahlen in Betracht gezogen, die in `cards` nach der gewählten Zahl stehen, um Dopplungen zu vermeiden. Die Rekursion wird frühzeitig abgebrochen, wenn nicht mehr genug Karten nachfolgen, um eine volle Kombination aus `a` Karten zu erstellen (Z. 17).
 
 #### Vorberechnen
 
@@ -289,9 +289,17 @@ Radix Sort teilt die Arbeit schon von sich aus rekursiv mit einem Verzweigungsfa
 
 ## Zeitkomplexität
 
-Die Zeitkomplexität wird durch das Vorberechnen, Radix Sort und das Durchsuchen der vorberechneten Lösungen dominiert. Auch wenn es etwas unüblich ist, gebe ich Zeitkomplexitäten häufig mit dem Binomialkoeffizienten an, weil sich damit die Anzahl an Ausführungsschritten genauer eingrenzen lässt. Es kann natürlich immer $O(\binom nk)$ mit $O(n^k)$ (für $n, k \in \N_0 \space | \space k \leq \frac n2$) ersetzt werden, letzteres ist aber eine wesentlich höhere und damit ungenauere Oberschranke. Und das Ziel bei der Angabe einer Oberschranke ist, sie möglichst gering zu halten. Es werden insgesamt $\binom nd$ Kombinationen vorberechnet, für die jeweils die $d$ Indizes der verwendeten Karten nach `ind` kopiert werden. Da das Vorberechnen wird immer vollständig ausgeführt und die Rechenschritte unabhängig von den bearbeiteten Zahlen sind, ist seine Best-, Worst- und Average-Case Komplexität $\Theta (\binom nd \cdot d)$. Mit _unabhängig_ meine ich, dass die ausgeführten Codezeilen immer die gleichen sind und nicht von den eingegebenen Zahlen abhängen, was z. B. bei Radix Sort nicht der Fall ist.
+Die Zeitkomplexität wird durch das Vorberechnen, Radix Sort und das Durchsuchen der vorberechneten Lösungen dominiert. Auch wenn es etwas unüblich ist, gebe ich die Zeitkomplexität von `xor_combine`-basierten Abläufen mit dem Binomialkoeffizienten an, weil das die Laufzeitoberschranke des Algorithmus am besten widerspiegelt. Es sprechen zwei Gründe dagegen $O(\binom nd)$ mit dem eher üblichen $O(n^d)$ zu ersetzen. Erstens ist $O(n^d)$ eine wesentlich höhere und damit ungenauere Oberschranke, zweitens ist sie nur für $d \leq \frac n2$ repräsentativ. Denn die Laufzeit des Algorithmus fällt genau wie der Binomialkoeffizient abhängig von $d$ nach $\frac n2$ wieder ab, da frühzeitig abgebrochen wird, wenn die verbleibende Anzahl an Listenelementen nicht für eine vollständige Kombination ausreichen würde (Z. 17 in [`xor_combine`](#xorcombine)).
+
+### Vorberechnen
+
+Es werden insgesamt $\binom nd$ Kombinationen vorberechnet, für die jeweils die $d$ Indizes der verwendeten Karten nach `ind` kopiert werden. Da das Vorberechnen wird immer vollständig ausgeführt und die Rechenschritte unabhängig von den bearbeiteten Zahlen sind, ist seine Best-, Worst- und Average-Case Komplexität $\Theta (\binom nd \cdot d)$. Mit _unabhängig_ meine ich, dass die ausgeführten Codezeilen immer die gleichen sind und nicht von den eingegebenen Zahlen abhängen, was z. B. bei Radix Sort nicht der Fall ist.
+
+### Radix Sort
 
 Radix Sort iteriert im schlechtesten Fall $m$-mal über alle Elemente von `val` und führt dabei im schlechtesten Fall jeweils einen Swap von $d$ Zahlen aus. Daher ist seine Worst-Case Komplexität $O(\binom nd \cdot d \cdot m)$. Im besten Fall müssen keine Swaps ausgeführt werden und es werden deutlich weniger als $m$ Bits betrachtet, folglich ist die Best-Case Komplexität $\Omega (\binom nk)$. Da meistens $\binom nd \ll 2^m$, werden deutlich weniger als $m$ Bits betrachtet, weil die Rekursion ebenfalls bei Arraylänge $1$ abbricht. Unter der Voraussetzung, dass ein zufällig gewählter Bit aus dem Kartenset mit gleicher Wahrscheinlichkeit $0$ und $1$ ist, wird durchschnittlich nur in jedem zweiten Fall ein Swap von $d$ Zahlen ausgeführt. Mit diesen Annahmen schätze ich die Average-Case Komplexität auf $\Theta(\binom nd \cdot \frac 12 d) = \Theta(\binom nd \cdot d) $.
+
+### Durchsuchen
 
 Beim Durchsuchen müssen zwei schlechteste Fälle unterschieden werden:
 
@@ -299,6 +307,8 @@ Beim Durchsuchen müssen zwei schlechteste Fälle unterschieden werden:
 2. In einem sehr ungünsigen Fall würde für jede dieser Kombinationen ein passendes Gegenstück in `val` gefunden werden und [`no_intersection`](#nointersection) augeführt werden, und sich dann herausstellen, dass sich die Indizes überschneiden. Da [`no_intersection`](#nointersection) in $O(d)$ läuft, ergibt sich unter dieser Voraussetzung für die Worst-Case Zeitkomplexität des Durchsuchens $O(\binom n{k-d} \cdot (\log_2 \binom nd + d))$.
 
 Der zweite Fall ist aber extrem unwahrscheinlich und könnte nur bei sehr speziellen Kartensets eintreffen. Dass er nie eintreffen kann, konnte ich leider nicht beweisen. Daher muss ich die Worst-Case Zeitkomplexität des Durchsuchens mit $O(\binom n{k-d} (\log_2 \binom nd + d))$ angeben. Im Average-Case kann das aber vernachlässigt werden. Bei der Average-Case Abschätzung kann man einen Faktor $\frac 12$ hinzufügen, wenn man davon ausgeht, dass bei jedem Suchschritt mit gleicher Wahrscheinlichkeit die Lösung gefunden wird. Dieser wird bei der asymptotischen Zeitkomplexität natürlich wieder verworfen, ist aber in der Realität nicht irrelevant. Daher ist die Average-Case Komplexität $\Theta(\binom n{k-d} \log_2 \binom nd)$.
+
+### Laufzeit des gesamten Algorithmus
 
 Die Worst-Case Komplexität des gesamten Programms ist folglich
 
@@ -413,7 +423,7 @@ Es wurden Tests für $n$ von 20 bis 255, $k$ von 2 bis und $m$ von 8 bis 128 dur
 | 20  | 32  | 10  | 1.78 ∙ 10$^{-3}$ ± 0.201 ∙ 10$^{-3}$ |
 | 60  | 16  | 15  | 10.6 ± 0.19                          |
 | 60  | 64  | 15  | 32.8 ± 23.4                          |
-| 100 | 32  | 14  |                                      |
+| 100 | 32  | 14  | 53.1 ± 2.13                          |
 | 100 | 128 |     |                                      |
 | 180 | 64  |     |                                      |
 | 180 | 128 |     |                                      |
