@@ -1,4 +1,5 @@
 #include <vector>
+#include <array>
 #include <map>
 
 #ifndef TYPES
@@ -10,9 +11,6 @@ typedef std::map<int, std::map<int, int>> map_2d;
 
 typedef std::vector<std::vector<int>> matrix_2d;
 
-typedef struct {
-    int a;
-    int b;
-} edge;
+typedef std::array<int, 2> edge;
 
 #endif
