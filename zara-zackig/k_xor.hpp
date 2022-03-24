@@ -29,7 +29,7 @@ void xor_combine(
     }
 
     for (uint8_t i = start; i < end; i++) {
-        if (i + 1 + a >= cards.size()) break;
+        if (i + a > cards.size()) break;
         xor_val ^= cards[i];
         used[a - 1] = i;
         xor_combine<T>(cards, a - 1, cb, used, i + 1, cards.size(), xor_val);

@@ -417,19 +417,19 @@ Der Benutzer wird dann aufgefordert, $n, k$ und $m$ anzugeben, wobei dazwischen 
 
 Es wurden Tests für $n$ von 20 bis 255, $k$ von 2 bis und $m$ von 8 bis 128 durchgeführt. Das Programm wurde für jede Parameterwahl jeweils 6-mal ausgeführt, da die benötigte Zeit zum Durchsuchen der vorberechneten Zahlen variieren kann. Daher sind die Ergebnisse in Durchschnitt ± Standardabweichung angegeben.
 
-| n   | m   | k   | Zeit in Sekunden                     |
-| --- | --- | --- | ------------------------------------ |
-| 20  | 8   | 10  | 1.58 ∙ 10$^{-3}$ ± 0.164 ∙ 10$^{-3}$ |
-| 20  | 32  | 10  | 1.78 ∙ 10$^{-3}$ ± 0.201 ∙ 10$^{-3}$ |
-| 60  | 16  | 15  | 10.6 ± 0.19                          |
-| 60  | 64  | 15  | 32.8 ± 23.4                          |
-| 100 | 32  | 14  | 53.1 ± 2.13                          |
-| 100 | 128 |     |                                      |
-| 180 | 64  |     |                                      |
-| 180 | 128 |     |                                      |
-| 255 | 64  |     |                                      |
-| 255 | 128 |     |                                      |
-| 255 | 128 |     |                                      |
+| n   | k   | m   | Zeit in Sekunden                     | gewähltes d |
+| --- | --- | --- | ------------------------------------ | ----------- |
+| 20  | 10  | 8   | 1.58 ∙ 10$^{-3}$ ± 0.164 ∙ 10$^{-3}$ | 5           |
+| 20  | 10  | 32  | 1.78 ∙ 10$^{-3}$ ± 0.201 ∙ 10$^{-3}$ | 5           |
+| 60  | 15  | 16  | 10.6 ± 0.19                          | 7           |
+| 60  | 15  | 64  | 32.8 ± 23.4                          | 7           |
+| 100 | 14  | 32  | 53.1 ± 2.13                          | 6           |
+| 100 | 12  | 128 | 79.9 ± 51.0                          | 5           |
+| 180 | 10  | 64  | 3020 ± 412                           | 4           |
+| 180 | 10  | 128 |                                      | 4           |
+| 255 |     | 64  |                                      |             |
+| 255 |     | 128 |                                      |             |
+| 255 |     | 128 |                                      |             |
 
 ## Quellcode
 
@@ -585,7 +585,7 @@ void xor_combine(
     }
 
     for (uint8_t i = start; i < end; i++) {
-        if (i + 1 + a >= cards.size()) break;
+        if (i + a > cards.size()) break;
         xor_val ^= cards[i];
         used[a - 1] = i;
         xor_combine<T>(cards, a - 1, cb, used, i + 1, cards.size(), xor_val);
