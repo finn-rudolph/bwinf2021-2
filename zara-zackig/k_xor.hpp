@@ -49,7 +49,7 @@ bool no_intersection(uint8_t* arr1, uint8_t* arr2, int len1, int len2) {
 
 template <typename T>
 void radix_sort_msd(T* val, uint8_t* ind, long long length, int d, int t_depth, int h) {
-    if (length <= 1 || h == 0) return;
+    if (length <= 1 || h == -1) return;
 
     long long u = 0, v = length - 1;
     while (u < v) {
