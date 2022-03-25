@@ -1,5 +1,6 @@
 #include <set>
 #include <stack>
+#include <iostream>
 #include "chinese_postman.hpp"
 #include "io.hpp"
 #include "perfect_matching.hpp"
@@ -42,7 +43,7 @@ std::pair<std::vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_
     }
     weight_sum /= 2;
 
-    for (auto &[start, target]: matching) {
+    for (auto &[start, target, _]: matching) {
         int b = pre[target][start];
         int a = start;
 

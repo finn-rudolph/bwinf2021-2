@@ -11,6 +11,6 @@ typedef std::map<int, std::map<int, int>> map_2d;
 
 typedef std::vector<std::vector<int>> matrix_2d;
 
-typedef std::array<int, 2> edge;
+typedef std::array<int, 3> edge;
 
 #endif
