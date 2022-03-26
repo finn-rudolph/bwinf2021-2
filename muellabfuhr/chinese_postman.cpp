@@ -6,9 +6,9 @@
 #include "perfect_matching.hpp"
 
 std::pair<std::vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_2d &pre, float alpha) {
-    std::set<int> odds;
+    std::vector<int> odds;
     for (int v = 0; v < graph.size(); v++) {
-        if (graph[v].size() % 2 == 1) odds.insert(v);
+        if (graph[v].size() & 1) odds.push_back(v);
     }
 
     map_2d odds_graph;
@@ -29,7 +29,7 @@ std::pair<std::vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_
     }
 
     write_complete_graph(odds_graph, "graph.txt");
-    std::vector<edge> matching = cluster(odds_graph, alpha);
+    std::vector<edge> matching = cluster(dis, odds, alpha);
 
     map_2d augmented;
     int weight_sum = 0;
