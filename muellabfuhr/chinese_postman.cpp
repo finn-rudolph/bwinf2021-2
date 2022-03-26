@@ -34,7 +34,7 @@ std::pair<std::vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_
     for (edge e: matching) {
         sum += e[2];
     }
-    std::cout << "Total matching cost: " << sum << '\n';
+    std::cout << "Total matching cost: " << sum << '\n\n';
 
     map_2d augmented;
     int weight_sum = 0;

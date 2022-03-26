@@ -1,65 +1,11 @@
 #include <vector>
-#include <set>
 #include <queue>
-#include <unordered_map>
 #include <iterator>
 #include <cmath>
 #include <iostream>
 #include <climits>
 #include <chrono>
 #include "perfect_matching.hpp"
-
-// This algorithm only works for complete and metric graphs.
-
-std::vector<edge> perfect_matching(map_2d &graph, edge &largest_edge) {
-    if (graph.empty()) return { };
-    auto [max1, max2, max_cost] = largest_edge;
-
-    std::map<int, float> dis_max1;
-    dis_max1[max1] = 0.0;
-    dis_max1[max2] = (float) max_cost;
-
-    auto smaller_dis = [&dis_max1](int a, int b) -> bool {
-        return dis_max1[a] > dis_max1[b];
-    };
-
-    std::priority_queue<int, std::vector<int>, decltype(smaller_dis)> order(smaller_dis);
-    order.push(max1);
-    order.push(max2);
-
-    for (const auto &[v, ignore]: graph) {
-        if (v != max1 && v != max2) {
-            float dis = circle_intersection(
-                (float) graph[v][max1],
-                (float) graph[v][max2], 
-                (float) max_cost
-            );
-            dis_max1[v] = dis;
-            order.push(v);
-        }
-    }
-
-    std::vector<edge> matching;
-    int cost_sum = 0;
-
-    while (!order.empty()) {
-        int a = order.top();
-        order.pop();
-        int b = order.top();
-        order.pop();
-
-        cost_sum += graph[a][b];
-        matching.push_back({ a, b });
-    }
-
-    std::cout << "Geometric matching solution with total cost " << cost_sum << '\n';
-
-    return matching;
-}
-
-float circle_intersection(float r1, float r2, float distance) {
-    return (std::pow(distance, 2) + std::pow(r1, 2) - std::pow(r2, 2)) / (2 * distance);
-}
 
 void exchange(map_2d &graph, std::vector<edge> &mat, int i, int j, bool swap_partner) {
     edge e1 = mat[i];
