@@ -19,4 +19,4 @@ void assign_cluster(
     std::unordered_map<int, int> &assigned_to
 );
 
-std::vector<edge> cluster(map_2d &graph, float alpha, float beta);
+std::vector<edge> cluster(map_2d &graph, float alpha);

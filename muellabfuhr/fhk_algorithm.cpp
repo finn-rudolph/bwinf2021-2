@@ -4,7 +4,7 @@
 #include "fhk_algorithm.hpp"
 #include "io.hpp"
 
-std::vector<std::vector<int>> fhk(adj_map &graph, int k) {
+std::vector<std::vector<int>> fhk(adj_map &graph, int k, float alpha) {
     matrix_2d dis, pre;
     for (int v = 0; v < graph.size(); v++) {
         auto [distances, predecessors] = dijkstra(graph, v);
@@ -12,7 +12,7 @@ std::vector<std::vector<int>> fhk(adj_map &graph, int k) {
         pre.push_back(predecessors);
     }
 
-    auto [cpp_tour, cpp_cost] = postman(graph, dis, pre);
+    auto [cpp_tour, cpp_cost] = postman(graph, dis, pre, alpha);
 
     std::cout << "Chinese Postman Tour erstellt, Kosten: " << cpp_cost << "\n";
     print_vector(cpp_tour);

@@ -1,5 +1,4 @@
 #include <vector>
-#include <queue>
 #include <iterator>
 #include <cmath>
 #include <iostream>
@@ -15,8 +14,6 @@ void exchange(map_2d &graph, std::vector<edge> &mat, int i, int j, bool swap_par
 }
 
 std::vector<edge> two_opt(map_2d &graph, std::vector<int> &vertex_set) {
-    auto begin = std::chrono::system_clock::now();
-
     std::vector<edge> mat;
     for (int i = 0; i < vertex_set.size(); i += 2) {
         int u = vertex_set[i], v = vertex_set[i + 1], w = graph[u][v];
@@ -41,9 +38,6 @@ std::vector<edge> two_opt(map_2d &graph, std::vector<int> &vertex_set) {
 
     int sum = 0; 
     for (auto &[a, b, w]: mat) sum += w;
-    std::cout << "2-opt matching with cost " << sum <<
-        " in " << ((std::chrono::duration<float>) (std::chrono::system_clock::now() - begin)).count() << " s \n"; 
-
     return mat;
 }
 
@@ -66,7 +60,7 @@ void radix_sort_msd(int* arr, int length, int h) {
     radix_sort_msd(arr + u * 3, length - u, h - 1);
 }
 
-void assign_cluster(
+void assign_cluster( // O(|V|)
     map_2d &graph,
     std::vector<std::vector<int>> &clusters, 
     int u,
@@ -81,6 +75,7 @@ void assign_cluster(
     for (int j = 0; j < clusters.size(); j++) {
         if (open <= odd && !(clusters[j].size() & 1)) continue;
         if (open > odd && assigned_to.find(v) != assigned_to.end() && j == assigned_to[v]) continue;
+
         float avg = 0;
         for (int vtx: clusters[j]) avg += graph[u][vtx];
         avg /= (float) clusters[j].size();
@@ -102,12 +97,14 @@ void assign_cluster(
     open -= 1;
 }
 
-std::vector<edge> cluster(map_2d &graph, float alpha, float beta) {
+std::vector<edge> cluster(map_2d &graph, float alpha) {
+    auto begin = std::chrono::system_clock::now();
+
     int n = graph.size(), m = n * (n - 1) / 2;
     int edges[m * 3];
     int count = 0, i = 0;
 
-    for (auto it = graph.begin(); it != graph.end(); it++) {
+    for (auto it = graph.begin(); it != graph.end(); it++) { // O(|E|)
         auto jt = it->second.begin();
         std::advance(jt, i);
         while (jt != it->second.end()) {
@@ -119,14 +116,14 @@ std::vector<edge> cluster(map_2d &graph, float alpha, float beta) {
         i += 1;
     }
 
-    radix_sort_msd(edges, m, 31);
+    radix_sort_msd(edges, m, 31); // O(|E|)
 
-    int threshold = edges[((int) (alpha * (m - 1)) * 3 + 2)];    
+    int threshold = edges[((int) (alpha * (m - 1)) * 3 + 2)];
     std::vector<std::vector<int>> clusters;
     std::unordered_map<int, int> assigned_to;
     int open = n, odd = 0;
 
-    for (int i = m - 1; i >= 0 && open > 0; i--) {
+    for (int i = m - 1; i >= 0 && open > 0; i--) { // O(|E|)
         int u = edges[i * 3], v = edges[i * 3 + 1];
 
         if (assigned_to.find(u) == assigned_to.end()) 
@@ -136,9 +133,15 @@ std::vector<edge> cluster(map_2d &graph, float alpha, float beta) {
     }
     
     std::vector<edge> mat;
+    int sum = 0;
     for (auto &cl: clusters) {
         std::vector<edge> part_mat = two_opt(graph, cl);
-        for (edge &e: part_mat) mat.push_back(e);
+        for (edge &e: part_mat) {
+            mat.push_back(e);
+            sum += e[2];
+        }
     }
+    std::cout << "Perfect Matching with cost " << sum <<
+        " in " << ((std::chrono::duration<float>) (std::chrono::system_clock::now() - begin)).count() << " s \n"; 
     return mat;
 }
