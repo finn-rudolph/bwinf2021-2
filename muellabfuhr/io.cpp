@@ -41,17 +41,6 @@ void print_graph(adj_map &graph) {
     std::cout << "\n" << std::endl;
 }
 
-void print_map_2d(map_2d &map) {
-    for (const auto &[a, m]: map) {
-        std::cout << a << ": ";
-        for (const auto &[b, w]: m) {
-            std::cout << b << " -> " << w << ";   ";
-        }
-        std::cout << "\n";
-    }
-    std::cout << "\n" << std::endl;
-}
-
 void print_vector(std::vector<int> &vec) {
     for (const auto &e: vec) {
         std::cout << e << " ";
@@ -59,17 +48,13 @@ void print_vector(std::vector<int> &vec) {
     std::cout << "\n" << std::endl;
 }
 
-void write_complete_graph(map_2d &graph, std::string filename) {
+void write_complete_graph(matrix_2d &dis, std::vector<int> odds, std::string filename) {
     std::ofstream out_file(filename);
-    int n = graph.size();
+    int n = odds.size();
     out_file << n << ' ' << (n * (n - 1) / 2) << '\n';
 
-    int i = 0, j = 1;
-    for (auto &[u, edges]: graph) {
-        for (auto &[v, w]: edges) {
-            if (i < j) out_file << i << ' ' << j << ' ' << w << '\n'; 
-            j += 1;
-        }
-        i += 1; j = 1;
-    }
+    for (int i = 0; i < odds.size(); i++)
+        for (int j = i + 1; j < odds.size(); j++)
+            out_file << i << ' ' << j << ' ' << dis[odds[i]][odds[j]] << '\n'; 
+        
 }

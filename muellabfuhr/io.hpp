@@ -8,8 +8,6 @@ void print_tours(std::vector<std::vector<int>> &tours, adj_map &graph);
 
 void print_graph(adj_map &graph);
 
-void print_map_2d(map_2d &map);
-
 void print_vector(std::vector<int> &vec);
 
-void write_complete_graph(map_2d &graph, std::string filename);
+void write_complete_graph(matrix_2d &dis, std::vector<int> odds, std::string filename);

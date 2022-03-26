@@ -11,32 +11,15 @@ std::pair<std::vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_
         if (graph[v].size() & 1) odds.push_back(v);
     }
 
-    map_2d odds_graph;
-    int max_cost = 0;
-    edge largest_edge;
-
-    for (const auto &a: odds) {
-        for (const auto &b: odds) {
-            if (a != b) {
-                odds_graph[a][b] = odds_graph[b][a] = dis[a][b];
-
-                if (dis[a][b] > max_cost) {
-                    largest_edge = { a, b };
-                    max_cost = dis[a][b];
-                }
-            }
-        }
-    }
-
-    write_complete_graph(odds_graph, "graph.txt");
+    write_complete_graph(dis, odds, "graph.txt");
     std::vector<edge> matching = cluster(dis, odds, alpha);
 
-    map_2d augmented;
+    adj_map augmented(graph.size());
     int weight_sum = 0;
 
-    for (int a = 0; a < graph.size(); a++) {
-        for (const auto &[b, w]: graph[a]) {
-            augmented[a][b] = 1;
+    for (int u = 0; u < graph.size(); u++) {
+        for (const auto &[v, w]: graph[u]) {
+            augmented[u][v] = 1;
             weight_sum += w;
         }
     }
@@ -59,7 +42,7 @@ std::pair<std::vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_
     return { postman_tour, weight_sum };
 }
 
-std::vector<int> eulerian_circuit(map_2d &graph) {
+std::vector<int> eulerian_circuit(adj_map &graph) {
     std::vector<int> circuit;
     std::stack<int> subtour;
     subtour.push(0);
