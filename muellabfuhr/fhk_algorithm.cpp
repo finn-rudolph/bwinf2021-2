@@ -14,7 +14,7 @@ std::vector<std::vector<int>> fhk(adj_map &graph, int k, float alpha) {
 
     auto [cpp_tour, cpp_cost] = postman(graph, dis, pre, alpha);
 
-    std::cout << "Chinese Postman Tour erstellt, Kosten: " << cpp_cost << "\n";
+    std::cout << "Created Chinese Postman tour with cost: " << cpp_cost << "\n";
     print_vector(cpp_tour);
 
     int lower_bound = farthest_edge_cost(graph, dis);
@@ -26,7 +26,7 @@ std::vector<std::vector<int>> fhk(adj_map &graph, int k, float alpha) {
         int max_cost = ((float) i / (float) k) * 
             (float) (cpp_cost - lower_bound) + 0.5 * (float) lower_bound;
 
-        int split = pre_split; // index in cpp_tour, not actual vertex
+        int split = pre_split; // index in cpp_tour
         while (cost <= max_cost) {
             cost += graph[cpp_tour[split]][cpp_tour[split + 1]];
             split += 1;
@@ -52,8 +52,8 @@ std::vector<std::vector<int>> fhk(adj_map &graph, int k, float alpha) {
 
 std::vector<int> construct_tour(std::vector<int> &cpp_tour, matrix_2d &pre, int start, int end) {
     std::vector<int> tour(cpp_tour.begin() + start, cpp_tour.begin() + end + 1);
-    close_tour(tour, pre, true);
-    close_tour(tour, pre, false);
+    close_tour(tour, pre, 1);
+    close_tour(tour, pre, 0);
 
     return tour;
 }
@@ -70,12 +70,11 @@ void close_tour(std::vector<int> &tour, matrix_2d &pre, bool append_front) {
 
 int farthest_edge_cost(adj_map &graph, matrix_2d &dis) {
     int farthest = 0;
-    for (int a = 0; a < graph.size(); a++) {
-        for (const auto &[b, w]: graph[a]) {
-            farthest = std::max(dis[0][a] + w + dis[b][0], farthest);
+    for (int u = 0; u < graph.size(); u++) {
+        for (const auto &[v, w]: graph[u]) {
+            farthest = std::max(dis[0][u] + w + dis[v][0], farthest);
         }
     }
-
     return farthest;
 }
 
@@ -83,8 +82,8 @@ std::pair<std::vector<int>, std::vector<int>> dijkstra(adj_map &graph, int start
     std::vector<int> dis(graph.size(), INT_MAX), pre(graph.size(), -1);
     std::vector<bool> visited(graph.size(), false);
 
-    auto is_closer = [&dis](int a, int b) -> bool {
-        return dis[a] > dis[b];
+    auto is_closer = [&dis](int u, int v) -> bool {
+        return dis[u] > dis[v];
     };
 
     std::priority_queue<int, std::vector<int>, decltype(is_closer)> queue(is_closer);

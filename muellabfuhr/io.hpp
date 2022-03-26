@@ -1,4 +1,3 @@
-#include <vector>
 #include <string>
 #include "types.hpp"
 
@@ -10,4 +9,4 @@ void print_graph(adj_map &graph);
 
 void print_vector(std::vector<int> &vec);
 
-void write_complete_graph(matrix_2d &dis, std::vector<int> odds, std::string filename);
+void write_complete_graph(matrix_2d &dis, std::vector<int> &odds, std::string filename);

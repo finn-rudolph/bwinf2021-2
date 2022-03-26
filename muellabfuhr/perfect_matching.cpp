@@ -1,5 +1,3 @@
-#include <vector>
-#include <iterator>
 #include <cmath>
 #include <iostream>
 #include <climits>
@@ -103,15 +101,15 @@ std::vector<edge> cluster(matrix_2d &dis, std::vector<int> odds, float alpha) {
 
     for (int i = 0; i < odds.size(); i++) { // O(|E|)
         for (int j = i + 1; j < odds.size(); j++) {
-            int edge[3] = { odds[i], odds[j], dis[odds[i]][odds[j]] };
-            std::move(edge, edge + 3, edges + pos);
+            int e[3] = { odds[i], odds[j], dis[odds[i]][odds[j]] };
+            std::move(e, e + 3, edges + pos);
             pos += 3;
         }
     }
 
     radix_sort_msd(edges, m, 31); // O(|E|)
 
-    int threshold = edges[((int) (alpha * (m - 1)) * 3 + 2)];
+    int threshold = edges[((int) (alpha * (m - 1)) * 3 + 2)]; // weight at α-Quantile
     std::vector<std::vector<int>> clusters;
     std::unordered_map<int, int> assigned_to;
     int open = n, odd = 0;
@@ -131,7 +129,7 @@ std::vector<edge> cluster(matrix_2d &dis, std::vector<int> odds, float alpha) {
     
     std::vector<edge> mat;
     int sum = 0;
-    for (auto &cl: clusters) {
+    for (std::vector<int> &cl: clusters) {
         std::vector<edge> part_mat = two_opt(dis, cl);
         for (edge &e: part_mat) {
             mat.push_back(e);

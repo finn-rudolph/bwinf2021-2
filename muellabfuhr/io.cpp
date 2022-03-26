@@ -4,13 +4,11 @@
 
 adj_map to_adjacency_map(int n, int m) {
     adj_map adjMap(n);
-
     for (int i = 0; i < m; i++) {
-        int v1, v2, w;
-        std::cin >> v1 >> v2 >> w;
-        adjMap[v1][v2] = adjMap[v2][v1] = w;
+        int u, v, w;
+        std::cin >> u >> v >> w;
+        adjMap[u][v] = adjMap[v][u] = w;
     }
-
     return adjMap;
 }
 
@@ -32,23 +30,21 @@ void print_tours(std::vector<std::vector<int>> &tours, adj_map &graph) {
 }
 
 void print_graph(adj_map &graph) {
-    for (int a = 0; a < graph.size(); a++) {
-        std::cout << a << ": ";
-        for (const auto &[b, w]: graph[a]) {
-            std::cout << b << " -> " << w<< ";   ";
+    for (int u = 0; u < graph.size(); u++) {
+        std::cout << u << ": ";
+        for (const auto &[v, w]: graph[u]) {
+            std::cout << v << " -> " << w<< ";   ";
         }
     }
-    std::cout << "\n" << std::endl;
+    std::cout << "\n\n";
 }
 
 void print_vector(std::vector<int> &vec) {
-    for (const auto &e: vec) {
-        std::cout << e << " ";
-    }
-    std::cout << "\n" << std::endl;
+    for (const auto &elem: vec) std::cout << elem << " ";
+    std::cout << "\n\n";
 }
 
-void write_complete_graph(matrix_2d &dis, std::vector<int> odds, std::string filename) {
+void write_complete_graph(matrix_2d &dis, std::vector<int> &odds, std::string filename) {
     std::ofstream out_file(filename);
     int n = odds.size();
     out_file << n << ' ' << (n * (n - 1) / 2) << '\n';
@@ -56,5 +52,4 @@ void write_complete_graph(matrix_2d &dis, std::vector<int> odds, std::string fil
     for (int i = 0; i < odds.size(); i++)
         for (int j = i + 1; j < odds.size(); j++)
             out_file << i << ' ' << j << ' ' << dis[odds[i]][odds[j]] << '\n'; 
-        
 }

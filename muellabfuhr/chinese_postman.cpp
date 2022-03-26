@@ -7,9 +7,8 @@
 
 std::pair<std::vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_2d &pre, float alpha) {
     std::vector<int> odds;
-    for (int v = 0; v < graph.size(); v++) {
+    for (int v = 0; v < graph.size(); v++)
         if (graph[v].size() & 1) odds.push_back(v);
-    }
 
     write_complete_graph(dis, odds, "graph.txt");
     std::vector<edge> matching = cluster(dis, odds, alpha);
@@ -26,15 +25,15 @@ std::pair<std::vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_
     weight_sum /= 2;
 
     for (auto &[start, target, _]: matching) {
-        int b = pre[target][start];
-        int a = start;
+        int next = pre[target][start];
+        int curr = start;
 
-        while (b != -1) {
-            augmented[a][b] += 1;
-            augmented[b][a] += 1;
-            weight_sum += graph[a][b];
-            a = b;
-            b = pre[target][b];
+        while (next != -1) {
+            augmented[curr][next] += 1;
+            augmented[next][curr] += 1;
+            weight_sum += graph[curr][next];
+            curr = next;
+            next = pre[target][next];
         }
     }
 
