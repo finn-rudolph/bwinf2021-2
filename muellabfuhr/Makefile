@@ -1,5 +1,5 @@
 CPP = clang++
-CFLAGS = -Wall -g
+CFLAGS = -Wall -g -O3
 BINS = main.o io.o chinese_postman.o perfect_matching.o fhk_algorithm.o
 
 all: $(BINS)
