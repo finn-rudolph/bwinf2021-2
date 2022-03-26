@@ -1,6 +1,7 @@
 #include <vector>
 #include <set>
 #include <queue>
+#include <unordered_map>
 #include <iterator>
 #include <cmath>
 #include <iostream>
@@ -117,6 +118,42 @@ void radix_sort_msd(int* arr, int length, int h) {
     radix_sort_msd(arr + u * 3, length - u, h - 1);
 }
 
+void assign_cluster(
+    map_2d &graph,
+    std::vector<std::set<int>> &clusters, 
+    int u,
+    int v,
+    int &open,
+    int &odd,
+    int threshold,
+    std::unordered_map<int, int> &assigned_to
+) {
+    int min = INT_MAX, min_j = -1;
+
+    for (int j = 0; j < clusters.size(); j++) {
+        if (open <= odd && !(clusters[j].size() & 1)) continue;
+        if (open > odd && assigned_to.find(v) != assigned_to.end() && j == assigned_to[v]) continue;
+        float avg = 0;
+        for (int vtx: clusters[j]) avg += graph[u][vtx];
+        avg /= (float) clusters[j].size();
+        if (avg < min) { 
+            min = avg;
+            min_j = j;
+        }
+    }
+
+    if (min <= threshold || open <= odd) {
+        clusters[min_j].insert(u);
+        odd += (clusters[min_j].size() & 1) ? 1 : -1;
+        assigned_to[u] = min_j;
+    } else {
+        clusters.push_back({ u });
+        odd += 1;
+        assigned_to[u] = clusters.size() - 1;
+    }
+    open -= 1;
+}
+
 std::vector<std::set<int>> cluster(map_2d &graph, float alpha, float beta) {
     int n = graph.size(), m = n * (n - 1) / 2;
     int edges[m * 3];
@@ -140,44 +177,16 @@ std::vector<std::set<int>> cluster(map_2d &graph, float alpha, float beta) {
     int beta_i = (int) (beta * (m - 1));
     
     std::vector<std::set<int>> clusters;
-    std::vector<bool> assigned(n, false);
+    std::unordered_map<int, int> assigned_to;
     int open = n, odd = 0;
 
-    for (int i = m - 1; i >= beta_i; i--) {
+    for (int i = m - 1; i >= 0 && open > 0; i--) {
         int u = edges[i * 3], v = edges[i * 3 + 1], w = edges[i * 3 + 2];
-        std::array<int, 2> min_u, min_v;
-        min_u = { INT_MAX, -1 }, min_v = { INT_MAX, -1 };
 
-        for (int j = 0; j < clusters.size(); j++) {
-            if (open <= odd && (clusters[j].size() & 1)) continue;
-            int avg_u = 0;
-            for (int vtx: clusters[j]) avg_u += graph[u][vtx];        
-            if (avg_u < min_u[0]) min_u = { avg_u, j };
-        }
-
-        for (int j = 0; j < clusters.size(); j++) {
-            if (open <= odd && (clusters[j].size() & 1)) continue;
-            if (j == min_u[1]) continue;
-            int avg_v = 0;
-            for (int vtx: clusters[j]) avg_v += graph[v][vtx];
-            if (avg_v < min_v[0]) min_v = { avg_v, j };
-        }
-
-        if (min_u[1] != -1 && min_u[0] < threshold) 
-            if (!assigned[u]) {
-                clusters[min_u[1]].insert(u);
-                open -= 1;
-                odd += (clusters[min_u[1]].size() & 1) ? 1 : -1;
-            }
-        else clusters.push_back({ u });
-
-        if (min_v[1] != -1 && min_v[0] < threshold) 
-            if (!assigned[v]) {
-                clusters[min_v[1]].insert(v);
-                open -= 1;
-                odd += (clusters[min_v[1]].size() & 1) ? 1 : -1;
-            }
-        else clusters.push_back({ v });
+        if (assigned_to.find(u) == assigned_to.end()) 
+            assign_cluster(graph, clusters, u, v, open, odd, threshold, assigned_to);
+        if (assigned_to.find(v) == assigned_to.end())
+            assign_cluster(graph, clusters, v, u, open, odd, threshold, assigned_to);
     }
     
     return clusters;
