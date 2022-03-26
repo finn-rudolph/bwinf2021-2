@@ -9,4 +9,4 @@ std::vector<edge> two_opt(map_2d &graph, std::vector<edge> mat = { });
 
 void radix_sort_msd(int* arr, int length, int h);
 
-std::vector<std::set<int>> cluster(map_2d &graph, float alpha, float beta);
+std::vector<edge> cluster(map_2d &graph, float alpha, float beta);

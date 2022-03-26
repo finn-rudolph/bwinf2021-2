@@ -68,12 +68,14 @@ void exchange(map_2d &graph, std::vector<edge> &mat, int i, int j, bool swap_par
     mat[j] = { e1[1], e2[!swap_partner], graph[e1[1]][e2[!swap_partner]] };
 }
 
-std::vector<edge> two_opt(map_2d &graph, std::vector<edge> mat) {
+std::vector<edge> two_opt(map_2d &graph, std::vector<int> &vertex_set) {
     auto begin = std::chrono::system_clock::now();
 
-    if (mat.empty()) 
-        for (auto it = graph.begin(); it != graph.end(); it++) 
-            mat.push_back({ it->first, (++it)->first });
+    std::vector<edge> mat;
+    for (int i = 0; i < vertex_set.size(); i += 2) {
+        int u = vertex_set[i], v = vertex_set[i + 1], w = graph[u][v];
+        mat.push_back({ u, v, w });
+    }
  
     next: 
         for (int i = 0; i < mat.size(); i++) {
@@ -93,7 +95,7 @@ std::vector<edge> two_opt(map_2d &graph, std::vector<edge> mat) {
 
     int sum = 0; 
     for (auto &[a, b, w]: mat) sum += w;
-    std::cout << "2-opt matching with weight " << sum <<
+    std::cout << "2-opt matching with cost " << sum <<
         " in " << ((std::chrono::duration<float>) (std::chrono::system_clock::now() - begin)).count() << " s \n"; 
 
     return mat;
@@ -120,7 +122,7 @@ void radix_sort_msd(int* arr, int length, int h) {
 
 void assign_cluster(
     map_2d &graph,
-    std::vector<std::set<int>> &clusters, 
+    std::vector<std::vector<int>> &clusters, 
     int u,
     int v,
     int &open,
@@ -143,7 +145,7 @@ void assign_cluster(
     }
 
     if (min <= threshold || open <= odd) {
-        clusters[min_j].insert(u);
+        clusters[min_j].push_back(u);
         odd += (clusters[min_j].size() & 1) ? 1 : -1;
         assigned_to[u] = min_j;
     } else {
@@ -154,7 +156,7 @@ void assign_cluster(
     open -= 1;
 }
 
-std::vector<std::set<int>> cluster(map_2d &graph, float alpha, float beta) {
+std::vector<edge> cluster(map_2d &graph, float alpha, float beta) {
     int n = graph.size(), m = n * (n - 1) / 2;
     int edges[m * 3];
     int count = 0, i = 0;
@@ -173,15 +175,13 @@ std::vector<std::set<int>> cluster(map_2d &graph, float alpha, float beta) {
 
     radix_sort_msd(edges, m, 31);
 
-    int threshold = edges[((int) (alpha * (m - 1)) * 3 + 2)];
-    int beta_i = (int) (beta * (m - 1));
-    
-    std::vector<std::set<int>> clusters;
+    int threshold = edges[((int) (alpha * (m - 1)) * 3 + 2)];    
+    std::vector<std::vector<int>> clusters;
     std::unordered_map<int, int> assigned_to;
     int open = n, odd = 0;
 
     for (int i = m - 1; i >= 0 && open > 0; i--) {
-        int u = edges[i * 3], v = edges[i * 3 + 1], w = edges[i * 3 + 2];
+        int u = edges[i * 3], v = edges[i * 3 + 1];
 
         if (assigned_to.find(u) == assigned_to.end()) 
             assign_cluster(graph, clusters, u, v, open, odd, threshold, assigned_to);
@@ -189,5 +189,10 @@ std::vector<std::set<int>> cluster(map_2d &graph, float alpha, float beta) {
             assign_cluster(graph, clusters, v, u, open, odd, threshold, assigned_to);
     }
     
-    return clusters;
+    std::vector<edge> mat;
+    for (auto &cl: clusters) {
+        std::vector<edge> part_mat = two_opt(graph, cl);
+        for (edge &e: part_mat) mat.push_back(e);
+    }
+    return mat;
 }
