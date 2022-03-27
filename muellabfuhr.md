@@ -74,7 +74,7 @@ $$
 
 Da man beliebig Knoten und Kanten hinzufügen kann, um jeden Graphen zu konstruieren, gilt es für jeden Graphen.
 
-Der Eulerkreis in dem Multigraphen ist die optimale Lösung des CPPs, wobei parallele Kanten als eine Kante im ursprünglichen Graphen behandelt werden müssen.
+Der Eulerkreis in dem Multigraphen ist die optimale Lösung des CPPs, wobei parallele Kanten als eine Kante im ursprünglichen Graphen behandelt werden müssen. "Optimal" ist in diesem Abschnitt unter der Voraussetzung zu verstehen, dass das perfekte Matching wirklich minimal ist.
 
 ```pseudocode
 procedure ChinesePostman(Graph G)
@@ -97,7 +97,7 @@ procedure ChinesePostman(Graph G)
     return EulerianCircuit(Gₐ);
 ```
 
-#### Der Algorithmus von Hierholzer
+### Der Algorithmus von Hierholzer
 
 Um einen Eulerkreis zu finden, wird der Algorithmus von Hierholzer verwendet. Edmonds und Johnson (1973) verwenden diesen in zwei abgewandelten Formen, ich werde ihn in seiner ursprünglichen Form mit einer veränderten Implementierung verwenden.
 
@@ -150,7 +150,26 @@ flowchart LR
 41 ---|2| 61
 ```
 
-### Minimale Perfekte Matchings
+### Minimales Perfektes Matching
+
+Zum Finden eines minimalen perfekten Matchings in einem nicht-bipartiten Graphen ist Edmonds Blütenalgorithmus und dessen Weiterentwicklungen Standard. Die theoretisch besten Algorithmen konnten bisher die $O(|E| \sqrt {|V|})$-Barriere nicht überwinden (Duan, 2018), womit dieser Teil des FHK-Algorithmus begrenzend für seine Zeitkomplexität ist. Aus diesem Grund möchte ich zum Finden eines minimalen perferkten Matchings eine selbst entwickelte Heuristik verwenden. Ein weiterer Grund dafür ist, dass eine gute Implementierung einer der Algorithmen, die auf dem Blütenalgorithmus basieren, sehr schwierig und aufwändig ist. Beispielsweise hat [Blossom V](https://pub.ist.ac.at/~vnk/software.html) von Vladimir Kolmogorov über 3500 Codezeilen, was einen groben Eindruck über die Komplexität einer Implementierung gibt. Ich hätte es geschafft, den ursprünglichen Blütenalgorithmus zu implementieren, dessen Laufzeit ist aber sowohl in der Theorie mit $O(|V|^2 \cdot |E|)$ als auch in der Praxis deutlich schlechter. Ich benutze also eine selbst entwickelte Heuristik und vergleiche deren Lösungsqualität und Geschwindigkeit mit Blossom V.
+
+Genauer werden zwei Heuristiken benutzt: Eine, um den Graphen in kleinere Graphen zu clustern, und eine zweite, um in den Teilgraphen ein möglichst minimales perfektes Matching zu finden. Beide sind auf vollständige, metrische Graphen ausgelegt, wie mit $G_o$ vorliegend.
+
+#### Cluster
+
+Die Heuristik _Cluster_ sortiert alle Kanten des Graphen aufsteigend und teilt Knoten, die durch die längsten Kanten verbunden sind, verschiedenen Clustern zu. Die Sortierung der Kanten nach Kosten geschieht durch Radix Sort, den ich bereits in der Bonusaufgabe erkläre, daher wiederhole ich seine Funktionsweise hier nicht. Um die Knoten anschließend aufzuteilen, wird die Liste an Kanten $L$ von hinten durchlaufen, und sobald ein Knoten auftritt, der noch keinem Cluster zugewiesen ist, wird er dem Cluster zugewiesen, zu dessen Knoten er die geringsten durchschnittlichen Kosten hat. Falls kein ausreichend guter Cluster vorhanden ist, wird mit dem Knoten ein neuer erstellt. Die Schwelle für _ausreichend gut_ wird durch den Parameter $\alpha \in [0, 1]$ bestimmt, sie ist die Kosten des $\alpha$-Quantils in der Kantenliste. Das heißt, wenn bei einem Knoten $u$ die durchschnittlichen Kosten zu jedem Cluster größer als $w(l_{\big \lfloor |L| \cdot \alpha \big \rfloor})$ sind, wird ein neuer Cluster $\{u\}$ erstellt. $l_i$ bezeichnet das $i$´te Element in $L$.
+
+```pseudocode
+procedure Cluster(Vₒ)
+	L ← ∅;
+	for u ∊ Vₒ
+		for v ∊ Vₒ | v ≠ u
+			L ← L ∪ (u, v);
+
+	RadixSort(L);
+
+```
 
 ## Implementierung
 
@@ -178,17 +197,17 @@ Es wird über alle Kanten des Graphen iteriert: und die größten Kosten zurück
 
 #### Konstruktion einer Tour
 
-&rarr; zugehörige Funktion: `vector<int> construct_tour(vector<int> &cpp_tour, matrix_2d &pre, int start, int end)`
+&rarr; zugehörige Funktion: `construct_tour`
 
-Diese Funktion dient dazu, die eigentliche Logik zum Verbinden einer Tour zum Startknoten, implementiert in `close_tour()`, für beide Seiten des Pfads anzuwenden. Damit wird vermieden, das zweimal explizit als Code zu schreiben.
+Diese Funktion dient dazu, die eigentliche Logik zum Verbinden einer Tour zum Startknoten, implementiert in `close_tour`, für beide Seiten des Pfads anzuwenden. Damit wird vermieden, das zweimal explizit als Code zu schreiben.
 
-&rarr; zugehörige Funktion `void close_tour(vector<int> &tour, matrix_2d &pre, bool append_front)`
+&rarr; zugehörige Funktion `close_tour`
 
 Der Parameter `append_front` ist `true`, wenn der Anfangsknoten des Pfads zum Startknoten verbunden werden soll und `false`, wenn das mit dem Endknoten des Pfads geschehen soll. Die Knoten, die auf dem kürzesten Pfad des zu verbindenden Knoten zum Startknoten liegen, sind in der Vorgängermatrix im Vektor bei Index `0` enthalten. `curr`, der aktuelle Knoten auf dem kürzesten Pfad, wird solange mit seinem Vorgänger, der bei `pre[0][curr]` liegt, ersetzt, bis dieser `-1` ist, was bedeutet, dass der Startknoten erreicht wurde (Z. 4 - 8). Dass `-1` bedeutet, dass der Zielknoten erreicht ist, habe ich in Dijkstra's Algorithmus so festgelegt. Alle auf diesem Weg besuchten Knoten werden vorne bzw. hinten an die Tour angehängt. Die Funktion verändert direkt die Tour, die ihr als Referenz mitgegeben wurde.
 
 ### Der Chinese Postman Algorithmus
 
-&rarr; zugehörige Funktion: `pair<vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_2d &pre)`
+&rarr; zugehörige Funktion: `postman`
 
 Zu Beginn wird der vollständige Graph aus Knoten mit ungeradem Grad erstellt. Dazu wird einem Set `odds` jeder Knoten hinzugefügt, dessen Anzahl an Einträgen in seiner Hashmap Rest $1 \space (\bmod 2)$ hat (Z. 2 - 7). Der Graph selbst wird erstellt, indem in `odds_graph` für jede Kombination zweier Knoten aus `odds` die Distanz ihres kürzesten Pfads eingetragen wird (Z. 13 - 24).
 
@@ -196,13 +215,21 @@ Nachdem das perfekte Matching für `odds_graph` gefunden wurde, wird der augment
 
 Der Eulerkreis durch den Graphen, der zurückgegeben wird, behandelt parallele Kanten bereits als eine ursprüngliche, was durch die implizite Umsetzung des Multigraphen als `map_2d` möglich ist.
 
-#### Hierholzer's Algorithmus
+### Hierholzer's Algorithmus
 
-&rarr; zugehörige Funktion: `vector<int> eulerian_circuit(map_2d &graph)`
+&rarr; zugehörige Funktion: `eulerian_circuit`
 
 Die letztendlich zurückgegebene Knotenfolge des Eulerkreises wird in `circuit` gespeichert. Für die aktuelle Subtour wird ein Stapel verwendet (Z. 2 - 4), weil nur an der letzten Position Elemente hinzugefügt oder entfernt werden müssen. `curr` ist der Knoten, bei dem der Algorithmus aktuell steht. `graph[curr].empty()` bedeutet, dass der Grad von `curr` $0$ ist (Z. 9), d. h. die Subtour wird bis zu einem Knoten mit noch anliegenden Kanten rückverfolgt. Wenn Kanten an `curr` anliegen, wird der erste verbundene Knoten als nächster gewählt (Z. 13) und die zwischenliegende Kante entfernt (Z. 16 - 19). Dazu wird die Anzahl an Kanten zwischen ihnen um $1$ verringert, und falls diese $0$ wird, der Eintrag in der `map` ganz entfernt.
 
 ## Zeitkomplexität
+
+### Minimum Weighted Perfect Matching
+
+$|V_o|$ bezeichnet die Anzahl ungerader Knoten in $G$. In `cluster` werden alle Kanten explizit erstellt, wofür im Best-, Worst- und Average-Case $\Theta(|V_o|^2)$ benötigt wird, da der Graph vollständig ist. Radix Sort läuft bei einer konstanten Bitlänge (32 bei `int`) und konstanter Größe der Listenelemente linear bzgl. der Länge der Liste also ebenfalls in $\Theta(|V_o|^2)$. Die anschließende for-Schleife wird im Worst-Case $O(|V_o|^2)$-mal wiederholt. `assign_cluster` wird aber immer genau $|V_o|$-mal aufgerufen, da `open` bei jedem Aufruf um genau 1 verringert wird und die Schleife bei `open == 0` abbricht. Da `assign_threads` selbst im Worst-Case die Distanz zu jedem Knoten überprüft, also $O(|V_o|)$ Zeit benötigt, ist die gesamte Worst-Case Komplexität des Clusterns $O(|V_o|^2)$.
+
+Wahrscheinlichkeit, dass eine neuer Cluster erstellt wird: $1-\alpha$
+
+durchschnittliche Clustergröße: $\alpha V$
 
 ## Beispiele
 
@@ -213,21 +240,17 @@ Um mein Programm an anderen großen Graphen außer den vorgegebenen testen zu k�
 ### Typdefinitionen
 
 ```c++
-typedef vector<map<int, int>> adj_map;
+typedef std::vector<std::unordered_map<int, int>> adj_map;
 
-typedef map<int, map<int, int>> map_2d;
+typedef std::vector<std::vector<int>> matrix_2d;
 
-typedef vector<vector<int>> matrix_2d;
+typedef std::array<int, 3> edge;
 ```
 
-_Anmerkung:_ `matrix_2d` wird nur für `vector<vector<int>>` eingesetzt, wenn die Datenstruktur wirklich als Matrix gedacht ist.
-
-### Der FHK-Algorithmus
-
-Die folgenden Funktionen befinden sich in `fhk_algorithm.cpp`.
+### fhk
 
 ```c++
-vector<vector<int>> fhk(adj_map &graph) {
+std::vector<std::vector<int>> fhk(adj_map &graph, int k, float alpha) {
     matrix_2d dis, pre;
     for (int v = 0; v < graph.size(); v++) {
         auto [distances, predecessors] = dijkstra(graph, v);
@@ -235,18 +258,18 @@ vector<vector<int>> fhk(adj_map &graph) {
         pre.push_back(predecessors);
     }
 
-    auto [cpp_tour, cpp_cost] = postman(graph, dis, pre);
+    auto [cpp_tour, cpp_cost] = postman(graph, dis, pre, alpha);
 
     int lower_bound = farthest_edge_cost(graph, dis);
     int pre_split = 0;
     int cost = 0;
-    vector<vector<int>> tours;
+    std::vector<std::vector<int>> tours;
 
-    for (int i = 1; i <= num_tours - 1; i++) {
-        int max_cost = ((float) i / (float) num_tours) *
+    for (int i = 1; i <= k - 1; i++) {
+        int max_cost = ((float) i / (float) k) *
             (float) (cpp_cost - lower_bound) + 0.5 * (float) lower_bound;
 
-        int split = pre_split; // index in cpp_tour, not actual vertex
+        int split = pre_split; // index in cpp_tour
         while (cost <= max_cost) {
             cost += graph[cpp_tour[split]][cpp_tour[split + 1]];
             split += 1;
@@ -255,8 +278,7 @@ vector<vector<int>> fhk(adj_map &graph) {
         int residual = max_cost - cost - graph[cpp_tour[split]][cpp_tour[split + 1]];
 
         if (
-            dis[cpp_tour[split]][0] <=
-                graph[cpp_tour[split]][cpp_tour[split + 1]]
+            dis[cpp_tour[split]][0] <= graph[cpp_tour[split]][cpp_tour[split + 1]]
                 + dis[cpp_tour[split + 1]][0]
                 - 2 * residual
         ) {
@@ -272,18 +294,22 @@ vector<vector<int>> fhk(adj_map &graph) {
 }
 ```
 
+#### construct_tour
+
 ```c++
-vector<int> construct_tour(vector<int> &cpp_tour, matrix_2d &pre, int start, int end) {
-    vector<int> tour(cpp_tour.begin() + start, cpp_tour.begin() + end + 1);
-    close_tour(tour, pre, true);
-    close_tour(tour, pre, false);
+std::vector<int> construct_tour(std::vector<int> &cpp_tour, matrix_2d &pre, int start, int end) {
+    std::vector<int> tour(cpp_tour.begin() + start, cpp_tour.begin() + end + 1);
+    close_tour(tour, pre, 1);
+    close_tour(tour, pre, 0);
 
     return tour;
 }
 ```
 
+#### close_tour
+
 ```c++
-void close_tour(vector<int> &tour, matrix_2d &pre, bool append_front) {
+void close_tour(std::vector<int> &tour, matrix_2d &pre, bool append_front) {
     int curr = pre[0][append_front ? *tour.begin() : *(--tour.end())];
 
     while (curr != -1) {
@@ -294,31 +320,32 @@ void close_tour(vector<int> &tour, matrix_2d &pre, bool append_front) {
 }
 ```
 
+#### farthest_edge_cost
+
 ```c++
 int farthest_edge_cost(adj_map &graph, matrix_2d &dis) {
     int farthest = 0;
-    for (int a = 0; a < graph.size(); a++) {
-        for (const auto &[b, w]: graph[a]) {
-            farthest = max(dis[0][a] + w + dis[b][0], farthest);
+    for (int u = 0; u < graph.size(); u++) {
+        for (const auto &[v, w]: graph[u]) {
+            farthest = std::max(dis[0][u] + w + dis[v][0], farthest);
         }
     }
-
     return farthest;
 }
 ```
 
-#### Dijkstra's Algorithmus
+#### dijkstra
 
 ```c++
-pair<vector<int>, vector<int>> dijkstra(adj_map &graph, int start) {
-    vector<int> dis(graph.size(), INT_MAX), pre(graph.size(), -1);
-    vector<bool> visited(graph.size(), false);
+std::pair<std::vector<int>, std::vector<int>> dijkstra(adj_map &graph, int start) {
+    std::vector<int> dis(graph.size(), INT_MAX), pre(graph.size(), -1);
+    std::vector<bool> visited(graph.size(), false);
 
-    auto is_closer = [&dis](int a, int b) -> bool {
-        return dis[a] > dis[b];
+    auto is_closer = [&dis](int u, int v) -> bool {
+        return dis[u] > dis[v];
     };
 
-    priority_queue<int, vector<int>, decltype(is_closer)> queue(is_closer);
+    std::priority_queue<int, std::vector<int>, decltype(is_closer)> queue(is_closer);
     queue.push(start);
     dis[start] = 0;
 
@@ -340,71 +367,52 @@ pair<vector<int>, vector<int>> dijkstra(adj_map &graph, int start) {
 }
 ```
 
-### Der Chinese Postman Algorithmus
+### postman
 
 ```c++
-pair<vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_2d &pre) {
-    set<int> odds;
-    for (int v = 0; v < graph.size(); v++) {
-        if (graph[v].size() % 2 == 1) {
-            odds.insert(v);
-        }
-    }
+std::pair<std::vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_2d &pre, float alpha) {
+    std::vector<int> odds;
+    for (int v = 0; v < graph.size(); v++)
+        if (graph[v].size() & 1) odds.push_back(v);
 
-    map_2d odds_graph;
-    int max_cost = 0;
-    pair<int, int> largest_edge;
+    write_complete_graph(dis, odds, "graph.txt");
+    std::vector<edge> matching = cluster(dis, odds, alpha);
 
-    for (const auto &a: odds) {
-        for (const auto &b: odds) {
-            if (a != b) {
-                odds_graph[a][b] = odds_graph[b][a] = dis[a][b];
-
-                if (dis[a][b] > max_cost) {
-                    largest_edge = { a, b };
-                    max_cost = dis[a][b];
-                }
-            }
-        }
-    }
-
-    set<pair<int, int>> matching = perfect_matching(odds_graph, largest_edge);
-
-    map_2d augmented;
+    adj_map augmented(graph.size());
     int weight_sum = 0;
 
-    for (int a = 0; a < graph.size(); a++) {
-        for (const auto &[b, w]: graph[a]) {
-            augmented[a][b] = 1;
+    for (int u = 0; u < graph.size(); u++) {
+        for (const auto &[v, w]: graph[u]) {
+            augmented[u][v] = 1;
             weight_sum += w;
         }
     }
     weight_sum /= 2;
 
-    for (auto [start, target]: matching) {
-        int b = pre[target][start];
-        int a = start;
+    for (auto &[start, target, _]: matching) {
+        int next = pre[target][start];
+        int curr = start;
 
-        while (b != -1) {
-            augmented[a][b] += 1;
-            augmented[b][a] += 1;
-            weight_sum += graph[a][b];
-            a = b;
-            b = pre[target][b];
+        while (next != -1) {
+            augmented[curr][next] += 1;
+            augmented[next][curr] += 1;
+            weight_sum += graph[curr][next];
+            curr = next;
+            next = pre[target][next];
         }
     }
 
-    vector<int> postman_tour = eulerian_circuit(augmented);
+    std::vector<int> postman_tour = eulerian_circuit(augmented);
     return { postman_tour, weight_sum };
 }
 ```
 
-#### Hierholzer's Algorithmus
+### eulerian_circuit
 
 ```c++
-vector<int> eulerian_circuit(map_2d &graph) {
-    vector<int> circuit;
-    stack<int> subtour;
+std::vector<int> eulerian_circuit(adj_map &graph) {
+    std::vector<int> circuit;
+    std::stack<int> subtour;
     subtour.push(0);
 
     while (!subtour.empty()) {
@@ -415,16 +423,167 @@ vector<int> eulerian_circuit(map_2d &graph) {
             circuit.push_back(curr);
         } else {
             int next = graph[curr].begin()->first;
-            subtour.push(next);
-
             graph[curr][next] = graph[next][curr] -= 1;
+
             if (graph[curr][next] == 0) {
                 graph[curr].erase(next);
                 graph[next].erase(curr);
             }
+            subtour.push(next);
         }
     }
     return circuit;
+}
+```
+
+### cluster
+
+```c++
+std::vector<edge> cluster(matrix_2d &dis, std::vector<int> odds, float alpha) {
+    auto begin = std::chrono::system_clock::now();
+
+    int n = odds.size(), m = n * (n - 1) / 2;
+    int edges[m * 3], pos = 0;
+
+    for (int i = 0; i < odds.size(); i++) {
+        for (int j = i + 1; j < odds.size(); j++) {
+            int e[3] = { odds[i], odds[j], dis[odds[i]][odds[j]] };
+            std::move(e, e + 3, edges + pos);
+            pos += 3;
+        }
+    }
+
+    radix_sort_msd(edges, m, 31);
+
+    int threshold = edges[((int) (alpha * (m - 1)) * 3 + 2)]; // weight of α-Quantile
+    std::vector<std::vector<int>> clusters;
+    std::unordered_map<int, int> assigned_to;
+    int open = n, odd_cl = 0;
+
+    for (int i = m - 1; i >= 0 && open > 0; i--) {
+        int u = edges[i * 3], v = edges[i * 3 + 1];
+
+        if (assigned_to.find(u) == assigned_to.end())
+            assign_cluster(dis, clusters, u, v, open, odd_cl, threshold, assigned_to);
+        if (assigned_to.find(v) == assigned_to.end())
+            assign_cluster(dis, clusters, v, u, open, odd_cl, threshold, assigned_to);
+    }
+
+    std::vector<edge> mat;
+    int sum = 0;
+    for (std::vector<int> &cl: clusters) {
+        std::vector<edge> part_mat = two_opt(dis, cl);
+        for (edge &e: part_mat) {
+            mat.push_back(e);
+            sum += e[2];
+        }
+    }
+
+    return mat;
+}
+```
+
+#### radix_sort_msd
+
+```c++
+void radix_sort_msd(int* arr, int length, int h) {
+    if (length <= 1 || h == -1) return;
+    int u = 0, v = length - 1;
+
+    while (u < v) {
+        if ((arr[u * 3 + 2] >> h) & (int) 1) {
+            std::swap_ranges(arr + u * 3, arr + u * 3 + 3, arr + v * 3);
+            v -= 1;
+        } else {
+            u += 1;
+        }
+    }
+
+    if (!((arr[u * 3 + 2] >> h) & (int) 1)) u += 1;
+    radix_sort_msd(arr, u, h - 1);
+    radix_sort_msd(arr + u * 3, length - u, h - 1);
+}
+```
+
+#### assign_cluster
+
+```c++
+void assign_cluster(
+    matrix_2d &dis,
+    std::vector<std::vector<int>> &clusters,
+    int u,
+    int v,
+    int &open,
+    int &odd_cl,
+    int threshold,
+    std::unordered_map<int, int> &assigned_to
+) {
+    int min = INT_MAX, min_j = -1;
+
+    for (int j = 0; j < clusters.size(); j++) {
+        if (open <= odd_cl && !(clusters[j].size() & 1)) continue;
+        if (open > odd_cl && assigned_to.find(v) != assigned_to.end() && j == assigned_to[v]) continue;
+
+        float avg = 0;
+        for (int vtx: clusters[j]) avg += dis[u][vtx];
+        avg /= (float) clusters[j].size();
+        if (avg < min) {
+            min = avg;
+            min_j = j;
+        }
+    }
+
+    if (min <= threshold || open <= odd_cl) {
+        clusters[min_j].push_back(u);
+        odd_cl += (clusters[min_j].size() & 1) ? 1 : -1;
+        assigned_to[u] = min_j;
+    } else {
+        clusters.push_back({ u });
+        odd_cl += 1;
+        assigned_to[u] = clusters.size() - 1;
+    }
+    open -= 1;
+}
+```
+
+#### two_opt
+
+```c++
+std::vector<edge> two_opt(matrix_2d &dis, std::vector<int> &vertex_set) {
+    std::vector<edge> mat;
+    for (int i = 0; i < vertex_set.size(); i += 2) {
+        int u = vertex_set[i], v = vertex_set[i + 1], w = dis[u][v];
+        mat.push_back({ u, v, w });
+    }
+
+    next:
+        for (int i = 0; i < mat.size(); i++) {
+            for (int j = i + 1; j < mat.size(); j++) {
+                int curr_cost = mat[i][2] + mat[j][2];
+
+                if (curr_cost - dis[mat[i][0]][mat[j][0]] - dis[mat[i][1]][mat[j][1]] > 0) {
+                    exchange(dis, mat, i, j, 0);
+                    goto next;
+                }
+                if (curr_cost - dis[mat[i][0]][mat[j][1]] - dis[mat[i][1]][mat[j][0]] > 0) {
+                    exchange(dis, mat, i, j, 1);
+                    goto next;
+                }
+            }
+        }
+
+    return mat;
+}
+```
+
+#### exchange
+
+```c++
+void exchange(matrix_2d &dis, std::vector<edge> &mat, int i, int j, bool swap_partner) {
+    edge e1 = mat[i];
+    edge e2 = mat[j];
+    mat[i] = { e1[0], e2[swap_partner], dis[e1[0]][e2[swap_partner]] };
+    mat[j] = { e1[1], e2[!swap_partner], dis[e1[1]][e2[!swap_partner]] };
 }
 ```
 
@@ -441,4 +600,6 @@ vector<int> eulerian_circuit(map_2d &graph) {
 9. Sannemo, J. (2018). _Principles of Algorithmic Problem Solving_. KTH Royal Institute of Technology. https://www.csc.kth.se/~jsannemo/slask/main.pdf
 10. Willemse, E. & Joubert, J. (2012). _Applying min-max k postman problems to the routing of security guards_. https://repository.up.ac.za/bitstream/2263/18380/1/Willemse_Applying%282012%29.pdf
 
-**Testinstanzen:** https://www.sintef.no/nearp/
+Testinstanzen: https://www.sintef.no/nearp/
+
+Blossom V Source Code: https://pub.ist.ac.at/~vnk/software.html

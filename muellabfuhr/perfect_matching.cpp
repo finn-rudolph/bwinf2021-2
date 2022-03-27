@@ -48,7 +48,6 @@ void radix_sort_msd(int* arr, int length, int h) {
         } else {
             u += 1;
         }
-
     }
 
     if (!((arr[u * 3 + 2] >> h) & (int) 1)) u += 1;
@@ -56,21 +55,21 @@ void radix_sort_msd(int* arr, int length, int h) {
     radix_sort_msd(arr + u * 3, length - u, h - 1);
 }
 
-void assign_cluster( // O(|V|)
+void assign_cluster(
     matrix_2d &dis,
     std::vector<std::vector<int>> &clusters, 
     int u,
     int v,
     int &open,
-    int &odd,
+    int &odd_cl,
     int threshold,
     std::unordered_map<int, int> &assigned_to
 ) {
     int min = INT_MAX, min_j = -1;
 
     for (int j = 0; j < clusters.size(); j++) {
-        if (open <= odd && !(clusters[j].size() & 1)) continue;
-        if (open > odd && assigned_to.find(v) != assigned_to.end() && j == assigned_to[v]) continue;
+        if (open <= odd_cl && !(clusters[j].size() & 1)) continue;
+        if (open > odd_cl && assigned_to.find(v) != assigned_to.end() && j == assigned_to[v]) continue;
 
         float avg = 0;
         for (int vtx: clusters[j]) avg += dis[u][vtx];
@@ -81,13 +80,13 @@ void assign_cluster( // O(|V|)
         }
     }
 
-    if (min <= threshold || open <= odd) {
+    if (min <= threshold || open <= odd_cl) {
         clusters[min_j].push_back(u);
-        odd += (clusters[min_j].size() & 1) ? 1 : -1;
+        odd_cl += (clusters[min_j].size() & 1) ? 1 : -1;
         assigned_to[u] = min_j;
     } else {
         clusters.push_back({ u });
-        odd += 1;
+        odd_cl += 1;
         assigned_to[u] = clusters.size() - 1;
     }
     open -= 1;
@@ -99,7 +98,7 @@ std::vector<edge> cluster(matrix_2d &dis, std::vector<int> odds, float alpha) {
     int n = odds.size(), m = n * (n - 1) / 2;
     int edges[m * 3], pos = 0;
 
-    for (int i = 0; i < odds.size(); i++) { // O(|E|)
+    for (int i = 0; i < odds.size(); i++) {
         for (int j = i + 1; j < odds.size(); j++) {
             int e[3] = { odds[i], odds[j], dis[odds[i]][odds[j]] };
             std::move(e, e + 3, edges + pos);
@@ -107,25 +106,21 @@ std::vector<edge> cluster(matrix_2d &dis, std::vector<int> odds, float alpha) {
         }
     }
 
-    radix_sort_msd(edges, m, 31); // O(|E|)
+    radix_sort_msd(edges, m, 31);
 
-    int threshold = edges[((int) (alpha * (m - 1)) * 3 + 2)]; // weight at α-Quantile
+    int threshold = edges[((int) (alpha * (m - 1)) * 3 + 2)]; // weight of α-Quantile
     std::vector<std::vector<int>> clusters;
     std::unordered_map<int, int> assigned_to;
-    int open = n, odd = 0;
+    int open = n, odd_cl = 0;
 
-    for (int i = m - 1; i >= 0 && open > 0; i--) { // O(|E|)
+    for (int i = m - 1; i >= 0 && open > 0; i--) {
         int u = edges[i * 3], v = edges[i * 3 + 1];
 
-        // conditions are O(|V|) times true
         if (assigned_to.find(u) == assigned_to.end()) 
-            assign_cluster(dis, clusters, u, v, open, odd, threshold, assigned_to);
+            assign_cluster(dis, clusters, u, v, open, odd_cl, threshold, assigned_to);
         if (assigned_to.find(v) == assigned_to.end())
-            assign_cluster(dis, clusters, v, u, open, odd, threshold, assigned_to);
+            assign_cluster(dis, clusters, v, u, open, odd_cl, threshold, assigned_to);
     }
-
-    // avg cluster size: α * |V|, avg amount of clusters: (1 - α) * |V|
-    // two-opt per cluster: ? 
     
     std::vector<edge> mat;
     int sum = 0;
