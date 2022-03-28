@@ -1,7 +1,7 @@
 <h1 style="text-align: center;">Bonusaufgabe: Zara Zackigs Zurückkehr</h1>
 <p style="text-align: center;">Teilnahme-ID: 00968</p>
 <p style="text-align: center;">Bearbeiter: Finn Rudolph</p>
-<p style="text-align: center;">19.03.2022</p>
+<p style="text-align: center;">28.03.2022</p>
 
 [TOC]
 
@@ -9,7 +9,7 @@
 
 Zunächst einige wichtige Eigenschaften des $\text{xor}$ Operators. Das exklusive Oder zweier gleicher Zahlen ist immer 0, weil sich bei diesen Zahlen kein Bit unterscheidet. Auch ist $\text{xor}$ kommutativ sowie assoziativ, d. h. die Anwendungsreihenfolge auf mehrere Operanden und Anordnung der Operanden sind irrelevant für das Ergebnis (Lewin, 2012). Die Aufgabenstellung verlangt es, aus einer Menge $S$, bestehend aus Binärzahlen, $k$ verschiedene Zahlen zu finden, deren $\text{xor}$ gleich irgendeiner anderen Zahl $\in S$ ist. Mit den oben genannten Eigenschaften kann das Problem umformuliert werden: Finde $k + 1$ Zahlen aus $S$, deren $\text{xor}$ gleich $0$ ist. Von hier an bezeichnet $k$ die Anzahl an Karten plus Schlüsselkarte, oder die Anzahl Zahlen, deren $\text{xor}$ gleich 0 sein soll, da das formale Beschreibungen deutlich vereinfacht.
 
-Das Problem ist Variation des Teilsummenproblems, das ein Spezialfall des Rucksackproblems ist. Das Teilsummenproblem verlangt es, von einer Menge an ganzen Zahlen $S$ eine Teilmenge $T$ zu bestimmen, deren Summe gleich 0 ist. In diesem Fall wird statt des $+$ Operators der $\text{xor}$ Operator verwendet. Diese Eigenschaft allein würde das Problem, im Gegensatz zum Teilsummenproblem, in polynomialer Zeit lösbar machen (Jafargholi & Viola, 2018, S. 2). Aber da die Größe von $T$ mit $k$ ebenfalls vorgegeben ist, ist es NP-schwer, kann also nur in exponentieller Zeit optimal gelöst werden (S. 2).
+Das Problem ist eine Variation des Teilsummenproblems, das ein Spezialfall des Rucksackproblems ist. Das Teilsummenproblem verlangt es, von einer Menge an ganzen Zahlen $S$ eine Teilmenge $T$ zu bestimmen, deren Summe gleich 0 ist. In diesem Fall wird statt des $+$ Operators der $\text{xor}$ Operator verwendet. Diese Eigenschaft allein würde das Problem, im Gegensatz zum Teilsummenproblem, in polynomialer Zeit lösbar machen (Jafargholi & Viola, 2018, S. 2). Aber da die Größe von $T$ mit $k$ ebenfalls vorgegeben ist, ist es NP-schwer, kann also nur in exponentieller Zeit optimal gelöst werden (S. 2), vorausgesetzt N $\neq$ NP.
 
 Formal ausgedrückt, soll eine Menge $T$ bestimmt werden, die folgende Eigenschaften erfüllt. $t_i$ bezeichnet die $i$´te Zahl in $T$.
 
@@ -57,7 +57,7 @@ L \larr L \cup x; \space Q \larr Q \cup b& \quad a = 0 \\
 \end{cases}
 $$
 
-$a$ ist die verbleibende Anzahl von Zahlen, die noch für eine vollständige Kombination hinzugefügt werden müssen, also zu Beginn $d$. $x$ ist der $\text{xor}$-verknüpfte Wert aller $s$ der höher liegenden rekursiven Aufrufe. Für den ersten Aufruf eignet sich $x=0$, da $0$ der Identitätsoperand von $\text{xor}$ ist. $b$ ist die Liste aller bisher benutzten $s$ und sollte zu Beginn leer sein. Bei größeren $k$ muss beachtet werden, dass der Speicherbedarf sowie die Zeit zur Erstellung von $L$ mit $\Theta(\binom nd)$ zunimmt, weshlb es nicht immer sinnvoll ist $d = k - 2$ zu wählen, wie in den bisherigen Beispielen. Man stößt hier auf ein _Space-Time-Tradeoff_, das durch ein gut ausgewähltes $d$ optimiert werden kann.
+$a$ ist die verbleibende Anzahl von Zahlen, die noch für eine vollständige Kombination hinzugefügt werden müssen, also zu Beginn $d$. $x$ ist der $\text{xor}$-verknüpfte Wert aller $s$ der höher liegenden rekursiven Aufrufe. Für den ersten Aufruf eignet sich $x=0$, da $0$ der Identitätsoperand von $\text{xor}$ ist. $b$ ist die Liste aller bisher benutzten $s$ und sollte zu Beginn leer sein. Bei größeren $k$ muss beachtet werden, dass der Speicherbedarf sowie die Zeit zur Erstellung von $L$ mit $\Theta(\binom nd)$ zunimmt, weshalb es nicht immer sinnvoll ist $d = k - 2$ zu wählen, wie in den bisherigen Beispielen. Man stößt hier auf ein _Space-Time-Tradeoff_, das durch ein gut ausgewähltes $d$ optimiert werden kann.
 
 **Optimierung der Zeitkomplexität.** Wenn $d \neq k - 2$, kann das spätere Durchsuchen der Liste auch nicht mehr in $O(n^2 \log_2 n)$ geschehen, weil nicht alle Paare, sondern alle Kombinationen von $k - d$ Zahlen überprüft werden müssen. Um zu begründen, welches $d$ sich allgemein gut eignet, muss ich vorwegnehmen, dass die Average-Case Zeitkomplexität der Implementierung
 
@@ -65,7 +65,7 @@ $$
 \Theta \Bigg (\binom nd \cdot d + \binom n{k-d} \log_2 \binom nd \Bigg)
 $$
 
-ist. Weshalb das so ist, wird im Abschnitt [_Zeitkomplexität_](#zeitkomplexität) erklärt. Wenn man damit eine von $d$ abhängige Funktion aufstellt, ist es nicht schwierig, das optimale $d$ genau festzumachen.
+ist. Weshalb das so ist, wird im Abschnitt [_Zeitkomplexität_](#zeitkomplexität) erklärt. Wenn man damit eine von $d$ abhängige Funktion aufstellt, ist es nicht schwierig, das optimale $d$ genau zu bestimmen.
 
 $$
 f_{n, k}(d) = \binom nd \cdot d + \binom n{k-d} \log_2 \binom nd
@@ -77,7 +77,7 @@ $$
 \Bigg [\binom nd \cdot d + \binom n{k-d} \log_2 \binom nd \Bigg ]' = 0
 $$
 
-Natürlich muss die Lösung noch zur nächsten Ganzzahl gerundet werden. Weil diese Ableitung aber sehr lang, kompliziert und schwierig umzusetzen ist, wird eine Annäherung benutzt. Die Anforderungen sind, dass die Annäherung für $2 \leq k < 30$ und $3 < n < 255$ bis auf wenige Ausnahmen den gleichen Wert für $d$ wie die gerundete Lösung der zweiten Gleichung liefert. Nach einigen Experimenten im Grafikrechner stellte sich heraus, dass $d = \big \lceil \frac k2 \big \rceil$ dafür gut geeignet ist.
+Natürlich muss die Lösung noch zur nächsten ganzen Zahl gerundet werden. Weil diese Ableitung aber sehr lang, kompliziert und schwierig umzusetzen ist, wird eine Annäherung benutzt. Die Anforderungen sind, dass die Annäherung für $2 \leq k < 30$ und $3 < n < 255$ bis auf wenige Ausnahmen den gleichen Wert für $d$ wie die gerundete Lösung der zweiten Gleichung liefert. Nach einigen Experimenten im Grafikrechner stellte sich heraus, dass $d = \big \lceil \frac k2 \big \rceil$ dafür gut geeignet ist.
 
 ![](komplexität-graph.png)
 
@@ -116,7 +116,7 @@ procedure XorNull(S, k)
 
 Radix Sort eignet sich besonders, um Zahlen mit gleicher oder ähnlicher Länge zu sortieren, weil er in in $O(|L| \cdot m)$ Zeit läuft. Jeder vergleichsbasierte Sortieralgorithmus würde mindestens $O(|L| \log_2 |L|)$ Zeit benötigen, was asymptotisch schlechter ist, wenn man $m$ mit 128 begrenzt. Ich habe mich für die _Most Significant Digit (MSD)_ und _in-place_ Variante von Radix Sort entschieden, um keinen zusätzlichen Speicherplatz zu verbrauchen.
 
-Die Zahlen werden sortiert, indem sie zunächst nach dem wichtigsten Bit gruppiert werden. Die zwei entstehenden Gruppen werden dann rekursiv nach dem zweitwichtigsten Bit gruppiert usw., bis alle Bits ausgewertet wurden. Einer dieser Schritte, der die Liste nach dem $h$´ten Bit (vom niedrigstwertigen Bit aus gezählt, d. h. $h = m$ zu Beginn) gruppiert, läuft wie folgt ab: Zwei Indizes $u$ und $v$ werden mit dem Anfangs- und Endindex von $L$ initialisiert. Vor $u$ befinden sich alle Zahlen mit $h$´ten Bit $0$, nach $v$ alle Zahlen mit $h$´ten Bit $1$. Wenn der $h$´te Bit des $u$´ten Eintrags in $L$ $0$ ist, wird $u$ einfach um $1$ vergrößert (Z. 12). $l_u$ bezeichnet den $u$´ten Eintrag in $L$. Andernfalls wird $l_u$ dem Teil mit $h$´ten Bit $1$ hinzugefügt, indem es mit $l_v$ getauscht wird (Z. 8). Dann wird der $1$er-Abschnitt um $1$ vergrößert, indem $v$ um $1$ verringert wird. So werden alle Einträge der Liste betrachtet, bis $u$ und $v$ gleich sind. Bevor der 0- und 1-Abschnitt jeweils rekursiv sortiert werden können muss beachtet werden, dass $u$ am Ende des $0$-Abschnitts steht, falls der $h$´te Bit von $l_u$ beim letzten Iterationsschritt $1$ war. Damit das weitere Sortieren fehlerlos funktioniert, soll $u$ immer am Anfang des $1$-Abschnitts stehen, das wird in Z. 14 - 15 sichergestellt. Damit die Einträge in $Q$ nach dem Sortieren noch stimmen, wird jede Veränderung von $L$ auch für $Q$ übernommen (Z. 9).
+Die Zahlen werden sortiert, indem sie zunächst nach dem höchstwertigen Bit gruppiert werden. Die zwei entstehenden Gruppen werden dann rekursiv nach dem zweitwichtigsten Bit gruppiert usw., bis alle Bits ausgewertet wurden. Einer dieser Schritte, der die Liste nach dem $h$´ten Bit (vom niedrigstwertigen Bit aus gezählt, d. h. $h = m$ zu Beginn) gruppiert, läuft wie folgt ab: Zwei Indizes $u$ und $v$ werden mit dem Anfangs- und Endindex von $L$ initialisiert. Vor $u$ befinden sich alle Zahlen mit $h$´ten Bit $0$, nach $v$ alle Zahlen mit $h$´ten Bit $1$. Wenn der $h$´te Bit des $u$´ten Eintrags in $L$ $0$ ist, wird $u$ einfach um $1$ vergrößert (Z. 12). $l_u$ bezeichnet den $u$´ten Eintrag in $L$. Andernfalls wird $l_u$ dem Teil mit $h$´ten Bit $1$ hinzugefügt, indem es mit $l_v$ getauscht wird (Z. 8). Dann wird der $1$er-Abschnitt um $1$ vergrößert, indem $v$ um $1$ verringert wird. So werden alle Einträge der Liste betrachtet, bis $u$ und $v$ gleich sind. Bevor der 0- und 1-Abschnitt jeweils rekursiv sortiert werden können muss beachtet werden, dass $u$ am Ende des $0$-Abschnitts steht, falls der $h$´te Bit von $l_u$ beim letzten Iterationsschritt $1$ war. Damit das weitere Sortieren fehlerlos funktioniert, soll $u$ immer am Anfang des $1$-Abschnitts stehen, das wird in Z. 14 - 15 sichergestellt. Damit die Einträge in $Q$ nach dem Sortieren noch stimmen, wird jede Veränderung von $L$ auch für $Q$ übernommen (Z. 9).
 
 ```pseudocode
 procedure RadixSort(L, M, h)
@@ -163,7 +163,7 @@ Neben Binärsuche habe ich als Suchalgorithmus auch Interpolationssuche in Betra
 
 Damit Zara sicher weniger als zwei Fehlversuche benötigt, muss sie wissen, welches Haus sie gerade öffnen möchte, daher setzte ich das voraus. Außerdem muss sie die Karten aufsteigend sortieren. Möchte sie das $i$´te Haus öffnen, sollte sie es zunächst mit der $i$´ten Karte versuchen. Für die Position der $\text{xor}$-Sicherungskarte im Stapel ergeben sich drei Fälle.
 
-1. **Hinter der ausgwählten Karte.** Die ausgewählte Karte ist die richtige.
+1. **Hinter der ausgwählten Karte.** Die ausgewählte Karte ist die richtige, da die Ordnung der Karten vor der Schlüsselkarte unberührt bleibt.
 2. **Vor der ausgewählten Karte. ** Die $i$´te Karte ist ein Fehlversuch. Die $i+1$´te Karte ist die richtige, da die Schlüsselkarte des Hauses durch die vorhergehende $\text{xor}$-Karte um eins nach hinten geschoben wurde.
 3. **Die $\text{xor}$-Karte ist die ausgewählte Karte.** Auch hier ist die $i$´te Karte ein Fehlversuch. Aber aufgrund der selben Logik wie bei 2. ist die $i+1$´te Karte die richtige.
 
