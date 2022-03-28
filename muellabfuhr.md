@@ -64,7 +64,7 @@ procedure FHK(Graph G)
 
 Wie oben beschrieben, ist eine Lösung dieses Problems eine Voraussetzung für den FHK-Algorithmus. Eine optimale Lösung des Briefträgerproblems kann in polynomialer Zeit gefunden werden. Es gehört also, wie für Routingprobleme eher unüblich, der Komplexitätsklasse P an (Edmonds & Johnson, 1973). Ich werde den dort vorgestellten Algorithmus mit einigen Abänderungen verwenden.
 
-Zuerst werden alle Knoten von ungeradem Grad identifiziert, aus denen ein vollständiger Graph $G_o$ ($o$ für _odd_) erstellt wird, der mit mit den kürzesten Pfaden zwischen den Knoten im Originalgraphen gewichtet ist. Nachdem ein [Minimales Perfektes Matching](#minimale-perfekte-matchings) $M$ in $G_o$ gefunden wurde, wird der Originalgraph mit den Kanten des perfekten Matchings zu einem Multigraphen $G_a$ augmentiert. Darin existiert nun ein Eulerkreis, weil jeder ungerade Knoten durch seinen Matching-Partner zu einem geraden Knoten gemacht wurde. $d(v)$ bezeichnet den Grad eines Knoten.
+Zuerst werden alle Knoten von ungeradem Grad $V_o$ ($o$ für odd) identifiziert und zwischen diesen ein [Minimales Perfektes Matching](#minimale-perfekte-matchings) $M$ berechnet. Als Kantengewichte dienen die kürzesten Pfade in $G$, implizit wird also ein vollständiger Graph als Grundlage für das Matching erstellt. Anschließend wird der Originalgraph mit den Kanten des perfekten Matchings zu einem Multigraphen $G_a$ augmentiert. Wenn ein kürzester Pfad zwischen zwei gematchten Knoten mehrere Kanten enthält, werde alle repliziert. In $G_a$ existiert ein Eulerkreis, weil jeder ungerade Knoten durch seinen Matching-Partner zu einem geraden Knoten gemacht wurde. $d(v)$ bezeichnet den Grad eines Knoten.
 
 Das Matching geht immer genau auf, weil ein Graph immer eine gerade Anzahl $b$ an Knoten mit ungeradem Grad hat. Angenommen, ein Graph hat nur einen Knoten, d. h. $b = 0 \implies b \equiv 0 \space (\bmod 2)$ Das Hinzufügen eines neuen Knoten verändert $b$ nicht. Das Hinzufügen einer Kante erhöht den Grad von zwei Knoten um $1$. Allgemein formuliert:
 
@@ -78,17 +78,13 @@ Der Eulerkreis in dem Multigraphen ist die optimale Lösung des CPPs, wobei para
 
 ```pseudocode
 procedure ChinesePostman(Graph G)
-    Gₒ = (Vₒ ← ∅, Eₒ ← ∅, wₒ ← ∅);
+    Vₒ ← ∅;
 
     for v ∊ V
         if d(v) ≡ 1 (mod 2)
             Vₒ ← Vₒ ∪ v;
-    for a ∊ Vₒ
-        for b ∊ Vₒ
-            Eₒ ← Eₒ ∪ (a, b);
-            wₒ(a, b) ← w(SP(a, b));
 
-    M ← PerfectMatching(Gₒ);
+    M ← PerfectMatching(Vₒ, SP);
 
     Gₐ = (V, Eₐ ← E, w);
     for (a, b) ∊ M
@@ -158,17 +154,54 @@ Genauer werden zwei Heuristiken benutzt: Eine, um den Graphen in kleinere Graphe
 
 #### Cluster
 
-Die Heuristik _Cluster_ sortiert alle Kanten des Graphen aufsteigend und teilt Knoten, die durch die längsten Kanten verbunden sind, verschiedenen Clustern zu. Die Sortierung der Kanten nach Kosten geschieht durch Radix Sort, den ich bereits in der Bonusaufgabe erkläre, daher wiederhole ich seine Funktionsweise hier nicht. Um die Knoten anschließend aufzuteilen, wird die Liste an Kanten $L$ von hinten durchlaufen, und sobald ein Knoten auftritt, der noch keinem Cluster zugewiesen ist, wird er dem Cluster zugewiesen, zu dessen Knoten er die geringsten durchschnittlichen Kosten hat. Falls kein ausreichend guter Cluster vorhanden ist, wird mit dem Knoten ein neuer erstellt. Die Schwelle für _ausreichend gut_ wird durch den Parameter $\alpha \in [0, 1]$ bestimmt, sie ist die Kosten des $\alpha$-Quantils in der Kantenliste. Das heißt, wenn bei einem Knoten $u$ die durchschnittlichen Kosten zu jedem Cluster größer als $w(l_{\big \lfloor |L| \cdot \alpha \big \rfloor})$ sind, wird ein neuer Cluster $\{u\}$ erstellt. $l_i$ bezeichnet das $i$´te Element in $L$.
+Die Cluster-Heuristik sortiert alle Kanten des Graphen aufsteigend und teilt Knoten, die durch eine der längsten Kanten verbunden sind, verschiedenen Clustern zu. Die Sortierung der Kanten nach Kosten geschieht durch Radix Sort, den ich bereits in der Bonusaufgabe erkläre, daher wiederhole ich seine Funktionsweise hier nicht. Um die Knoten anschließend aufzuteilen, wird die Liste an Kanten $L$ von hinten durchlaufen, und sobald ein Knoten auftritt, der noch keinem Cluster zugewiesen ist, wird er dem Cluster zugewiesen, zu dessen Knoten er die geringsten durchschnittlichen Kosten hat (Zuteilen, Z. 4 - 13). Falls kein ausreichend guter Cluster vorhanden ist, wird mit dem Knoten ein neuer erstellt. Die Schwelle $t$ für _ausreichend gut_ wird durch den Parameter $\alpha \in [0, 1]$ bestimmt. $t$ ist das Gewicht des $\alpha$-Quantils in der Kantenliste. Das heißt, wenn bei einem Knoten $u$ die durchschnittlichen Kosten zu jedem Cluster größer als $w(l_{\big \lfloor |L| \cdot \alpha \big \rfloor})$ sind, wird ein neuer Cluster $\{u\}$ erstellt (Z. 15). $l_i$ bezeichnet das $i$´te Element in $L$.
+
+Um perfekte Matchings in den Clustern erstellen zu können, muss die Anzahl an Knoten jedes Clusters gerade sein.
 
 ```pseudocode
-procedure Cluster(Vₒ)
+procedure Cluster(Vₒ, SP)
 	L ← ∅;
 	for u ∊ Vₒ
 		for v ∊ Vₒ | v ≠ u
 			L ← L ∪ (u, v);
 
 	RadixSort(L);
+	t = w(L[⌊|L| ⋅ α⌋]);
+	Cl ← ∅;
 
+	for (u, v) ∊ L, absteigend, bis alle Knoten zugewiesen
+		if (u nicht zugeteilt) Zuteilen(u, v);
+		if (v nicht zugeteilt) Zuteilen(v, u);
+
+	M ← ∅;
+	for cl ∊ Cl
+		M ← M ∪ TwoOpt(cl);
+
+	return M;
+```
+
+```pseudocode
+procedure Zuteilen(u, v)
+	min ← ∞;
+	c* ← ∅;
+	for cl ∊ Cl
+		if (|cl| ≡ 1 (mod 2) ∧ |offene Knoten| < |ungerade Cluster|) ∨ v ∊ cl
+			Gehe zum folgenden Cluster;
+		a ← (sum of x ∊ cl: SP(u, x)) / |cl|
+		if a < min
+			min ← a;
+			c* ← cl;
+
+	if min < t
+		C* ← c* ∪ u;
+	else
+		Cl ← Cl ∪ { u };
+```
+
+#### Two-Opt
+
+```pseudocode
+procedure TwoOpt(V)
 ```
 
 ## Implementierung
