@@ -25,15 +25,15 @@ std::pair<std::vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_
     weight_sum /= 2;
 
     for (auto &[start, target, _]: matching) {
-        int next = pre[target][start];
-        int curr = start;
+        int u = start;
+        int v = pre[target][start];
 
-        while (next != -1) {
-            augmented[curr][next] += 1;
-            augmented[next][curr] += 1;
-            weight_sum += graph[curr][next];
-            curr = next;
-            next = pre[target][next];
+        while (v != -1) {
+            augmented[u][v] += 1;
+            augmented[v][u] += 1;
+            weight_sum += graph[u][v];
+            u = v;
+            v = pre[target][v];
         }
     }
 
@@ -41,7 +41,7 @@ std::pair<std::vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_
     return { postman_tour, weight_sum };
 }
 
-std::vector<int> eulerian_circuit(adj_map &graph) {
+std::vector<int> eulerian_circuit(adj_map &multigraph) {
     std::vector<int> circuit;
     std::stack<int> subtour;
     subtour.push(0);
@@ -49,16 +49,16 @@ std::vector<int> eulerian_circuit(adj_map &graph) {
     while (!subtour.empty()) {
         int curr = subtour.top();
 
-        if (graph[curr].empty()) {
+        if (multigraph[curr].empty()) {
             subtour.pop();
             circuit.push_back(curr);
         } else {
-            int next = graph[curr].begin()->first;
-            graph[curr][next] = graph[next][curr] -= 1;
+            int next = multigraph[curr].begin()->first;
+            multigraph[curr][next] = multigraph[next][curr] -= 1;
 
-            if (graph[curr][next] == 0) {
-                graph[curr].erase(next);
-                graph[next].erase(curr);
+            if (multigraph[curr][next] == 0) {
+                multigraph[curr].erase(next);
+                multigraph[next].erase(curr);
             }
             subtour.push(next);
         }

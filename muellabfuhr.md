@@ -154,7 +154,7 @@ Genauer werden zwei Heuristiken benutzt: Eine, um den Graphen in kleinere Graphe
 
 #### Cluster
 
-Die Cluster-Heuristik sortiert alle Kanten des Graphen aufsteigend und teilt Knoten, die durch eine der längsten Kanten verbunden sind, verschiedenen Clustern zu. Die Sortierung der Kanten nach Kosten geschieht durch Radix Sort, den ich bereits in der Bonusaufgabe erkläre, daher wiederhole ich seine Funktionsweise hier nicht. Um die Knoten anschließend aufzuteilen, wird die Liste an Kanten $L$ von hinten durchlaufen, und sobald ein Knoten auftritt, der noch keinem Cluster zugewiesen ist, wird er dem Cluster zugewiesen, zu dessen Knoten er die geringsten durchschnittlichen Kosten hat (Zuteilen, Z. 4 - 13). Falls kein ausreichend guter Cluster vorhanden ist, wird mit dem Knoten ein neuer erstellt. Die Schwelle für _ausreichend gut_ wird durch den Parameter $\alpha \in [0, 1]$ bestimmt und ist das Gewicht der Kante bei Index $ t = \lfloor \alpha \cdot |L| \rfloor$ (das $\alpha$-Quantil von $L$). Das heißt, wenn bei einem Knoten $u$ die durchschnittlichen Kosten zu jedem Cluster größer als $w(l_t)$ sind, wird ein neuer Cluster $\{u\}$ erstellt (Z. 15). $l_i$ bezeichnet das $i$´te Element in $L$.
+Die Cluster-Heuristik sortiert alle Kanten des Graphen aufsteigend und teilt Knoten, die durch eine der längsten Kanten verbunden sind, verschiedenen Clustern zu. Die Sortierung der Kanten nach Kosten geschieht durch Radix Sort, den ich bereits in der Bonusaufgabe erkläre, daher wiederhole ich seine Funktionsweise hier nicht. Für eine detaillierte Beschreibung verweise ich auf _zara-zackig.pdf, Abschnitt Radix Sort (MSD)_. Um die Knoten anschließend aufzuteilen, wird die Liste an Kanten $L$ von hinten durchlaufen, und sobald ein Knoten auftritt, der noch keinem Cluster zugewiesen ist, wird er dem Cluster zugewiesen, zu dessen Knoten er die geringsten durchschnittlichen Kosten hat (Zuteilen, Z. 4 - 13). Falls kein ausreichend guter Cluster vorhanden ist, wird mit dem Knoten ein neuer erstellt. Die Schwelle für _ausreichend gut_ wird durch den Parameter $\alpha \in [0, 1]$ bestimmt und ist das Gewicht der Kante bei Index $ t = \lfloor \alpha \cdot |L| \rfloor$ (das $\alpha$-Quantil von $L$). Das heißt, wenn bei einem Knoten $u$ die durchschnittlichen Kosten zu jedem Cluster größer als $w(l_t)$ sind, wird ein neuer Cluster $\{u\}$ erstellt (Z. 15). $l_i$ bezeichnet das $i$´te Element in $L$.
 
 Um perfekte Matchings in den Clustern erstellen zu können, muss die Anzahl an Knoten jedes Clusters gerade sein. Daher sollen gegen Ende des Zuteilens, wenn die Anzahl offener Knoten gleich oder kleiner der Anzahl von Clustern mit ungerader Größe ist, Knoten nur ungeraden Clustern zugeteilt werden (Zuteilen, Z. 5). Auch wird dann ein Knoten immer einem bereits bestehenden Cluster zugeteilt (Zuteilen, Z. 12), sodass am Ende alle Cluster eine gerade Größe haben. Die Matchings der 2-Opt Heuristik für jedes Cluster werden zu einem Matching $M$ zusammengefügt und zurückgegeben.
 
@@ -205,7 +205,7 @@ Die Heuristik zum Finden der Matchings in den Subgraphen ist an die 2-Opt Heuris
 ```pseudocode
 procedure TwoOpt(V, SP)
 	M ← ∅;
-	for i ∊ [1, |V|] Zweierschritte
+	for i | i ∊ [1, |V|] ∧ i ≡ 1 (mod 2)
 		M ← M ∪ (vᵢ, vᵢ₊₁);
 
 	2-Opt Suche:
@@ -237,39 +237,35 @@ Meine Implementierung des FHK-Algorithmus beginnt mit Aufrufen von Dijkstra's _S
 
 Nachdem die Lösung des Chinese Postman Problems und der Shortest Path Tour Lower Bound errechnet wurden (später beschrieben), beginnt die eigentliche Logik des FHK-Algorithmus. `pre_split` speichert den vorherigen Teilungsknoten, `tours` die am Ende zurückgegebenen Rundtouren (Z. 14 - 15). Im Gegensatz zum Pseudocode wird hier ein Pfad / eine Rundtour nur als Knotenfolge definiert. `cost` speichert die Kosten zum Erreichen des vorherigen Teilungsknotens (Z. 16), was für die Bestimmung des nächsten Teilungsknotens relevant ist. Die Bestimmung einer Rundtour geschieht `num_tours - 1`-mal. Zunächst wird ihre maximale Länge `max_cost` (Z. 19 - 20) durch die bereits beschriebene Formel errechnet. Indem die Chinese Postman Tour durchlaufen wird, bis `cost > max_cost`, während `cost` ständig mit dem Gewicht der gerade gebrauchten Kante erhöht wird, wird der nächste Teilungsknoten `split` vorläufig festgelegt (Z. 23 - 27). Weil bei Abbruch der `while`-Schleife `split` bereits ein Knoten zu weit gesetzt wurde, implementiere ich das mögliche Verschieben des Teilungsknotens um $1$ etwas anders. Hier in der Implementierung wird die umgekehrte Bedingung überprüft, und gegebenenfalls der vorherige Knoten als Teilungsknoten gewählt.
 
-Alle Touren, bis auf die letzte, werden auf diese Weise bestimmt, durch [`construct_tour()`]() explizit konstruiert und dem `tours`-Vektor hinzugefügt. Die letzte Tour besitzt keinen zweiten Teilungsknoten und kann daher sofort festgelegt werden (Z. 45).
+Alle Touren, bis auf die letzte, werden auf diese Weise bestimmt, durch [`construct_tour()`](#constructtour) explizit konstruiert und dem `tours`-Vektor hinzugefügt. Die letzte Tour besitzt keinen zweiten Teilungsknoten und kann daher sofort festgelegt werden (Z. 45).
 
 #### Shortest Path Tour Lower Bound
 
-&rarr; zugehörige Funktion: `farthest_edge_cost`
+&rarr; zugehörige Funktion: [`farthest_edge_cost`](#farthestedgecost)
 
 Es wird über alle Kanten des Graphen iteriert: und die größten Kosten zurückgegeben, die ein kürzester Pfad zum ersten Knoten der Kante, über die Kante und vom zweiten Knoten zurück zum Startknoten hat.
 
 #### Konstruktion einer Tour
 
-&rarr; zugehörige Funktion: `construct_tour`
+&rarr; zugehörige Funktion: [`construct_tour`](#constructtour)
 
 Diese Funktion dient dazu, die eigentliche Logik zum Verbinden einer Tour zum Startknoten, implementiert in `close_tour`, für beide Seiten des Pfads anzuwenden. Damit wird vermieden, das zweimal explizit als Code zu schreiben.
 
-&rarr; zugehörige Funktion `close_tour`
+&rarr; zugehörige Funktion [`close_tour`](#closetour)
 
 Der Parameter `append_front` ist `true`, wenn der Anfangsknoten des Pfads zum Startknoten verbunden werden soll und `false`, wenn das mit dem Endknoten des Pfads geschehen soll. Die Knoten, die auf dem kürzesten Pfad des zu verbindenden Knoten zum Startknoten liegen, sind in der Vorgängermatrix im Vektor bei Index `0` enthalten. `curr`, der aktuelle Knoten auf dem kürzesten Pfad, wird solange mit seinem Vorgänger, der bei `pre[0][curr]` liegt, ersetzt, bis dieser `-1` ist, was bedeutet, dass der Startknoten erreicht wurde (Z. 4 - 8). Dass `-1` bedeutet, dass der Zielknoten erreicht ist, habe ich in Dijkstra's Algorithmus so festgelegt. Alle auf diesem Weg besuchten Knoten werden vorne bzw. hinten an die Tour angehängt. Die Funktion verändert direkt die Tour, die ihr als Referenz mitgegeben wurde.
 
 ### Der Chinese Postman Algorithmus
 
-&rarr; zugehörige Funktion: `postman`
+&rarr; zugehörige Funktion: [`postman`](#postman)
 
-Zu Beginn wird der vollständige Graph aus Knoten mit ungeradem Grad erstellt. Dazu wird einem Set `odds` jeder Knoten hinzugefügt, dessen Anzahl an Einträgen in seiner Hashmap Rest $1 \space (\bmod 2)$ hat (Z. 2 - 7). Der Graph selbst wird erstellt, indem in `odds_graph` für jede Kombination zweier Knoten aus `odds` die Distanz ihres kürzesten Pfads eingetragen wird (Z. 13 - 24).
-
-Nachdem das perfekte Matching für `odds_graph` gefunden wurde, wird der augmentierte Multigraph `augmented` erstellt. Er wird als zweidimensionale Map implementiert und hat die gleiche Struktur wie die ursprüngliche Adjazenzmap, speichert aber die Anzahl paralleler Kanten zwischen zwei Knoten anstatt des Kantengewichts. Weil Kantengewichte für den Eulerkreis irrelevant sind, werden sie in diesem Teil des Algorithmus vernachlässigt. Die zweidimensionale Map statt einer Adjazenzmap ist deshalb sinnvoll, weil während der Konstruktion des Eulerkreises neben Kanten auch Knoten aus dem Graphen entfernt werden, was bedeuten würde, dass ein Eintrag im Vektor entfernt wird. Damit würden sich die Indizes der Hashmaps verschieben, was den Graphen verfälscht. Zunächst wird für jedes im Ursprungsgraphen verbundene Knotenpaar, durch eine verschachtelte `for`-Schleife, der Eintrag in `augmented` auf $1$ gesetzt (Z. 31 - 36). Um die Kanten des perfekten Matchings von `odds` hinzuzufügen, müssen alle Kanten entlang des kürzesten Pfads hinzugefügt werden. Das geschieht durch den gleichen Rückverfolgungsalgorithmus wie bei der [Tourenkonstruktion des FHK-Algorithmus](#konstruktion-einer-tour). Der Unterschied ist, dass ständig zwei Knoten `a` und `b` gespeichert und immer einen Schritt weiter bewegt werden. Indem die Anzahl an Kanten zwischen diesen zwei Knoten in `augmented` bei jedem Schritt um $1$ erhöht wird, entsteht der gewünschte eulersche Multigraph (Z. 39 - 50).
-
-Der Eulerkreis durch den Graphen, der zurückgegeben wird, behandelt parallele Kanten bereits als eine ursprüngliche, was durch die implizite Umsetzung des Multigraphen als `map_2d` möglich ist.
+Zu Beginn werden alle Knoten mit ungeradem Grad identifiziert und `odds` hinzugefügt (Z. 2 - 4). Nachdem das perfekte Matching für diese Knoten gefunden wurde, wird der Multigraph `augmented` erstellt. Er hat die gleiche Struktur wie die ursprüngliche Adjazenzmap, speichert aber die Anzahl paralleler Kanten zwischen zwei Knoten anstatt des Kantengewichts. Kantengewichte sind für den Eulerkreis irrelevant. Zunächst wird für jedes im Ursprungsgraphen verbundene Knotenpaar durch eine verschachtelte `for`-Schleife der Eintrag in `augmented` auf $1$ gesetzt (Z. 12 - 17). Um die Kanten des perfekten Matchings von `odds` hinzuzufügen, müssen alle Kanten entlang des kürzesten Pfads zwischen gematchten Knoten hinzugefügt werden. Das geschieht durch den gleichen Rückverfolgungsalgorithmus wie bei der [Tourenkonstruktion des FHK-Algorithmus](#konstruktion-einer-tour). Der Unterschied ist, dass ständig zwei Knoten `u` und `v` gespeichert und immer einen Schritt weiter bewegt werden. Indem die Anzahl an Kanten zwischen diesen zwei Knoten in `augmented` bei jedem Schritt um $1$ erhöht wird, entsteht der benötigte eulersche Multigraph (Z. 20 - 31). Der Eulerkreis durch den Graphen, der zurückgegeben wird, behandelt parallele Kanten bereits als eine ursprüngliche.
 
 ### Hierholzer's Algorithmus
 
-&rarr; zugehörige Funktion: `eulerian_circuit`
+&rarr; zugehörige Funktion: [`eulerian_circuit`](#euleriancircuit)
 
-Die letztendlich zurückgegebene Knotenfolge des Eulerkreises wird in `circuit` gespeichert. Für die aktuelle Subtour wird ein Stapel verwendet (Z. 2 - 4), weil nur an der letzten Position Elemente hinzugefügt oder entfernt werden müssen. `curr` ist der Knoten, bei dem der Algorithmus aktuell steht. `graph[curr].empty()` bedeutet, dass der Grad von `curr` $0$ ist (Z. 9), d. h. die Subtour wird bis zu einem Knoten mit noch anliegenden Kanten rückverfolgt. Wenn Kanten an `curr` anliegen, wird der erste verbundene Knoten als nächster gewählt (Z. 13) und die zwischenliegende Kante entfernt (Z. 16 - 19). Dazu wird die Anzahl an Kanten zwischen ihnen um $1$ verringert, und falls diese $0$ wird, der Eintrag in der `map` ganz entfernt.
+Die letztendlich zurückgegebene Knotenfolge des Eulerkreises wird in `circuit` gespeichert. Für die aktuelle Teiltour wird ein Stapel verwendet (Z. 2 - 4), weil nur an der letzten Position Elemente hinzugefügt oder entfernt werden müssen. `curr` ist der Knoten, bei dem der Algorithmus aktuell steht. `multigraph[curr].empty()` bedeutet, dass der Grad von `curr` $0$ ist (Z. 9), d. h. die Teiltour wird bis zu einem Knoten mit noch anliegenden Kanten rückverfolgt. Wenn Kanten an `curr` anliegen, wird der erste verbundene Knoten als nächster gewählt (Z. 13) und die zwischenliegende Kante entfernt (Z. 16 - 19). Dazu wird die Anzahl an Kanten zwischen ihnen um $1$ verringert, und falls diese $0$ wird, der Eintrag in `multigraph` ganz entfernt.
 
 ### Minimales perfektes Matching
 
@@ -277,9 +273,29 @@ Die letztendlich zurückgegebene Knotenfolge des Eulerkreises wird in `circuit` 
 
 &rarr; zugehörige Funktion: [`cluster`](#cluster-2)
 
+Da die Gewichte zwischen den Knoten von `odds` die Länge der jeweiligen kürzesten Pfade sind, hat Funktion die Distanzmatrix `dis` als Parameter. Die Kanten werden in einem C-style Array `edges` gespeichert, weil das die Implementierung von Radix Sort einfacher macht als bei einem `std::vector`. Für jede Kante wird nacheinander `u, v, w`, also Vertex 1, Vertex 2, und das Gewicht abgespeichert. Um für jede Kombination aus zwei Knoten eine Kante zu `edges` hinzuzufügen, ist eine zweifach verschachtelte for-Schleife geeignet, die in der zweiten Ebene nur nachfolgende Elemente durchläuft (Z. 5 - 11). `pos` verfolgt ständig, in welche Position die nächste Kante hineingeschrieben werden kann. Nachdem `edges` nach Kantengewicht aufsteigend sortiert wurde, wird `threshold` als das Grenzgewicht festgelegt, das ein Knoten maximal zu einem Cluster haben darf, um hinzugefügt zu werden (Z. 15). Um zu überwachen, ob ein Knoten bereits zugeteilt wird dient `assigned_to` (eine `std::unordered_map`, da Knotennummerierung nicht bei 0 beginnen muss). In `open` und `odd_cl` wird ständig die Anzahl noch offener Knoten und Cluster mit ungerader Größe aktualisiert (Z. 18). Daher ist eine Abbruchbedingung der anschließenden for-Schleife, wenn `open` kleiner oder gleich 0 ist. Während der for-Schleife wird für jeden nicht zugeteilten Knoten `assign_cluster` aufgerufen, entspricht _Zuteilen_ im Pseudocode.
+
+#### Zuteilung zu einem Cluster
+
+&rarr; zugehörige Funktion: [`assign_cluster`](#assigncluster)
+
+Die Umsetzung von `assign_cluster` unterscheidet sich nur in Details vom Pseudocode. Z.B. wird das Überspringen eines Clusters in zwei Bedingungen aufgeteilt: Die erste stellt sicher, dass der andere Knoten der Kante `v` nicht im betrachteten Cluster `clusters[j]` ist (Z. 14). Die zweite stellt sicher, dass am Ende des Algorithmus alle Cluster eine gerade Größe haben (Z. 15). Bei der Zuordnung zu einem Cluster (Z. 26 - 35) ist der Unterschied zum Pseudocode, dass die drei Variablen `open`, `odd_cl` und `assigned_to` aktuell gehalten werden müssen.
+
+#### Radix Sort
+
+&rarr; zugehörige Funktion: [`radix_sort_msd`](#radixsortmsd)
+
+Die Implementierung von Radix Sort ist sehr ähnlich zu der in _Zara Zackigs Zurückkehr_. Es werden zwei Teile von den Enden des Arrays vergrößert: Von vorne der Teil, in dem alle Zahlen einen `h`-ten Bit von 0 haben (Ende markiert durch `u`), und von hinten der Teil, in dem alle Zahlen einen `h`-ten Bit von 1 haben (Anfang markiert durch `v`). Die aktuelle Kante wird abhängig vom `h`-ten Bit ihres Gewichts dem 0-Teil oder 1-Teil zugeordnet (Z. 5 - 12). Es sind immer drei Plätze für eine Kante im Array vorgesehen und das Gewicht steht an dritter Stelle, daher `arr[u * 3 + 2]`. Der `h`-te Bit ist zunächst der höchstwertige Bit, nach der Einteilung nach diesem werden die zwei Teile rekursiv nach dem zweitwichtigsten Bit sortiert.
+
 #### 2-Opt
 
 &rarr; zugehörige Funktion: [`two_opt`](#twoopt)
+
+In den Zeilen 2 - 6 wird das initiale Matching erstellt, bei dem einfach in `vertex_set` aufeinander folgende Knoten gematcht werden. Hier wird eine Kante nicht mehr als C-style Array mit drei Einträgen umgesetzt, sondern als `std::array` mit dem Typalias `edge`. Denn das ermöglicht eine Neuzuweisung und die direkte Initialisierung durch z. B. `{ u, v, w }`. Bei der anschließenden Optimierung wird ähnlich zum Pseudocode nach einer möglichen Verbesserung gesucht, indem jede Kombination aus zwei verschiedenen Matchings probiert wird (Z. 8 - 22). Im Fall einer Verbesserung wird `exchange` aufgerufen, das die Knoten der Matchingkanten bei Index `i` und `j` neu zuordnet. Wenn `swap_partner` `false` ist, wird der erste Knoten der ersten Matchingkante (bei Index `i`) mit dem ersten Knoten der zweiten Matchingkante (bei Index `j`) verbunden. Wenn es `true` ist, wird entsprechend umgekehrt neu zugeordnet. Das Springen zum nächsten Suchschritt wird mit dem C++ Sprungbefehl `goto` umgesetzt, der Bezeichner ist `next`.
+
+&rarr; zugehörige Funktion: [`exchange`](#exchange)
+
+Das Austauschen von Matchingpartnern geschieht, indem die zwei ursprünglichen Kanten zunächst zwischengespeichert werden (Z. 2 - 3). Die entsprechenden Einträge in `mat` werden dann neu zugewiesen, der jeweils gewählte Knoten aus `mat[j]` ist davon abhängig, ob `swap_partner` gesetzt ist (Z. 4 - 5).
 
 ## Zeitkomplexität
 
@@ -450,15 +466,15 @@ std::pair<std::vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_
     weight_sum /= 2;
 
     for (auto &[start, target, _]: matching) {
-        int next = pre[target][start];
-        int curr = start;
+        int u = start;
+        int v = pre[target][start];
 
-        while (next != -1) {
-            augmented[curr][next] += 1;
-            augmented[next][curr] += 1;
-            weight_sum += graph[curr][next];
-            curr = next;
-            next = pre[target][next];
+        while (v != -1) {
+            augmented[u][v] += 1;
+            augmented[v][u] += 1;
+            weight_sum += graph[u][v];
+            u = v;
+            v = pre[target][v];
         }
     }
 
@@ -470,7 +486,7 @@ std::pair<std::vector<int>, int> postman(adj_map &graph, matrix_2d &dis, matrix_
 ### eulerian_circuit
 
 ```c++
-std::vector<int> eulerian_circuit(adj_map &graph) {
+std::vector<int> eulerian_circuit(adj_map &multigraph) {
     std::vector<int> circuit;
     std::stack<int> subtour;
     subtour.push(0);
@@ -478,16 +494,16 @@ std::vector<int> eulerian_circuit(adj_map &graph) {
     while (!subtour.empty()) {
         int curr = subtour.top();
 
-        if (graph[curr].empty()) {
+        if (multigraph[curr].empty()) {
             subtour.pop();
             circuit.push_back(curr);
         } else {
-            int next = graph[curr].begin()->first;
-            graph[curr][next] = graph[next][curr] -= 1;
+            int next = multigraph[curr].begin()->first;
+            multigraph[curr][next] = multigraph[next][curr] -= 1;
 
-            if (graph[curr][next] == 0) {
-                graph[curr].erase(next);
-                graph[next].erase(curr);
+            if (multigraph[curr][next] == 0) {
+                multigraph[curr].erase(next);
+                multigraph[next].erase(curr);
             }
             subtour.push(next);
         }
@@ -500,8 +516,6 @@ std::vector<int> eulerian_circuit(adj_map &graph) {
 
 ```c++
 std::vector<edge> cluster(matrix_2d &dis, std::vector<int> odds, float alpha) {
-    auto begin = std::chrono::system_clock::now();
-
     int n = odds.size(), m = n * (n - 1) / 2;
     int edges[m * 3], pos = 0;
 
