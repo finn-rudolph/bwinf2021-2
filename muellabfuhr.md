@@ -154,7 +154,7 @@ Genauer werden zwei Heuristiken benutzt: Eine, um den Graphen in kleinere Graphe
 
 #### Cluster
 
-Die Cluster-Heuristik sortiert alle Kanten des Graphen aufsteigend und teilt Knoten, die durch eine der längsten Kanten verbunden sind, verschiedenen Clustern zu. Die Sortierung der Kanten nach Kosten geschieht durch Radix Sort, den ich bereits in der Bonusaufgabe erkläre, daher wiederhole ich seine Funktionsweise hier nicht. Für eine detaillierte Beschreibung verweise ich auf _zara-zackig.pdf, Abschnitt Radix Sort (MSD)_. Um die Knoten anschließend aufzuteilen, wird die Liste an Kanten $L$ von hinten durchlaufen, und sobald ein Knoten auftritt, der noch keinem Cluster zugewiesen ist, wird er dem Cluster zugewiesen, zu dessen Knoten er die geringsten durchschnittlichen Kosten hat (Zuteilen, Z. 4 - 13). Falls kein ausreichend guter Cluster vorhanden ist, wird mit dem Knoten ein neuer erstellt. Die Schwelle für _ausreichend gut_ wird durch den Parameter $\alpha \in [0, 1]$ bestimmt und ist das Gewicht der Kante bei Index $ t = \lfloor \alpha \cdot |L| \rfloor$ (das $\alpha$-Quantil von $L$). Das heißt, wenn bei einem Knoten $u$ die durchschnittlichen Kosten zu jedem Cluster größer als $w(l_t)$ sind, wird ein neuer Cluster $\{u\}$ erstellt (Z. 15). $l_i$ bezeichnet das $i$´te Element in $L$.
+Die Cluster-Heuristik sortiert alle Kanten des Graphen aufsteigend und teilt Knoten, die durch eine der längsten Kanten verbunden sind, verschiedenen Clustern zu. Die Sortierung der Kanten nach Kosten geschieht durch Radix Sort, den ich bereits in der Bonusaufgabe erkläre, daher wiederhole ich seine Funktionsweise hier nicht. Für eine detaillierte Beschreibung verweise ich auf _zara-zackig.pdf, Abschnitt Radix Sort (MSD)_. Um die Knoten anschließend aufzuteilen, wird die Liste an Kanten $L$ von hinten durchlaufen, und sobald ein Knoten auftritt, der noch keinem Cluster zugewiesen ist, wird er dem Cluster zugewiesen, zu dessen Knoten er die geringsten durchschnittlichen Kosten hat (Zuteilen, Z. 4 - 13). Falls kein ausreichend guter Cluster vorhanden ist, wird mit dem Knoten ein neuer erstellt. Die Schwelle für _ausreichend gut_ wird durch den Parameter $\alpha \in ]0, 1[$ bestimmt und ist das Gewicht der Kante bei Index $ t = \lfloor \alpha \cdot |L| \rfloor$ (das $\alpha$-Quantil von $L$). Das heißt, wenn bei einem Knoten $u$ die durchschnittlichen Kosten zu jedem Cluster größer als $w(l_t)$ sind, wird ein neuer Cluster $\{u\}$ erstellt (Z. 15). $l_i$ bezeichnet das $i$´te Element in $L$.
 
 Um perfekte Matchings in den Clustern erstellen zu können, muss die Anzahl an Knoten jedes Clusters gerade sein. Daher sollen gegen Ende des Zuteilens, wenn die Anzahl offener Knoten gleich oder kleiner der Anzahl von Clustern mit ungerader Größe ist, Knoten nur ungeraden Clustern zugeteilt werden (Zuteilen, Z. 5). Auch wird dann ein Knoten immer einem bereits bestehenden Cluster zugeteilt (Zuteilen, Z. 12), sodass am Ende alle Cluster eine gerade Größe haben. Die Matchings der 2-Opt Heuristik für jedes Cluster werden zu einem Matching $M$ zusammengefügt und zurückgegeben.
 
@@ -325,15 +325,25 @@ $|V_o|$ bezeichnet die Anzahl ungerader Knoten in $G$. In `cluster` werden alle 
 
 #### 2-Opt
 
-Zunächst gilt es zu beweisen, dass die 2-Opt Heuristik nicht in einem endlosen Zyklus von Kantenvertauschungen gefangen sein kann, sondern immer terminiert. Das lässt sich durch die gesamten Matchingkosten $w(M)$ als fallende Monovariante zeigen. Denn eine Vertauschung wird nur ausgeführt, wenn die gesamten Matchingkosten danach kleiner als zuvor sind, d. h.  $w(M') < w(M)$. Da das bei jedem Sprung zu `next` (&rarr; [`two_opt`](#twoopt)) gilt, $w(M)$ eine Untergrenze hat, und $w(M)$ ganzzahlig ist, ist nach einer endlichen Anzahl von `next`-Sprüngen ein Minimum erreicht.
+Zuerst soll bewiesen werden, dass die 2-Opt Heuristik nicht in einem endlosen Zyklus von Kantenvertauschungen gefangen sein kann, sondern immer terminiert. Das lässt sich durch die gesamten Matchingkosten $w(M)$ als fallende Monovariante zeigen. $M$ bezieht sich in diesem Abschnitt auf das Matching des eingegebenen Clusters. Denn eine Vertauschung wird nur ausgeführt, wenn die gesamten Matchingkosten danach kleiner als zuvor sind, d. h. $w(M') < w(M)$. Da das bei jedem Sprung zu `next` (auch _Suchschritt_ genannt) gilt, $w(M)$ eine Untergrenze hat, und $w(M)$ ganzzahlig ist, ist nach einer endlichen Anzahl von `next`-Sprüngen ein Minimum erreicht. Die genaue Anzahl davon ist schwierig einzuschätzen. Beim 2-Opt Algorithmus für das metrische TSP ist bewiesen, dass diese Oberschranke polynomiell ist (Leeuwen & Schoone, 1980), mir war es leider nicht möglich, den Beweis dafür auf dieses Problem zu übertragen. Um keine falschen Angaben zu machen, wird die Worst-Case Anzahl an Suchschritten also mit $O(2^n)$ angegeben, wobei $n$ die Knotenzahl des eingegebenen Graphen ist. Für den Average-Case kann man annehmen, dass durch die Vorarbeit von `cluster` jeder Knoten bereits nahe seinem (lokal) optimalen Matching-Partner ist, also nur ein oder zwei Vertauschungen benötigt. Daraus folgt eine Average-Case Komplexität von $\Theta(n)$. Der Best-Case ist, wenn im ersten Suchschritt keine Verbesserung gefunden wird, also $\Omega(1)$.
 
-Wahrscheinlichkeit, dass eine neuer Cluster erstellt wird: $1-\alpha$
+Jede Suche nach einer möglichen Verbesserung (jeder Sprung zu `next`) benötigt $O((\frac n2)^2) = O(n^2)$ im schlechtesten Fall, da jede Kombination aus zwei Matchingkanten geprüft wird ($|M| = \frac n2$). Der Average Case hängt stark von der Matchingqualität zu Beginn des Suchschritts ab und kann daher auch nicht besser als $\Theta(n^2)$ gesetzt werden. Im Best-Case wird bei der ersten Kombination eine Verbesserung gefunden, er ist also $\Omega(1)$.
 
-durchschnittliche Clustergröße: $\alpha |V|$
+$n$ ist Größe des eingegebenen Clusters und damit von $\alpha$ abhängig. Die folgende Argumentation gilt für den Grenzfall von $\lim _{|V_o| \rarr \infin}$, da in der ersten Iteration der for-Schleife zum Zuweisen in `cluster` immer sicher zwei Cluster erstellt werden. In `assign_cluster` wird bei einer Knotenzuweisung mit einer Wahrscheinlichkeit von $1 - \alpha$ ein neuer Cluster erstellt, wenn man eine Gleichverteilung der Kantengewichte voraussetzt. Da $|V_o|$ solcher Zuweisungen geschehen, gibt es zum Ende des Algorithmus $(1- \alpha) |V_o|$ Cluster. Diese Annäherung wird aber für große $|V_o|$ immer besser. Die durchschnittliche Größe eines Clusters ist folglich $n = \frac {|V_o|}{(1 - \alpha) |V_o|} = \frac 1{1-\alpha}$.
+
+Die Komplexität des gesamten 2-Opt Algorithmus ist im Worst-Case $O(n^22^n)$, im Average-Case $\Theta(n^3)$ und im Best-Case $O(1)$. Um die mehrfache Ausführung für jeden Cluster zu berücksichtigen, muss jeweils ein Faktor von $(1 - \alpha)|V_o|$ hinzugefügt werden.
 
 ### Laufzeit des gesamten Algorithmus
 
-Wenn $|E| \ll |V|^2 / 2$, wie bei den vorliegenden Problemgraphen, ist die Laufzeit von Dijkstra's Algorithmus nicht signifikant gegenüber der des Matching-Algorithmus.
+Durch Addieren der Komplexitäten der Teilalgorithmen, bzw. Multiplizieren bei mehrfacher Ausführung, erhält man folgende Worst-, und Average-Case Komplexität, unter der Annahme, dass $|V_o| = O(|V|); |V_o| = \Theta(|V| / 2) = \Theta(|V|)$:
+
+$$
+O \Bigg(|V|^2 + |E| \log |V| + (1 - \alpha) \cdot |V| \cdot \bigg(\frac 1{1 -\alpha} \bigg)^2 \cdot 2^{1 / (1 -\alpha)} \Bigg) = \\ =
+O \Bigg(|V|^2 + |E| \log |V| + \frac {|V|}{1 -\alpha} \cdot 2^{1 / (1 -\alpha)} \Bigg) \\ \\
+
+\Theta \Bigg( |E| \log |V| + |V|^2 + (1 - \alpha) |V| \bigg (\frac 1{1 - \alpha} \bigg)^3 \Bigg) = \\ =
+\Theta \Bigg( |E| \log |V| + |V|^2 + \frac {|V|}{(1 - \alpha)^2} \Bigg)
+$$
 
 ## Beispiele
 
@@ -355,7 +365,7 @@ Tag 5: 0 4 0 8 1 2 0 | Gesamtlänge: 6
 Länge der längsten Tagestour: 6
 ```
 
-Zeit: 
+Zeit:
 
 An muellabfuhr0.txt sieht man deutlich den Schwachpunkt der Heuristik: Bei sehr einfachen Fällen werden nicht optimale Lösungen errechnet (Faktor 1.5 schlechter), obwohl eine optimale Lösung leicht ersichtlich ist.
 
@@ -373,7 +383,7 @@ Tag 5: 0 6 1 3 4 0 | Gesamtlänge: 24
 Länge der längsten Tagestour: 24
 ```
 
-Zeit: 
+Zeit:
 
 #### muellabfuhr2.txt
 
@@ -389,7 +399,7 @@ Tag 5: 0 9 7 8 2 14 7 1 6 0 9 5 0 | Gesamtlänge: 12
 Länge der längsten Tagestour: 12
 ```
 
-Zeit: 
+Zeit:
 
 #### muellabfuhr3.txt
 
@@ -405,7 +415,7 @@ Tag 5: 0 3 14 4 12 3 1 2 0 12 2 14 0 1 13 14 1 12 14 11 12 13 0 | Gesamtlänge: 
 Länge der längsten Tagestour: 23
 ```
 
-Zeit: 
+Zeit:
 
 #### muellabfuhr4.txt
 
@@ -421,7 +431,7 @@ Tag 5: 0 9 8 7 6 5 4 3 2 1 0 | Gesamtlänge: 10
 Länge der längsten Tagestour: 10
 ```
 
-Zeit: 
+Zeit:
 
 Dieser Graph ist der Kreisgraph $C_{10}$, daher ist die ausgegebene Lösung optimal.
 
@@ -439,7 +449,7 @@ Tag 5: 0 43 15 23 29 42 25 34 46 28 36 14 24 43 24 9 25 10 24 8 25 41 26 31 11 2
 Länge der längsten Tagestour: 1484
 ```
 
-Zeit: 
+Zeit:
 
 #### muellabfuhr6.txt
 
@@ -455,7 +465,7 @@ Tag 5: 0 44 59 62 54 62 6 26 56 9 54 22 17 9 22 24 82 28 30 39 19 2 84 13 72 86 
 Länge der längsten Tagestour: 626212
 ```
 
-Zeit: 
+Zeit:
 
 #### muellabfuhr7.txt
 
@@ -471,7 +481,7 @@ Tag 5: 0 1 3 6 11 6 187 406 131 285 75 285 37 338 115 341 333 274 8 53 443 381 4
 Länge der längsten Tagestour: 1002318
 ```
 
-Zeit: 
+Zeit:
 
 #### muellabfuhr8.txt
 
@@ -487,13 +497,13 @@ Tag 5: 0 205 934 426 556 467 368 601 398 306 165 619 782 799 542 887 286 979 293
 Länge der längsten Tagestour: 2799192
 ```
 
-Zeit: 
+Zeit:
 
 ### Andere Beispiele
 
 Um mein Programm an anderen großen Graphen außer den vorgegebenen testen zu können, habe ich mir Testinstanzen von sintef ([Literaturverzeichnis](#literaturverzeichnis) &rarr; Testinstanzen) herausgesucht. Sie sind zwar eigentlich für das _Capacitated Arc Routing Problem_ (CARP) bzw _Node, Edge and Arc Routing Problem_ (NEARP) gedacht, aber das stört nicht. Mit einem kleinen C++ Programm (`muellabfuhr/beispiele/convert_samples.cpp`) habe ich sie in das bekannte Format umgewandelt, wobei gerichtete Kanten als ungerichtet behandelt wurden. Ich habe die des BHW-Benchmarks und des DI-NEARP-Benchmarks verwendet. Insgesamt sind es 14 Instanzen mit $|V|$ von 11 bis 1120 und $|E|$ von 25 bis 1450.
 
-Mit diesen wurden Tests zur Laufzeit und Lösungsqualität des gesamten Algorithmus durchgeführt. Die Laufzeit und Lösungsqualität des Matchingalgorithmus wurden außerdem separat betrachtetet, da dieser vollständig von mir entwickelt ist. Wegen der großen Länge der Programmausgaben ist hier jeweils nur die Länge der längsten Tour abgedruckt, da das die zu optimierende Variable ist.
+Mit diesen wurden Tests zur Laufzeit und Lösungsqualität des gesamten Algorithmus durchgeführt. Die Laufzeit und Lösungsqualität des Matchingalgorithmus wurden außerdem separat betrachtetet, da dieser vollständig von mir entwickelt ist. Bei den Tests ist vor allem interessant, wie die Wahl von $\alpha$ das Ergebnis beeinflusst. Daher wird jeder Test mit $\alpha$ von $0.1$ bis $0.9$ in Schritten von $0.1$ durchgeführt. Wegen der großen Länge der Programmausgaben ist hier jeweils nur die Länge der längsten Tour abgedruckt, da das die zu optimierende Variable ist.
 
 ## Quellcode
 
@@ -852,12 +862,13 @@ void exchange(matrix_2d &dis, std::vector<edge> &mat, int i, int j, bool swap_pa
 3. Cook, W. & Rohe, A. (1999). _Computing Minimum Weighted Perfect Matchings_. http://www.math.uwaterloo.ca/~bico/papers/match_ijoc.pdf
 4. Edmonds, J. & Johnson, E. (1973). _Matching, Euler Tours and the Chinese Postman_. http://web.eecs.umich.edu/~pettie/matching/Edmonds-Johnson-chinese-postman.pdf
 5. Laporte, G. (1991). _The Vehicle Routing Problem: An Overview of exact and approximate Algorithms_. https://staff.fmi.uvt.ro/~daniela.zaharie/ma2017/projects/applications/VehicleRouting/VRP_Laporte_review.pdf
-6. Limon, Y. & Azizoglu, M. (2018). _New Heuristics for the balanced k-Chinese Postman Problem_. http://www.inderscience.com/storage/f581191312274106.pdf
-7. Liu, S. & Louis, S. & Harris, N. & La, H. (2019). _A Genetic Algorithm for the MinMax k-Chinese Postman Problem with Applications to Bride Inspection_. Missouri University of Science and Technology. https://scholarsmine.mst.edu/cgi/viewcontent.cgi?article=1050&context=inspire-meetings
-8. Duan, R. & Pettie, S. & Su, H. (2018). _Scaling Algorithms for Weighted Matching in General Graphs_. https://web.eecs.umich.edu/~pettie/papers/MWPM.pdf
-9. Sannemo, J. (2018). _Principles of Algorithmic Problem Solving_. KTH Royal Institute of Technology. https://www.csc.kth.se/~jsannemo/slask/main.pdf
-9. Saunders, S. (1999). _A Comparison of Data Structures for Dijkstra's Single Source Shortest Path Algorithm_. https://www.csse.canterbury.ac.nz/research/reports/HonsReps/1999/hons_9907.pdf
-10. Willemse, E. & Joubert, J. (2012). _Applying min-max k postman problems to the routing of security guards_. https://repository.up.ac.za/bitstream/2263/18380/1/Willemse_Applying%282012%29.pdf
+6. Leeuwen, J & Schoone, A. (1980). _Untangling a Traveling Salesman Tour on the Plane_. http://www.cs.uu.nl/research/techreps/repo/CS-1980/1980-11.pdf
+7. Limon, Y. & Azizoglu, M. (2018). _New Heuristics for the balanced k-Chinese Postman Problem_. http://www.inderscience.com/storage/f581191312274106.pdf
+8. Liu, S. & Louis, S. & Harris, N. & La, H. (2019). _A Genetic Algorithm for the MinMax k-Chinese Postman Problem with Applications to Bride Inspection_. Missouri University of Science and Technology. https://scholarsmine.mst.edu/cgi/viewcontent.cgi?article=1050&context=inspire-meetings
+9. Duan, R. & Pettie, S. & Su, H. (2018). _Scaling Algorithms for Weighted Matching in General Graphs_. https://web.eecs.umich.edu/~pettie/papers/MWPM.pdf
+10. Sannemo, J. (2018). _Principles of Algorithmic Problem Solving_. KTH Royal Institute of Technology. https://www.csc.kth.se/~jsannemo/slask/main.pdf
+11. Saunders, S. (1999). _A Comparison of Data Structures for Dijkstra's Single Source Shortest Path Algorithm_. https://www.csse.canterbury.ac.nz/research/reports/HonsReps/1999/hons_9907.pdf
+12. Willemse, E. & Joubert, J. (2012). _Applying min-max k postman problems to the routing of security guards_. https://repository.up.ac.za/bitstream/2263/18380/1/Willemse_Applying%282012%29.pdf
 
 Testinstanzen: https://www.sintef.no/nearp/
 
