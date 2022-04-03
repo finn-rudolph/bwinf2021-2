@@ -565,7 +565,7 @@ Es ist deutlich zu erkennen, dass ein größeres $\alpha$ tendenziell mit gering
 
 ### Vergleich zu Blossom V
 
-Zuletzt soll der Matchingalgorithmus mit der Implementierung des Blütenalgorithmus Blossom V ([Literaturverzeichnis](#literaturverzeichnis) &rarr; Blossom V) verglichen werden. Dazu wird Blossom V mit dem Graphen an ungeraden Knoten ausgeführt, der von der Funktion `write_complete_graph` in `io.cpp` in eine Textdatei geschrieben wird. $\alpha$ ist standardmäßig $0,6$, denn $\alpha$ variabel zu lassen würde den Vergleich unfair machen.
+Zuletzt soll der Matchingalgorithmus mit der Implementierung des Blütenalgorithmus Blossom V ([Literaturverzeichnis](#literaturverzeichnis) &rarr; Blossom V) verglichen werden. Dazu wird Blossom V dür den Graphen ungerader Knoten ausgeführt, der von der Funktion `write_complete_graph` in `io.cpp` in eine Textdatei geschrieben wird. $\alpha$ ist standardmäßig $0,6$, denn $\alpha$ variabel zu lassen würde den Vergleich unfair machen.
 
 _Laufzeit (in s):_
 
@@ -578,6 +578,8 @@ _Laufzeit (in s):_
 | n883         | 762        | 1,93E-02 | 1,66E-01  |
 | n699         | 778        | 2,09E-02 | 1,87E-01  |
 
+![](grafiken/blossom5-laufzeit.png)
+
 _Matchingkosten:_
 
 | Instanz      | Knotenzahl | Cluster | Blossom V |
@@ -588,6 +590,10 @@ _Matchingkosten:_
 | n422         | 522        | 5992    | 5265      |
 | n883         | 762        | 14045   | 11992     |
 | n699         | 778        | 12695   | 12429     |
+
+![](grafiken/blossom5-kosten.png)
+
+Man sieht, dass der Cluster-Algorithmus in jedem Fall schneller läuft, und die Laufzeit mit steigener Knotenzahl weniger stark ansteigt. Dafür ist das gefundene Matching nicht optimal, sondern bei diesen Instanzen bis zu einem Faktor von 1,2 schlechter. Der absolute Laufzeitgewinn ist bei dieser Instanzgröße immer noch sehr klein, kann aber bei sehr großen Instanzen einen großen Unterschied machen, da die Laufzeit von Blossom V deutlich stärker ansteigt.
 
 ## Quellcode
 

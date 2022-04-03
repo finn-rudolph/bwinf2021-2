@@ -341,7 +341,7 @@ Um sicherzustellen, dass das Programm korrekt arbeitet, wird vor jeder Ausgabe e
 11111110001011010001000000110111
 ```
 
-Zeit: 1.34 ∙ 10$^{-3}$ s
+Zeit: 1.34E-03 s
 
 #### Stapel 1
 
@@ -357,7 +357,7 @@ Zeit: 1.34 ∙ 10$^{-3}$ s
 11110111100100010100100001001110
 ```
 
-Zeit: 1.63 ∙ 10$^{-3}$ s
+Zeit: 1.63E-03 s
 
 #### Stapel 2
 
@@ -375,7 +375,7 @@ Zeit: 1.63 ∙ 10$^{-3}$ s
 11101110101011100111101111000111001101111011010101011111000110100011010001100000111101000010001100100000011101100010001011101000
 ```
 
-Zeit: 50.6 s
+Zeit: 5,06E+01 s
 
 #### Stapel 3
 
@@ -403,7 +403,7 @@ Zeit:
 1101010001001101000111111110000110100010100111000100001001011011
 ```
 
-Zeit: 47.1 ∙ 10$^{-3}$ s
+Zeit: 4,71E-02 s
 
 ### Testprogramm
 
@@ -417,19 +417,19 @@ Der Benutzer wird dann aufgefordert, $n, k$ und $m$ anzugeben, wobei dazwischen 
 
 Es wurden Tests für $n$ von 20 bis 255, $k$ von 2 bis und $m$ von 8 bis 128 durchgeführt. Das Programm wurde für jede Parameterwahl jeweils 6-mal ausgeführt, da die benötigte Zeit zum Durchsuchen der vorberechneten Zahlen variieren kann. Daher sind die Ergebnisse in Durchschnitt ± Standardabweichung angegeben.
 
-| n   | k   | m   | Zeit in Sekunden                     | gewähltes d |
-| --- | --- | --- | ------------------------------------ | ----------- |
-| 20  | 10  | 8   | 1.58 ∙ 10$^{-3}$ ± 0.164 ∙ 10$^{-3}$ | 5           |
-| 20  | 10  | 32  | 1.78 ∙ 10$^{-3}$ ± 0.201 ∙ 10$^{-3}$ | 5           |
-| 60  | 15  | 16  | 10.6 ± 0.19                          | 7           |
-| 60  | 15  | 64  | 32.8 ± 23.4                          | 7           |
-| 100 | 14  | 32  | 53.1 ± 2.13                          | 6           |
-| 100 | 12  | 128 | 79.9 ± 51.0                          | 5           |
-| 180 | 10  | 64  | 3020 ± 412                           | 4           |
-| 180 | 10  | 128 |                                      | 4           |
-| 255 |     | 64  |                                      |             |
-| 255 |     | 128 |                                      |             |
-| 255 |     | 128 |                                      |             |
+| n    | k    | m    | Zeit in Sekunden    | gewähltes d |
+| ---- | ---- | ---- | ------------------- | ----------- |
+| 20   | 10   | 8    | 1,58E-03 ± 1,64E-04 | 5           |
+| 20   | 10   | 32   | 1.78E-03 ± 2,01E-04 | 5           |
+| 60   | 15   | 16   | 1,06E+01 ± 1,90E-01 | 7           |
+| 60   | 15   | 64   | 3,28E+01 ± 2,34E+01 | 7           |
+| 100  | 14   | 32   | 5,31E+01 ± 2.13E+00 | 6           |
+| 100  | 12   | 128  | 7,99E+01 ± 5,10E+01 | 5           |
+| 180  | 10   | 64   | 3,02E+03 ± 4,12E+02 | 4           |
+| 180  | 9    | 128  |                     | 4           |
+| 255  |      | 64   |                     |             |
+| 255  |      | 128  |                     |             |
+| 255  |      | 128  |                     |             |
 
 ## Quellcode
 
