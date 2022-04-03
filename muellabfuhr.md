@@ -23,7 +23,7 @@ $$
 F_i(v_0) = F_i(v_n) = s \quad \forall \space F_i
 $$
 
-$F_i(v_j)$ bezeichnet hier den $j$´ten Knoten von $F$. $s$ ist der Startknoten oder das Stadtzentrum, oft auch Depot genannt. Die erste Einschränkung stellt sicher, dass alle Kanten des Graphen besucht werden. Die zweite besagt, dass jede Tour am Stadtzentrum beginnt und endet; diese nennt man den _Subtour Elimination Constraint_.
+$F_i(v_j)$ bezeichnet hier den $j$´ten Knoten von $F$. $s$ ist der Startknoten oder das Stadtzentrum, in Bezug auf Routingprobleme oft auch Depot genannt. Die erste Einschränkung stellt sicher, dass alle Kanten des Graphen besucht werden. Die zweite besagt, dass jede Tour am Stadtzentrum beginnt und endet; diese nennt man den _Subtour Elimination Constraint_.
 
 _Anmerkung:_ Es ist auch möglich, das Problem als Integer Linear Programming Problem zu formulieren (Ahr, 2004, S. 125 - 134). Da ich aber nicht mit Branch and Bound / Branch and Cut arbeiten werden, habe ich mich für eine weniger abstrakte Formulierung entschieden.
 
@@ -33,18 +33,16 @@ _Anmerkung:_ Der Weg, bis ich das Min-Max $k$-CPP gefunden hatte, war keineswegs
 
 Das Min-Max $k$-CPP ist NP-schwer, daher existieren für exakte Lösungen nur Algorithmen mit exponentieller Laufzeit (Frederickson et al., 1978, zitiert nach Ahr, 2004, S. 32). Da das ist für große Probleminstanzen, wie z. B. `muellabfuhr8.txt` mit 1000 Knoten und 3543 Kanten nicht praktikabel ist, wurden bisher vor allem Heuristiken und Metaheuristiken entwickelt.
 
-Obwohl bessere Metaheuristiken existieren, z. B. der Tabu-Suche Algorithmus von Willemse und Joubert (2012), habe ich mich für den Frederickson-Hecht-Kim-Algorithmus (FHK) von Frederickson et al. (1978) entschieden. Denn die Worst-Case Zeitkomplexität kann durch Verwendung eines neuen Algorithmus zum Finden eines _Minimum Weighted Perfect Matching_ (für den FHK-Algorithmus erforderlich) verbessert werden. Mir sind nur Implementierungen des FHK-Algorithmus bekannt, die einen $O(|V|^3)$ Algorithmus dafür verwenden, ich möchte den _Liquidationist_ Algorithmus von Duan et al. (2018) mit $O((m+n \log n) \sqrt n \log (nN))$ verwenden. $N$ ist das größte Kantengewicht. Auch kann der FHK-Algorithmus zur Erstellung der initialen Lösung für eine Metaheuristik gebraucht werden, weswegen eine Verbesserung von ihm durchaus sinnvoll ist. Zum Begriff _Approximationsalgorithmus_: Der Unterschied eines Approximationsalgorithmus zu einer Heuristik ist, dass er eine Lösungsqualität innerhalb eines konstanten Faktors der optimalen Lösung garantiert. Der Approximationsfaktor des FHK-Algorithmus ist $2-\frac 1k$, d. h. die längste Tour ist maximal $2-\frac 1k$-mal länger als die optimale Länge der längsten Tour.
+Ich habe mich für den Frederickson-Hecht-Kim-Algorithmus (FHK) von Frederickson et al. (1978) entschieden, obwohl bessere Metaheuristiken existieren, z. B. der Tabu-Suche Algorithmus von Willemse und Joubert (2012). Denn die Worst-Case Zeitkomplexität kann durch Verwendung eines eigens entwickelten Algorithmus zum Finden eines _Minimum Weighted Perfect Matching_ verbessert werden. Denn dieses für den FHK-Algorithmus erforderliche Teilproblem ist bisher das begrenzende Element der Zeitkomplexität. Auch kann der FHK-Algorithmus zur Erstellung der initialen Lösung für eine Metaheuristik gebraucht werden, weswegen eine Verbesserung von ihm durchaus sinnvoll ist. Zum Begriff _Approximationsalgorithmus_: Der Unterschied eines Approximationsalgorithmus zu einer Heuristik ist, dass er eine Lösungsqualität innerhalb eines konstanten Faktors der optimalen Lösung garantiert. Der Approximationsfaktor des FHK-Algorithmus ist $2-\frac 1k$, d. h. die längste Tour ist maximal $2-\frac 1k$-mal länger als die optimale Länge der längsten Tour. Da der neue Matchingalgorithmus allerdings eine Heuristik ist und nicht optimal, kann dieser Approximationsfaktor auf meine Implementierung nicht angewandt werden.
 
 ### Der FHK-Algorithmus
 
-Das Prinzip des FHK-Algorithmus ist es, eine Rundtour durch alle Kanten des Graphen in $k$ Pfade zu teilen, und den Anfangs- und Endknoten jedes Pfads mit dem Startknoten zu verbinden (Ahr, 2004, S. 44 - 46). Ein Pfad ist hier eine abwechselnde Abfolge von Knoten und Kanten, die von beidem Dopplungen enthalten kann. Diese Rundtour $C$ ist eine Lösung des Briefträgerproblems, oder Chinese Postman Problems (CPP) auf dem Graphen. Die Kantenzahl in jedem Pfad ist nicht zwingend gleich lang, sondern ist neben der Länge der Postman-Tour, bezeichnet als $w(C)$, auch vom _Shortest Path Tour Lower Bound_ $L$ (Pseudeocode Z. 3) abhängig. Er gibt die Kosten zum Besuchen der vom Startknoten am weitest entfernten Kante an, daher ist er eine untere Grenze für die optimale Lösung des Min-Max $k$-CPP. Die genaue Festlegung der (vorläufig) maximalen Länge $l_i$ der $i$´ten Tour geschieht in Zeile 7 des Pseudocodes. Der Knoten $p_i$, an dem der $i$´te Pfad endet, ist der letzte Knoten in $C$, mit dem die tatsächliche Distanz $w(C(s, p_i))$ noch kleiner als $l_i$ ist. Dieser kann aber auch noch zum nächsten Knoten in $C$ nach $p_i$, bezeichnet als $C(p_i + 1)$ geändert werden. Informell formuliert: Das geschieht, wenn die Distanzen von $p_i$ zu $C(p_i + 1)$ und von $C(p_i + 1)$ zum Startknoten relativ klein sind und wenn dadurch die eigentlich vorgesehene Länge der Tour $l_i$ nicht stark überschritten wird. Exakt wird das in Z. 11 - 12 des Pseudocodes beschrieben. $r_i$ bezeichnet die übrige Länge der $i$`ten Tour zur vorgesehenen Maximallänge. Die $i$´te Tour wird durch den kürzesten Pfad vom vorherigen Teilungsknoten zum Startknoten $SP(p_{i - 1}, s)$ und analog zum aktuellen Teilungsknoten $SP(p_i, s)$ geschlossen.
-
-Der Pseudocode des Algorithmus sieht folgendermaßen aus. `←` bedeutet eine Zuweisung, `=` die Gleichheit zweier Variablen.
+Das Prinzip des FHK-Algorithmus ist es, eine Rundtour durch alle Kanten des Graphen in $k$ Pfade zu teilen, und den Anfangs- und Endknoten jedes Pfads mit dem Startknoten zu verbinden (Ahr, 2004, S. 44 - 46). Ein Pfad ist hier eine abwechselnde Abfolge von Knoten und Kanten, die von beidem Dopplungen enthalten kann. Diese Rundtour $C$ ist eine Lösung des Briefträgerproblems, oder Chinese Postman Problems (CPP) auf dem Graphen. Die Kantenzahl in jedem Pfad ist nicht zwingend gleich lang, sondern ist neben der Länge der Postman-Tour, bezeichnet als $w(C)$, auch vom _Shortest Path Tour Lower Bound_ $L$ (Pseudeocode Z. 3) abhängig. Er gibt die Kosten zum Besuchen der vom Startknoten am weitest entfernten Kante an, daher ist er eine untere Grenze für die optimale Lösung des Min-Max $k$-CPP. Die genaue Festlegung der (vorläufig) maximalen Länge $l_i$ der $i$´ten Tour geschieht in Zeile 7 des Pseudocodes. Der Knoten $p_i$, an dem der $i$´te Pfad endet, ist der letzte Knoten in $C$, mit dem die tatsächliche Distanz $w(C(s, p_i))$ noch kleiner als $l_i$ ist. Dieser kann aber auch noch zum nächsten Knoten in $C$ nach $p_i$, bezeichnet als $C(p_i + 1)$ geändert werden. Informell formuliert: Das geschieht, wenn die Distanzen von $p_i$ zu $C(p_i + 1)$ und von $C(p_i + 1)$ zum Startknoten relativ klein sind und wenn dadurch die eigentlich vorgesehene Länge der Tour $l_i$ nicht stark überschritten wird. Exakt wird das in Z. 11 - 12 des Pseudocodes beschrieben. $r_i$ bezeichnet die übrige Länge der $i$´ten Tour zur vorgesehenen Maximallänge. Die $i$´te Tour wird durch den kürzesten Pfad vom vorherigen Teilungsknoten zum Startknoten $SP(p_{i - 1}, s)$ und analog zum aktuellen Teilungsknoten $SP(p_i, s)$ geschlossen. Der Pseudocode des Algorithmus sieht folgendermaßen aus. `←` bedeutet eine Zuweisung, `=` die Gleichheit zweier Variablen.
 
 ```pseudocode
-procedure FHK(Graph G)
+procedure FHK(G)
     C ← ChinesePostman(G);
-    L ← max { w(SP(s, a)) + w(e) + w(SP(b, s)) } wobei e = (a, b) ∊ E;
+    L ← max { w(SP(s, u)) + w(u, v) + w(SP(v, s)) } wobei (u, v) ∊ E;
     T ← ∅;
 
     for i ∊ [1, k]
@@ -55,14 +53,14 @@ procedure FHK(Graph G)
         if w(SP(pᵢ, s) > w(pᵢ, C(pᵢ + 1)) + w(SP(C(pᵢ + 1), s)) - 2 ⋅ rᵢ
             pᵢ ← C(pᵢ + 1);
 
-        Füge (SP(s, pᵢ₋₁) + C(pᵢ₋₁, pᵢ) + SP(pᵢ, s)) zu T hinzu;
+        Erweitere T um die neue Tour (SP(s, pᵢ₋₁) + C(pᵢ₋₁, pᵢ) + SP(pᵢ, s));
 
     return T;
 ```
 
 ### Das Chinese Postman Problem / Briefträgerproblem
 
-Wie oben beschrieben, ist eine Lösung dieses Problems eine Voraussetzung für den FHK-Algorithmus. Eine optimale Lösung des Briefträgerproblems kann in polynomialer Zeit gefunden werden. Es gehört also, wie für Routingprobleme eher unüblich, der Komplexitätsklasse P an (Edmonds & Johnson, 1973). Ich werde den dort vorgestellten Algorithmus mit einigen Abänderungen verwenden.
+Wie oben beschrieben, ist eine Lösung dieses Problems eine Voraussetzung für den FHK-Algorithmus. Eine optimale Lösung des Briefträgerproblems kann in polynomialer Zeit gefunden werden. Es gehört also, wie für Routingprobleme eher unüblich, der Komplexitätsklasse P an (Edmonds & Johnson, 1973).
 
 Zuerst werden alle Knoten von ungeradem Grad $V_o$ ($o$ für odd) identifiziert und zwischen diesen ein [Minimales Perfektes Matching](#minimale-perfekte-matchings) $M$ berechnet. Als Kantengewichte dienen die kürzesten Pfade in $G$, implizit wird also ein vollständiger Graph als Grundlage für das Matching erstellt. Anschließend wird der Originalgraph mit den Kanten des perfekten Matchings zu einem Multigraphen $G_a$ augmentiert. Wenn ein kürzester Pfad zwischen zwei gematchten Knoten mehrere Kanten enthält, werde alle repliziert. In $G_a$ existiert ein Eulerkreis, weil jeder ungerade Knoten durch seinen Matching-Partner zu einem geraden Knoten gemacht wurde. $d(v)$ bezeichnet den Grad eines Knoten.
 
@@ -74,54 +72,129 @@ $$
 
 Da man beliebig Knoten und Kanten hinzufügen kann, um jeden Graphen zu konstruieren, gilt es für jeden Graphen.
 
-Der Eulerkreis in dem Multigraphen ist die optimale Lösung des CPPs, wobei parallele Kanten als eine Kante im ursprünglichen Graphen behandelt werden müssen. "Optimal" ist in diesem Abschnitt unter der Voraussetzung zu verstehen, dass das perfekte Matching wirklich minimal ist.
+Der Eulerkreis in $G_a$ ist die optimale Lösung des CPPs, wobei parallele Kanten als eine Kante im ursprünglichen Graphen behandelt werden müssen. "Optimal" ist in diesem Abschnitt unter der Voraussetzung zu verstehen, dass das perfekte Matching wirklich minimal ist.
 
 ```pseudocode
-procedure ChinesePostman(Graph G)
+procedure ChinesePostman(G)
     Vₒ ← ∅;
 
     for v ∊ V
         if d(v) ≡ 1 (mod 2)
             Vₒ ← Vₒ ∪ v;
 
-    M ← PerfectMatching(Vₒ, SP);
+    M ← PerfectMatching(Vₒ);
 
     Gₐ = (V, Eₐ ← E, w);
-    for (a, b) ∊ M
-        Eₐ ← Eₐ ∪ { e | e ∊ SP(a, b) };
+    for (u, v) ∊ M
+        Eₐ ← Eₐ ∪ { e | e ∊ SP(u, v) };
 
-    return EulerianCircuit(Gₐ);
+    return Cluster(Gₐ);
 ```
 
-### Der Algorithmus von Hierholzer
+### Hierholzer's Algorithmus
 
-Um einen Eulerkreis zu finden, wird der Algorithmus von Hierholzer verwendet. Edmonds und Johnson (1973) verwenden diesen in zwei abgewandelten Formen, ich werde ihn in seiner ursprünglichen Form mit einer veränderten Implementierung verwenden.
+Um einen Eulerkreis zu finden, wird der Algorithmus von Hierholzer verwendet. Edmonds und Johnson (1973) verwenden diesen in zwei abgewandelten Formen, ich werde ihn in seiner ursprünglichen Form verwenden.
 
-Grundsätzlich gibt der Algorithmus von Hierholzer einen Kreis $T$ zurück, dessen Reihenfolge umgekehrt dazu ist, wie er vom Algorithmus besucht wurde. Er konstruiert einen Eulerkreis, indem zunächst ein zufälliger Kreis $S$ in $G_a$ durchlaufen wird. Alle dabei verwendeten Kanten werden aus dem Graphen entfernt. Wieder am Startknoten angelangt, wird der Kreis solange rückwärts durchlaufen, bis ein Knoten mit noch freien Kanten auftritt. Alle Knoten und Kanten entlang dieses Wegs werden dem Eulerkreis $T$ hinzugefügt und aus $S$ entfernt. Von diesem Knoten wird der selbe Prozess erneut ausgeführt, bis $S$ leer ist. Dass Knoten und Kanten erst beim rückwärtigen Durchlaufen hinzugefügt werden ist sehr nützlich, weil so die nötigen Knoten zum Erreichen des Startknotens eines anderen Teilkreises erst hinzugefügt werden, nachdem der Teilkreis selbst hinzugefügt wurde. Würde man nach Durchlaufen eines Kreises ihn sofort vollständig einfügen, müsste man spätere Teilkreise innerhalb einfügen, was aufwändig ist.
+Grundsätzlich gibt der Algorithmus von Hierholzer einen Kreis $K$ zurück, dessen Reihenfolge umgekehrt dazu ist, wie er vom Algorithmus besucht wurde. Er konstruiert einen Eulerkreis, indem zunächst ein zufälliger Kreis $S$ in $G_a$ durchlaufen wird. Alle dabei verwendeten Kanten werden aus dem Graphen entfernt. Wieder am Startknoten angelangt, wird $S$ solange rückwärts durchlaufen, bis ein Knoten mit noch freien Kanten auftritt. Alle Knoten und Kanten entlang dieses Wegs werden dem Eulerkreis $K$ hinzugefügt und aus $S$ entfernt. Von diesem Knoten wird der selbe Prozess erneut ausgeführt, bis $S$ leer ist. Dass Knoten und Kanten erst beim rückwärtigen Durchlaufen hinzugefügt werden ist sehr nützlich, weil so die nötigen Knoten zum Erreichen des Startknotens eines anderen Teilkreises erst hinzugefügt werden, nachdem der Teilkreis selbst hinzugefügt wurde. Würde man nach Durchlaufen eines Kreises ihn sofort vollständig einfügen, müsste man spätere Teilkreise innerhalb einfügen, was aufwändig ist.
 
-Der Startknoten wird durch die Bedingung $d(v) = 0$ erfasst, weil er der einzige Knoten ist, der während des vorwärts gerichteten Durchlaufens Grad $0$ haben kann, wenn der Algorithmus gerade bei ihm steht. $v_s$ ist der aktuell besuchte Knoten. Das liegt daran, dass sein Grad durch das anfängliche Verlassen ständig ungerade ist und gerade wird, wenn der Algorithmus bei ihm steht. Bei allen anderen Knoten sind diese Paritätsregeln umgekehrt, daher können sie als aktueller Knoten nie Grad $0$ haben.
+Der Startknoten wird durch die Bedingung $d(v_l) = 0$ erfasst, weil er der einzige Knoten ist, der während des vorwärts gerichteten Durchlaufens Grad $0$ haben kann, wenn der Algorithmus gerade bei ihm steht. $v_l$ ist der aktuell besuchte Knoten. Das liegt daran, dass sein Grad durch das anfängliche Verlassen ständig ungerade ist und gerade wird, wenn der Algorithmus bei ihm steht. Bei allen anderen Knoten ist diese Paritätsregel umgekehrt, daher können sie als aktueller Knoten nie Grad $0$ haben.
 
 $v_l$ ist der letzte, $v_{l - 1}$ der vorletzte Knoten in $S$. $\sim$ bedeutet, dass zwei Knoten durch eine Kante verbunden sind.
 
 ```pseudocode
-procedure EulerianCircuit(Graph G)
-	T ← ∅;
+procedure EulerianCircuit(G)
+	K ← ∅;
     S ← { s };
 
     while S ≠ ∅
     	if d(vₗ) = 0
-    		Füge eₗ, vₗ zu T hinzu;
+    		Erweitere K um eₗ, vₗ;
     		Entferne eₗ, vₗ aus S;
     	else
-    		Füge irgendein v | v ~ vₗ, (v, vₗ) zu S hinzu;
+    		Erweitere K um ein beliebiges v ∊ G | v ~ vₗ, (v, vₗ);
     		Entferne eₗ aus G;
 
-    return T;
+    return K;
 ```
 
-_Beispiel:_ Der FHK-Algorithmus soll am Beispiel von `muellabfuhr0.txt` verdeutlicht werden. Die Knoten mit ungeradem Grad sind $2, 4, 6$ und $9$ (eckig dargestellt). Aus ihnen wird beispielsweise das minimale perfekte Matching $2, 4$ und $6, 9$ erstellt. Dann werden die Kanten $(0, 2), (0, 4)$ für das erste Paar und $(0, 6), (0, 8), (8, 9)$ für das zweite Paar erneut hinzugefügt. Oben ist der ursprüngliche Graph $G$ dargestellt (alle Kanten haben Gewicht $1$), unten der Graph $G_o$ aus ungeraden Knoten.
+### Minimales Perfektes Matching
 
-_Anmerkung:_ Der Graph ist etwas anders visualisiert, aber gleich zu dem von `muellabfuhr0.txt`.
+Zum Finden eines minimalen perfekten Matchings in einem nicht-bipartiten Graphen ist Edmonds Blütenalgorithmus und dessen Weiterentwicklungen Standard. Die theoretisch besten Algorithmen konnten bisher die $O(|E| \sqrt {|V|})$-Barriere nicht überwinden (Duan, 2018), womit dieser Teil des FHK-Algorithmus begrenzend für seine Zeitkomplexität ist. Aus diesem Grund möchte ich zum Finden eines minimalen perfekten Matchings eine selbst entwickelte Heuristik verwenden. Bei dem implizit erstellten Graphen aus Knoten mit ungeradem Grad liegt ein vollständiger Graph mit maximal $O(|V|)$ Knoten vor, daher kann die $O(|E| \sqrt {|V|})$-Barriere als $O(|V|^{2.5})$-Barriere umgeschrieben werden. Bei großen Problemgraphen kann meine Heuristik durch ihre Laufzeit von $\Theta(|V|^2)$ eine signifikante Geschwindigkeitszunahme bewirken. Außerdem ist eine gute Implementierung einer der Algorithmen, die auf dem Blütenalgorithmus basieren, sehr schwierig und aufwändig. Beispielsweise hat [Blossom V](https://pub.ist.ac.at/~vnk/software.html) von Vladimir Kolmogorov über 3500 Codezeilen, was einen groben Eindruck über die Komplexität der Implementierung gibt. Eine Implementierung des ursprünglichen Blütenalgorithmus wäre für mich möglich gewesen, allerdings ist dessen Laufzeit sowohl in der Theorie mit $O(|V|^2 \cdot |E|)$ als auch in der Praxis deutlich schlechter, und er unterstützt nur durch eine Modifikation gewichtete Graphen. Ich benutze eine selbst entwickelte Heuristik und vergleiche deren Lösungsqualität und Geschwindigkeit mit Blossom V.
+
+Genauer werden zwei Heuristiken benutzt: Eine, um den Graphen in kleinere Graphen zu clustern, und eine zweite, um in den Teilgraphen ein möglichst minimales perfektes Matching zu finden. Beide sind auf vollständige, metrische Graphen ausgelegt, wie hier vorliegend.
+
+#### Cluster
+
+Die Cluster-Heuristik sortiert alle Kanten des Graphen aufsteigend und teilt Knoten, die durch eine der längsten Kanten verbunden sind, verschiedenen Clustern zu. Die Sortierung der Kanten nach Kosten geschieht durch Radix Sort, den ich bereits in der Bonusaufgabe erkläre, daher wiederhole ich seine Funktionsweise hier nicht. Für eine detaillierte Beschreibung verweise ich auf _zara-zackig.pdf, Abschnitt Radix Sort (MSD)_. Um die Knoten anschließend aufzuteilen, wird die Liste an Kanten $L$ von hinten durchlaufen, und sobald ein Knoten auftritt, der noch keinem Cluster zugewiesen ist, wird er dem Cluster $C*$ zugewiesen, zu dessen Knoten er die geringsten durchschnittlichen Kosten hat (Pseudocode _Zuteilen_, Z. 4 - 13). Ein Cluster ist als Teilmenge von $V_o$ definiert. Falls kein ausreichend guter Cluster vorhanden ist, wird mit dem Knoten ein neuer erstellt. Die Schwelle für _ausreichend gut_ wird durch den Parameter $\alpha \in ]0, 1[$ bestimmt und ist das Gewicht der Kante bei Index $ t = \lfloor \alpha \cdot |L| \rfloor$ (das $\alpha$-Quantil von $L$). Das heißt, wenn bei einem Knoten $u$ die durchschnittlichen Kosten zu jedem Cluster größer als $w(l_t)$ sind, wird ein neuer Cluster $\{u\}$ erstellt (_Zuteilen_, Z. 15). $l_i$ bezeichnet das $i$´te Element in $L$, $Cl$ die Menge aller Cluster.
+
+Um perfekte Matchings in den Clustern erstellen zu können, muss die Anzahl an Knoten jedes Clusters gerade sein. Daher sollen gegen Ende des Zuteilens, wenn die Anzahl offener Knoten gleich oder kleiner der Anzahl von Clustern mit ungerader Größe ist, Knoten nur ungeraden Clustern zugeteilt werden (_Zuteilen_, Z. 5). Auch wird dann ein Knoten immer einem bereits bestehenden Cluster zugeteilt (_Zuteilen_, Z. 12), sodass am Ende alle Cluster eine gerade Größe haben. Die danach errechneten Matchings der 2-Opt Heuristik für jedes Cluster werden zu einem Matching $M$ zusammengefügt und zurückgegeben.
+
+```pseudocode
+procedure Cluster(Vₒ)
+	L ← ∅;
+	for u ∊ Vₒ
+		for v ∊ Vₒ | v ≠ u
+			L ← L ∪ (u, v);
+
+	RadixSort(L);
+	t = ⌊|L| ⋅ α⌋;
+	Cl ← ∅;
+
+	for (u, v) ∊ L, absteigend, bis alle Knoten zugewiesen
+		if (u nicht zugeteilt) Zuteilen(u, v);
+		if (v nicht zugeteilt) Zuteilen(v, u);
+
+	M ← ∅;
+	for C ∊ Cl
+		M ← M ∪ TwoOpt(C);
+
+	return M;
+```
+
+```pseudocode
+procedure Zuteilen(u, v)
+	min ← ∞;
+	C* ← ∅;
+	for C ∊ Cl
+		if (|C| ≡ 1 (mod 2) ∧ |offene Knoten| ≤ |ungerade Cluster|) ∨ v ∊ C
+			Gehe zum folgenden Cluster;
+		a ← (Summe der w(SP(u, x)) aller x ∊ C) / |C|
+		if a < min
+			min ← a;
+			C* = C;
+
+	if min ≤ w(lₜ) ∨ |offene Knoten| ≤ |ungerade Cluster|
+		C* ← C* ∪ u;
+	else
+		Cl ← Cl ∪ { u };
+```
+
+#### 2-Opt
+
+Die Heuristik zum Finden der Matchings in den Subgraphen ist an die 2-Opt Heuristik für das Problem des Handlungsreisenden angelehnt. Aus den bereits relativ gut zusammenpassenden Knoten eines Clusters wird ein zufälliges Matching erstellt (Z. 2 - 4), das schrittweise verbessert wird. $c_i$ bezeichnet den $i$´ten Knoten von $C$. Es werden alle Kombinationen aus zwei verschiedenen Kanten $(u, v), (x, y)$ des Matchings betrachtet (Z. 7 - 8), und falls eine andere Zuordnung der vier Knoten die Summe der Gewichte verringert, wird diese für $M$ übernommen (Z. 9 - 14). $M$ bezeichnet hier nur das Matching der mitgegebenen Knotenme Dieser Suchablauf, genannt _2-Opt Suche_, wird solange wiederholt, bis keine Verbesserung mehr gefunden wird.
+
+```pseudocode
+procedure TwoOpt(C)
+	M ← ∅;
+	for i ∊ [1, |C|] | i ≡ 1 (mod 2)
+		M ← M ∪ (cᵢ, cᵢ₊₁);
+
+	2-Opt Suche:
+		for (u, v) ∊ M
+			for (x, y) ∊ M ≠ e
+				if w(SP(u, x)) + w(SP(v, y)) < w(SP(u, v)) + w(SP(x, y))
+					M ← (M \ { (u, v), (x, y) }) ∪ { (u, x), (v, y) };
+					Gehe zu 2-Opt Suche;
+				else if w(SP(u, y)) + w(SP(v, x)) < w(SP(u, v)) + w(SP(x, y))
+					M ← (M \ { (u, v), (x, y) }) ∪ { (u, y), (v, x) };
+					Gehe zu 2-Opt Suche;
+
+	return M;
+```
+
+_Beispiel:_ Der FHK-Algorithmus soll am Beispiel von `muellabfuhr0.txt` verdeutlicht werden. Die Knoten mit ungeradem Grad sind $2, 4, 6$ und $9$ (eckig dargestellt). Aus ihnen wird beispielsweise das minimale perfekte Matching $2, 4$ und $6, 9$ erstellt. Dann werden die Kanten $(0, 2), (0, 4)$ für das erste Paar und $(0, 6), (0, 8), (8, 9)$ für das zweite Paar erneut hinzugefügt. Oben ist der ursprüngliche Graph $G$ dargestellt (alle Kanten haben Gewicht $1$), unten $V_o$ und die Gewichte der kürzesten Pfade dazwischen, ebenfalls als Graph visualisiert.
+
+_Anmerkung:_ Der Graph ist etwas anders dargestellt, aber gleich zu dem von `muellabfuhr0.txt`.
 
 ```mermaid
 flowchart LR
@@ -146,86 +219,11 @@ flowchart LR
 41 ---|2| 61
 ```
 
-### Minimales Perfektes Matching
-
-Zum Finden eines minimalen perfekten Matchings in einem nicht-bipartiten Graphen ist Edmonds Blütenalgorithmus und dessen Weiterentwicklungen Standard. Die theoretisch besten Algorithmen konnten bisher die $O(|E| \sqrt {|V|})$-Barriere nicht überwinden (Duan, 2018), womit dieser Teil des FHK-Algorithmus begrenzend für seine Zeitkomplexität ist. Aus diesem Grund möchte ich zum Finden eines minimalen perfekten Matchings eine selbst entwickelte Heuristik verwenden. Bei dem implizit erstellten Graphen aus Knoten mit ungeradem Grad liegt ein vollständiger Graph mit maximal $O(|V|)$ Knoten vor, daher kann die $O(|E| \sqrt {|V|})$-Barriere als $O(|V|^{2.5})$-Barriere umgeschrieben werden. Bei großen Problemgraphen kann meine Heuristik durch ihre Laufzeit von $\Theta(|V|^2)$ eine signifikante Geschwindigkeitszunahme bewirken. Außerdem ist eine gute Implementierung einer der Algorithmen, die auf dem Blütenalgorithmus basieren, sehr schwierig und aufwändig. Beispielsweise hat [Blossom V](https://pub.ist.ac.at/~vnk/software.html) von Vladimir Kolmogorov über 3500 Codezeilen, was einen groben Eindruck über die Komplexität der Implementierung gibt. Eine Implementierung des ursprünglichen Blütenalgorithmus wäre für mich möglich gewesen, allerdings ist dessen Laufzeit sowohl in der Theorie mit $O(|V|^2 \cdot |E|)$ als auch in der Praxis deutlich schlechter, und er unterstützt nur durch eine Modifikation gewichtete Graphen. Ich benutze eine selbst entwickelte Heuristik und vergleiche deren Lösungsqualität und Geschwindigkeit mit Blossom V.
-
-Genauer werden zwei Heuristiken benutzt: Eine, um den Graphen in kleinere Graphen zu clustern, und eine zweite, um in den Teilgraphen ein möglichst minimales perfektes Matching zu finden. Beide sind auf vollständige, metrische Graphen ausgelegt, wie hier vorliegend.
-
-#### Cluster
-
-Die Cluster-Heuristik sortiert alle Kanten des Graphen aufsteigend und teilt Knoten, die durch eine der längsten Kanten verbunden sind, verschiedenen Clustern zu. Die Sortierung der Kanten nach Kosten geschieht durch Radix Sort, den ich bereits in der Bonusaufgabe erkläre, daher wiederhole ich seine Funktionsweise hier nicht. Für eine detaillierte Beschreibung verweise ich auf _zara-zackig.pdf, Abschnitt Radix Sort (MSD)_. Um die Knoten anschließend aufzuteilen, wird die Liste an Kanten $L$ von hinten durchlaufen, und sobald ein Knoten auftritt, der noch keinem Cluster zugewiesen ist, wird er dem Cluster zugewiesen, zu dessen Knoten er die geringsten durchschnittlichen Kosten hat (Zuteilen, Z. 4 - 13). Falls kein ausreichend guter Cluster vorhanden ist, wird mit dem Knoten ein neuer erstellt. Die Schwelle für _ausreichend gut_ wird durch den Parameter $\alpha \in ]0, 1[$ bestimmt und ist das Gewicht der Kante bei Index $ t = \lfloor \alpha \cdot |L| \rfloor$ (das $\alpha$-Quantil von $L$). Das heißt, wenn bei einem Knoten $u$ die durchschnittlichen Kosten zu jedem Cluster größer als $w(l_t)$ sind, wird ein neuer Cluster $\{u\}$ erstellt (Z. 15). $l_i$ bezeichnet das $i$´te Element in $L$.
-
-Um perfekte Matchings in den Clustern erstellen zu können, muss die Anzahl an Knoten jedes Clusters gerade sein. Daher sollen gegen Ende des Zuteilens, wenn die Anzahl offener Knoten gleich oder kleiner der Anzahl von Clustern mit ungerader Größe ist, Knoten nur ungeraden Clustern zugeteilt werden (Zuteilen, Z. 5). Auch wird dann ein Knoten immer einem bereits bestehenden Cluster zugeteilt (Zuteilen, Z. 12), sodass am Ende alle Cluster eine gerade Größe haben. Die Matchings der 2-Opt Heuristik für jedes Cluster werden zu einem Matching $M$ zusammengefügt und zurückgegeben.
-
-```pseudocode
-procedure Cluster(Vₒ, SP)
-	L ← ∅;
-	for u ∊ Vₒ
-		for v ∊ Vₒ | v ≠ u
-			L ← L ∪ (u, v);
-
-	RadixSort(L);
-	t = ⌊|L| ⋅ α⌋;
-	Cl ← ∅;
-
-	for (u, v) ∊ L, absteigend, bis alle Knoten zugewiesen
-		if (u nicht zugeteilt) Zuteilen(u, v);
-		if (v nicht zugeteilt) Zuteilen(v, u);
-
-	M ← ∅;
-	for cl ∊ Cl
-		M ← M ∪ TwoOpt(cl);
-
-	return M;
-```
-
-```pseudocode
-procedure Zuteilen(u, v)
-	min ← ∞;
-	c* ← ∅;
-	for cl ∊ Cl
-		if (|cl| ≡ 1 (mod 2) ∧ |offene Knoten| ≤ |ungerade Cluster|) ∨ v ∊ cl
-			Gehe zum folgenden Cluster;
-		a ← (sum of x ∊ cl: SP(u, x)) / |cl|
-		if a < min
-			min ← a;
-			c* ← cl;
-
-	if min ≤ w(lₜ) ∨ |offene Knoten| ≤ |ungerade Cluster|
-		C* ← c* ∪ u;
-	else
-		Cl ← Cl ∪ { u };
-```
-
-#### 2-Opt
-
-Die Heuristik zum Finden der Matchings in den Subgraphen ist an die 2-Opt Heuristik für das Problem des Handlungsreisenden angelehnt. Aus den schon relativ gut zusammenpassenden Knoten eines Clusters wird ein zufälliges Matching erstellt (Z. 2 - 4), das schrittweise verbessert wird. Dazu werden alle Kombinationen aus zwei verschiedenen Kanten $(u, v), (x, y)$ des Matchings betrachtet (Z. 7 - 8), und falls eine andere Zuordnung der vier Knoten die Summe der Gewichte verringert, wird diese für $M$ übernommen (Z. 9 - 14). Dieser Suchablauf, genannt _2-Opt Suche_, wird solange wiederholt, bis keine Verbesserung mehr gefunden wird.
-
-```pseudocode
-procedure TwoOpt(V, SP)
-	M ← ∅;
-	for i | i ∊ [1, |V|] ∧ i ≡ 1 (mod 2)
-		M ← M ∪ (vᵢ, vᵢ₊₁);
-
-	2-Opt Suche:
-		for (u, v) ∊ M
-			for (x, y) ∊ M ≠ e
-				if (w(u, x) + w(v, y) < w(u, v) + w(x, y))
-					M ← (M \ { (u, v), (x, y) }) ∪ { (u, x), (v, y) };
-					Gehe zu 2-Opt Suche;
-				else if (w(u, y) + w(v, x) < w(u, v) + w(x, y))
-					M ← (M \ { (u, v), (x, y) }) ∪ { (u, y), (v, x) };
-					Gehe zu 2-Opt Suche;
-
-	return M;
-```
-
 ## Implementierung
 
 Ich schreibe das Programm in C++ für den Compiler clang. Es kann auf einem x86-64 Linux PC ausgeführt werden. Der Code ist grundsätzlich in Funktionen unterteilt, die aus `main.cpp`, oder untereinander aufgerufen werden. In `main.cpp` und `io.cpp` geschieht Ein- und Ausgabe, der übrige Code ist nach Unterproblemen in Module gegliedert. Ich schreibe den Code in Englisch, weil die Schlüsselwörter von C++ ebenfalls englisch sind, damit er einfacher lesbar ist.
 
-Der Graph des Straßennetzwerks wird als Adjazenzmap (Typdefinition `adj_map`) repräsentiert. D. h. ein Vektor mit Länge $|V|$ ordnet jedem Knoten eine Hashmap (C++ `std::unordered_map`) zu, die als Schlüssel alle verbunden Knoten und als Wert die jeweilige Distanz bzw. Kosten zu dem Knoten enthält. Das ermöglicht das Überprüfen der Existenz einer Kante in $O(1)$ bei gleichzeitigem Speicherverbrauch von nur $O(|V| + |E|)$. Die Umwandlung der Textdatei in diese Datenstruktur übernimmt `to_adjacency_map` in `io.cpp`.
+Der Graph des Straßennetzwerks wird als Adjazenzmap (Typdefinition [`adj_map`](#typdefinitionen)) repräsentiert. D. h. ein Vektor mit Länge $|V|$ ordnet jedem Knoten eine Hashmap (C++ `std::unordered_map`) zu, die als Schlüssel alle verbunden Knoten und als Wert die jeweilige Distanz bzw. Kosten zu dem Knoten enthält. Das ermöglicht das Überprüfen der Existenz einer Kante in $O(1)$ bei gleichzeitigem Speicherverbrauch von nur $O(|V| + |E|)$. Die Umwandlung der Textdatei in diese Datenstruktur übernimmt `to_adjacency_map` in `io.cpp`.
 
 Die Zeilenangaben beziehen sich im Weiteren immer auf die zugehörige Funktion im Abschnitt [_Quellcode_](#quellcode)
 
@@ -235,9 +233,9 @@ Die Zeilenangaben beziehen sich im Weiteren immer auf die zugehörige Funktion i
 
 Meine Implementierung des FHK-Algorithmus beginnt mit Aufrufen von Dijkstra's _Single Source Shortest Path_ Algorithmus für jeden Knoten im Graphen, um eine Distanzmatrix `dis` und Vorgängermatrix `pre` für alle kürzesten Pfade zu erstellen (Z. 2 - 7). Ich habe ihn in meiner Lösungsidee nicht erwähnt, weil er ein Standardalgorithmus bei sehr vielen Problemen ist und ich denke, dass er bekannt ist. Ich habe ihn dem _All Pairs Shortest Path_ Algorithmus von Floyd und Warshall vorgezogen, weil die Problemgraphen durchschnittlich sehr dünn sind, d. h. $|E| \ll |V|^2 / 2$. Bei solchen Graphen arbeitet Dijkstra's Algorithmus unter Verwendung einer Prioritätsschlange (`std::priority_queue`) ähnlich schnell oder schneller.
 
-Nachdem die Lösung des Chinese Postman Problems und der Shortest Path Tour Lower Bound errechnet wurden (später beschrieben), beginnt die eigentliche Logik des FHK-Algorithmus. `pre_split` speichert den vorherigen Teilungsknoten, `tours` die am Ende zurückgegebenen Rundtouren (Z. 14 - 15). Im Gegensatz zum Pseudocode wird hier ein Pfad / eine Rundtour nur als Knotenfolge definiert. `cost` speichert die Kosten zum Erreichen des vorherigen Teilungsknotens (Z. 16), was für die Bestimmung des nächsten Teilungsknotens relevant ist. Die Bestimmung einer Rundtour geschieht `num_tours - 1`-mal. Zunächst wird ihre maximale Länge `max_cost` (Z. 19 - 20) durch die bereits beschriebene Formel errechnet. Indem die Chinese Postman Tour durchlaufen wird, bis `cost > max_cost`, während `cost` ständig mit dem Gewicht der gerade gebrauchten Kante erhöht wird, wird der nächste Teilungsknoten `split` vorläufig festgelegt (Z. 23 - 27). Weil bei Abbruch der `while`-Schleife `split` bereits ein Knoten zu weit gesetzt wurde, implementiere ich das mögliche Verschieben des Teilungsknotens um $1$ etwas anders. Hier in der Implementierung wird die umgekehrte Bedingung überprüft, und gegebenenfalls der vorherige Knoten als Teilungsknoten gewählt.
+Nachdem die Lösung des Chinese Postman Problems und der Shortest Path Tour Lower Bound errechnet wurden (später beschrieben), beginnt die eigentliche Logik des FHK-Algorithmus. `pre_split` speichert den vorherigen Teilungsknoten, `tours` die am Ende zurückgegebenen Rundtouren (Z. 12 - 14). Im Gegensatz zum Pseudocode wird hier ein Pfad / eine Rundtour nur als Knotenfolge definiert. `cost` speichert die Kosten zum Erreichen des vorherigen Teilungsknotens, was für die Bestimmung des nächsten Teilungsknotens relevant ist. Die Bestimmung einer Rundtour geschieht `num_tours - 1`-mal. Zunächst wird ihre maximale Länge `max_cost` (Z. 17 - 18) durch die bereits beschriebene Formel errechnet. Indem die Chinese Postman Tour durchlaufen wird, bis `cost > max_cost`, während `cost` ständig mit dem Gewicht der gerade gebrauchten Kante erhöht wird, wird der nächste Teilungsknoten `split` vorläufig festgelegt (Z. 20 - 24). Weil bei Abbruch der `while`-Schleife `split` bereits ein Knoten zu weit gesetzt wurde, implementiere ich das mögliche Verschieben des Teilungsknotens um $1$ etwas anders. Hier in der Implementierung wird die umgekehrte Bedingung überprüft, und gegebenenfalls der vorherige Knoten als Teilungsknoten gewählt (Z. 26 - 35).
 
-Alle Touren, bis auf die letzte, werden auf diese Weise bestimmt, durch [`construct_tour()`](#constructtour) explizit konstruiert und dem `tours`-Vektor hinzugefügt. Die letzte Tour besitzt keinen zweiten Teilungsknoten und kann daher sofort festgelegt werden (Z. 45).
+Alle Touren, bis auf die letzte, werden auf diese Weise bestimmt, durch [`construct_tour()`](#constructtour) explizit konstruiert und dem `tours`-Vektor hinzugefügt. Die letzte Tour besitzt keinen zweiten Teilungsknoten und kann daher sofort festgelegt werden (Z. 40).
 
 #### Shortest Path Tour Lower Bound
 
@@ -253,7 +251,7 @@ Diese Funktion dient dazu, die eigentliche Logik zum Verbinden einer Tour zum St
 
 &rarr; zugehörige Funktion [`close_tour`](#closetour)
 
-Der Parameter `append_front` ist `true`, wenn der Anfangsknoten des Pfads zum Startknoten verbunden werden soll und `false`, wenn das mit dem Endknoten des Pfads geschehen soll. Die Knoten, die auf dem kürzesten Pfad des zu verbindenden Knoten zum Startknoten liegen, sind in der Vorgängermatrix im Vektor bei Index `0` enthalten. `curr`, der aktuelle Knoten auf dem kürzesten Pfad, wird solange mit seinem Vorgänger, der bei `pre[0][curr]` liegt, ersetzt, bis dieser `-1` ist, was bedeutet, dass der Startknoten erreicht wurde (Z. 4 - 8). Dass `-1` bedeutet, dass der Zielknoten erreicht ist, habe ich in Dijkstra's Algorithmus so festgelegt. Alle auf diesem Weg besuchten Knoten werden vorne bzw. hinten an die Tour angehängt. Die Funktion verändert direkt die Tour, die ihr als Referenz mitgegeben wurde.
+Der Parameter `append_front` ist `true`, wenn der Anfangsknoten des Pfads zum Startknoten verbunden werden soll und `false`, wenn das mit dem Endknoten des Pfads geschehen soll. Die Knoten, die auf dem kürzesten Pfad des zu verbindenden Knoten zum Startknoten liegen, sind in der Vorgängermatrix im Vektor bei Index `0` enthalten. `curr`, der aktuelle Knoten auf dem kürzesten Pfad, wird solange mit seinem Vorgänger, der bei `pre[0][curr]` liegt, ersetzt, bis dieser `-1` ist, was bedeutet, dass der Startknoten erreicht wurde (Z. 4 - 8). Dass `-1` bedeutet, dass der Zielknoten erreicht ist, wurde in Dijkstra's Algorithmus so festgelegt. Alle auf diesem Weg besuchten Knoten werden vorne bzw. hinten an die Tour angehängt. Die Funktion verändert direkt die Tour, die ihr als Referenz mitgegeben wurde.
 
 ### Der Chinese Postman Algorithmus
 
@@ -271,27 +269,27 @@ Die letztendlich zurückgegebene Knotenfolge des Eulerkreises wird in `circuit` 
 
 #### Cluster
 
-&rarr; zugehörige Funktion: [`cluster`](#cluster-2)
+&rarr; zugehörige Funktion: [`cluster`](#cluster-4)
 
-Da die Gewichte zwischen den Knoten von `odds` die Länge der jeweiligen kürzesten Pfade sind, hat Funktion die Distanzmatrix `dis` als Parameter. Die Kanten werden in einem C-style Array `edges` gespeichert, weil das die Implementierung von Radix Sort einfacher macht als bei einem `std::vector`. Für jede Kante wird nacheinander `u, v, w`, also Vertex 1, Vertex 2, und das Gewicht abgespeichert. Um für jede Kombination aus zwei Knoten eine Kante zu `edges` hinzuzufügen, ist eine zweifach verschachtelte for-Schleife geeignet, die in der zweiten Ebene nur nachfolgende Elemente durchläuft (Z. 5 - 11). `pos` verfolgt ständig, in welche Position die nächste Kante hineingeschrieben werden kann. Nachdem `edges` nach Kantengewicht aufsteigend sortiert wurde, wird `threshold` als das Grenzgewicht festgelegt, das ein Knoten maximal zu einem Cluster haben darf, um hinzugefügt zu werden (Z. 15). Um zu überwachen, ob ein Knoten bereits zugeteilt wird dient `assigned_to` (eine `std::unordered_map`, da Knotennummerierung nicht bei 0 beginnen muss). In `open` und `odd_cl` wird ständig die Anzahl noch offener Knoten und Cluster mit ungerader Größe aktualisiert (Z. 18). Daher ist eine Abbruchbedingung der anschließenden for-Schleife, wenn `open` kleiner oder gleich 0 ist. Während der for-Schleife wird für jeden nicht zugeteilten Knoten `assign_cluster` aufgerufen, entspricht _Zuteilen_ im Pseudocode.
+Da die Gewichte zwischen den Knoten von `odds` die Länge der jeweiligen kürzesten Pfade sind, hat Funktion die Distanzmatrix `dis` als Parameter. Die Kanten werden in einem C-style Array `edges` gespeichert, weil das die Implementierung von Radix Sort einfacher macht als bei einem `std::vector`. Für jede Kante werden drei Arrayplätze besetzt, in denen `u, v, w` aufeinander folgen. Um für jede Kombination aus zwei Knoten eine Kante zu `edges` hinzuzufügen, ist eine zweifach verschachtelte for-Schleife geeignet, die in der zweiten Ebene nur nachfolgende Elemente durchläuft (Z. 5 - 11). `pos` verfolgt ständig, in welche Position die nächste Kante hineingeschrieben werden kann. Nachdem `edges` nach Kantengewicht aufsteigend sortiert wurde, wird `threshold` als das Grenzgewicht festgelegt, das ein Knoten maximal zu einem Cluster haben darf, um hinzugefügt zu werden (Z. 15). Um zu überwachen, ob ein Knoten bereits zugeteilt wird dient `assigned_to` (eine `std::unordered_map`, da Knotennummerierung nicht bei 0 beginnen muss). In `open` und `odd_cl` wird ständig die Anzahl noch offener Knoten und Cluster mit ungerader Größe aktualisiert (Z. 18). Daher ist eine Abbruchbedingung der anschließenden for-Schleife, wenn `open` kleiner oder gleich 0 ist. Während der for-Schleife wird für jeden nicht zugeteilten Knoten `assign_cluster` aufgerufen, entspricht _Zuteilen_ im Pseudocode.
 
 #### Zuteilung zu einem Cluster
 
 &rarr; zugehörige Funktion: [`assign_cluster`](#assigncluster)
 
-Die Umsetzung von `assign_cluster` unterscheidet sich nur in Details vom Pseudocode. Z.B. wird das Überspringen eines Clusters in zwei Bedingungen aufgeteilt: Die erste stellt sicher, dass der andere Knoten der Kante `v` nicht im betrachteten Cluster `clusters[j]` ist (Z. 14). Die zweite stellt sicher, dass am Ende des Algorithmus alle Cluster eine gerade Größe haben (Z. 15). Bei der Zuordnung zu einem Cluster (Z. 26 - 35) ist der Unterschied zum Pseudocode, dass die drei Variablen `open`, `odd_cl` und `assigned_to` aktuell gehalten werden müssen.
+Die Umsetzung von `assign_cluster` unterscheidet sich nur in Details vom Pseudocode. Z. B. wird das Überspringen eines Clusters in zwei Bedingungen aufgeteilt: Die erste stellt sicher, dass der andere Knoten der Kante `v` nicht im betrachteten Cluster `clusters[j]` ist (Z. 14). Die zweite stellt sicher, dass am Ende des Algorithmus alle Cluster eine gerade Größe haben (Z. 15). Auch wird nicht der ganze aktuell beste Cluster gespeichert, sondern mit `min_j` nur dessen Index in `clusters`. Bei der Zuordnung zu einem Cluster (Z. 26 - 35) ist der Unterschied zum Pseudocode, dass die drei Variablen `open`, `odd_cl` und `assigned_to` aktuell gehalten werden müssen.
 
 #### Radix Sort
 
 &rarr; zugehörige Funktion: [`radix_sort_msd`](#radixsortmsd)
 
-Die Implementierung von Radix Sort ist sehr ähnlich zu der in _Zara Zackigs Zurückkehr_. Es werden zwei Teile von den Enden des Arrays vergrößert: Von vorne der Teil, in dem alle Zahlen einen `h`-ten Bit von 0 haben (Ende markiert durch `u`), und von hinten der Teil, in dem alle Zahlen einen `h`-ten Bit von 1 haben (Anfang markiert durch `v`). Die aktuelle Kante wird abhängig vom `h`-ten Bit ihres Gewichts dem 0-Teil oder 1-Teil zugeordnet (Z. 5 - 12). Es sind immer drei Plätze für eine Kante im Array vorgesehen und das Gewicht steht an dritter Stelle, daher `arr[u * 3 + 2]`. Der `h`-te Bit ist zunächst der höchstwertige Bit, nach der Einteilung nach diesem werden die zwei Teile rekursiv nach dem zweitwichtigsten Bit sortiert.
+Die Implementierung von Radix Sort ist sehr ähnlich zu der in _Zara Zackigs Zurückkehr_. Es werden zwei Teile von den Enden des Arrays vergrößert: Von vorne der Teil, in dem alle Zahlen einen `h`-ten Bit von 0 haben (Ende markiert durch `u`), und von hinten der Teil, in dem alle Zahlen einen `h`-ten Bit von 1 haben (Anfang markiert durch `v`). Die aktuelle Kante wird abhängig vom `h`-ten Bit ihres Gewichts dem 0-Teil oder 1-Teil zugeordnet (Z. 5 - 12). Es sind immer drei Plätze für eine Kante im Array vorgesehen und das Gewicht steht an dritter Stelle, daher wird immer `arr[u * 3 + 2]` betrachtet. Der `h`-te Bit ist zunächst der höchstwertige Bit, nach der Einteilung nach diesem werden die zwei Teile rekursiv nach dem zweitwichtigsten Bit sortiert.
 
 #### 2-Opt
 
 &rarr; zugehörige Funktion: [`two_opt`](#twoopt)
 
-In den Zeilen 2 - 6 wird das initiale Matching erstellt, bei dem einfach in `vertex_set` aufeinander folgende Knoten gematcht werden. Hier wird eine Kante nicht mehr als C-style Array mit drei Einträgen umgesetzt, sondern als `std::array` mit dem Typalias `edge`. Denn das ermöglicht eine Neuzuweisung und die direkte Initialisierung durch z. B. `{ u, v, w }`. Bei der anschließenden Optimierung wird ähnlich zum Pseudocode nach einer möglichen Verbesserung gesucht, indem jede Kombination aus zwei verschiedenen Matchings probiert wird (Z. 8 - 22). Im Fall einer Verbesserung wird `exchange` aufgerufen, das die Knoten der Matchingkanten bei Index `i` und `j` neu zuordnet. Wenn `swap_partner` `false` ist, wird der erste Knoten der ersten Matchingkante (bei Index `i`) mit dem ersten Knoten der zweiten Matchingkante (bei Index `j`) verbunden. Wenn es `true` ist, wird entsprechend umgekehrt neu zugeordnet. Das Springen zum nächsten Suchschritt wird mit dem C++ Sprungbefehl `goto` umgesetzt, der Bezeichner ist `next`.
+In den Zeilen 2 - 6 wird das initiale Matching erstellt, bei dem einfach in `vertex_set` aufeinander folgende Knoten gematcht werden. Hier wird eine Kante nicht mehr als C-style Array mit drei Einträgen umgesetzt, sondern als `std::array` mit dem Typalias `edge`. Denn das ermöglicht eine Neuzuweisung und die direkte Initialisierung als Funktionsargument, z. B. `{ u, v, w }`. Bei der anschließenden Optimierung wird ähnlich zum Pseudocode nach einer möglichen Verbesserung gesucht, indem jede Kombination aus zwei verschiedenen Matchings probiert wird (Z. 8 - 22). Im Fall einer Verbesserung wird `exchange` aufgerufen, das die Knoten der Matchingkanten bei Index `i` und `j` neu zuordnet. Wenn `swap_partner` `false` ist, wird der erste Knoten der ersten Matchingkante (bei Index `i`) mit dem ersten Knoten der zweiten Matchingkante (bei Index `j`) verbunden. Wenn es `true` ist, wird entsprechend umgekehrt neu zugeordnet. Das Springen zum nächsten Suchschritt wird mit dem C++ Sprungbefehl `goto` umgesetzt, der Bezeichner ist `next`.
 
 &rarr; zugehörige Funktion: [`exchange`](#exchange)
 
@@ -317,7 +315,7 @@ Das Augmentieren des ursprünglichen Graphen benötigt im Best-, Average-Case $\
 
 Die Best-, Average- und Worst-Case Zeitkomplexität der Implementierung von Hierholzer's Algorithmus ist $\Theta(|E|)$, da jede Kante des Graphen genau zweimal durchlaufen wird. Das erste Mal ist bei der Konstruktion eines neuen Teilkreises ([`eulerian_circuit`](#euleriancircuit), Z. 12 - 20), das zweite Mal während des Rückverfolgens der Tour bis zum nächsten freien Knoten ([`eulerian_circuit`](#euleriancircuit), Z. 9 - 11).
 
-### Minimum Weighted Perfect Matching
+### Minimales Perfektes Matching
 
 #### Cluster
 
@@ -564,6 +562,20 @@ std::vector<std::vector<int>> fhk(adj_map &graph, int k, float alpha) {
 }
 ```
 
+#### farthest_edge_cost
+
+```c++
+int farthest_edge_cost(adj_map &graph, matrix_2d &dis) {
+    int farthest = 0;
+    for (int u = 0; u < graph.size(); u++) {
+        for (const auto &[v, w]: graph[u]) {
+            farthest = std::max(dis[0][u] + w + dis[v][0], farthest);
+        }
+    }
+    return farthest;
+}
+```
+
 #### construct_tour
 
 ```c++
@@ -587,20 +599,6 @@ void close_tour(std::vector<int> &tour, matrix_2d &pre, bool append_front) {
         else tour.push_back(curr);
         curr = pre[0][curr];
     }
-}
-```
-
-#### farthest_edge_cost
-
-```c++
-int farthest_edge_cost(adj_map &graph, matrix_2d &dis) {
-    int farthest = 0;
-    for (int u = 0; u < graph.size(); u++) {
-        for (const auto &[v, w]: graph[u]) {
-            farthest = std::max(dis[0][u] + w + dis[v][0], farthest);
-        }
-    }
-    return farthest;
 }
 ```
 
@@ -738,12 +736,10 @@ std::vector<edge> cluster(matrix_2d &dis, std::vector<int> odds, float alpha) {
     }
 
     std::vector<edge> mat;
-    int sum = 0;
     for (std::vector<int> &cl: clusters) {
         std::vector<edge> part_mat = two_opt(dis, cl);
         for (edge &e: part_mat) {
             mat.push_back(e);
-            sum += e[2];
         }
     }
 

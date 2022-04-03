@@ -5,8 +5,7 @@
 #include "perfect_matching.hpp"
 
 void exchange(matrix_2d &dis, std::vector<edge> &mat, int i, int j, bool swap_partner) {
-    edge e1 = mat[i];
-    edge e2 = mat[j];
+    edge e1 = mat[i], e2 = mat[j];
     mat[i] = { e1[0], e2[swap_partner], dis[e1[0]][e2[swap_partner]] };
     mat[j] = { e1[1], e2[!swap_partner], dis[e1[1]][e2[!swap_partner]] };
 }
@@ -23,11 +22,11 @@ std::vector<edge> two_opt(matrix_2d &dis, std::vector<int> &vertex_set) {
             for (int j = i + 1; j < mat.size(); j++) {
                 int curr_cost = mat[i][2] + mat[j][2];
 
-                if (curr_cost - dis[mat[i][0]][mat[j][0]] - dis[mat[i][1]][mat[j][1]] > 0) {
+                if (curr_cost > dis[mat[i][0]][mat[j][0]] + dis[mat[i][1]][mat[j][1]]) {
                     exchange(dis, mat, i, j, 0); 
                     goto next;
                 }
-                if (curr_cost - dis[mat[i][0]][mat[j][1]] - dis[mat[i][1]][mat[j][0]] > 0) {
+                if (curr_cost > dis[mat[i][0]][mat[j][1]] + dis[mat[i][1]][mat[j][0]]) {
                     exchange(dis, mat, i, j, 1); 
                     goto next;
                 }
