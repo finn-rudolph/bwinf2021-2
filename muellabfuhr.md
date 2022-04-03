@@ -509,7 +509,7 @@ Zeit: 1,41E-01 s
 
 ### Andere Beispiele
 
-Um mein Programm an anderen großen Graphen außer den vorgegebenen testen zu können, habe ich mir Testinstanzen von sintef ([Literaturverzeichnis](#literaturverzeichnis) &rarr; Testinstanzen) herausgesucht. Sie sind zwar eigentlich für das _Capacitated Arc Routing Problem_ (CARP) bzw _Node, Edge and Arc Routing Problem_ (NEARP) gedacht, aber das stört nicht. Mit einem kleinen C++ Programm (`muellabfuhr/beispiele/convert_samples.cpp`) habe ich sie in das bekannte Format umgewandelt, wobei gerichtete Kanten als ungerichtet behandelt wurden. Ich habe die des BHW-Benchmarks und des DI-NEARP-Benchmarks verwendet. Insgesamt sind es 14 Instanzen mit $|V|$ von 11 bis 1120 und $|E|$ von 25 bis 1450. Nicht alle wurden für die folgenden Tests verwendet, weil dafür vor allem große Instanzen interessant sind, es wurde aber mit jeder die Lauffähigkeit und bei den kleinen auch die Korrektheit überprüft.
+Um mein Programm an anderen großen Graphen außer den vorgegebenen testen zu können, habe ich mir Testinstanzen von sintef ([Literaturverzeichnis](#literaturverzeichnis) &rarr; Testinstanzen) herausgesucht. Sie sind zwar eigentlich für das _Capacitated Arc Routing Problem_ (CARP) bzw _Node, Edge and Arc Routing Problem_ (NEARP) gedacht, aber das stört nicht. Mit einem kleinen C++ Programm (`muellabfuhr/beispiele/convert_samples.cpp`) habe ich sie in das bekannte Format umgewandelt, wobei gerichtete Kanten als ungerichtet behandelt wurden. Ich habe die des BHW-Benchmarks und des DI-NEARP-Benchmarks verwendet. Insgesamt sind es 14 Instanzen mit $|V|$ von 11 bis 1120 und $|E|$ von 25 bis 1450. Nicht alle wurden für die folgenden Tests verwendet, es wurde aber mit jeder die Lauffähigkeit und bei den kleinen auch die Korrektheit überprüft. Große Instanzen eignen sich besser, da hier Faktoren, die nichts mit dem eigentlichen Algorithmus zu tun haben, nicht so stark ins Gewicht fallen. 
 
 Es wurden Tests zur Laufzeit und Lösungsqualität des gesamten Algorithmus durchgeführt. Die Laufzeit und Lösungsqualität des Matchingalgorithmus wurden außerdem separat betrachtetet, da dieser vollständig selbst entwickelt ist. Bei den Tests ist vor allem interessant, wie die Wahl von $\alpha$ das Ergebnis beeinflusst. Daher wird jeder Test mit $\alpha$ von $0.1$ bis $0.9$ in Schritten von $0.1$ durchgeführt. $k$ ist immer $5$. Wegen der großen Länge der Programmausgaben ist hier jeweils nur die Länge der längsten Tour abgedruckt, da das die entscheidende Größe ist. Für die Kosten von _muellabfuhr7_ gilt jeweil die rechte vertikale Achse, da die Kantengewichte bei dieser Instanz um einige Größenordnungen größer sind.
 
@@ -565,9 +565,29 @@ Es ist deutlich zu erkennen, dass ein größeres $\alpha$ tendenziell mit gering
 
 ### Vergleich zu Blossom V
 
-Zuletzt soll der Matchingalgorithmus mit der Implementierung des Blütenalgorithmus Blossom V ([Literaturverzeichnis](#literaturverzeichnis) &rarr; Blossom V) verglichen werden. $\alpha$ ist standardmäßig $0,6$, denn $\alpha$ variabel zu lassen würde den Vergleich unfair machen.
+Zuletzt soll der Matchingalgorithmus mit der Implementierung des Blütenalgorithmus Blossom V ([Literaturverzeichnis](#literaturverzeichnis) &rarr; Blossom V) verglichen werden. Dazu wird Blossom V mit dem Graphen an ungeraden Knoten ausgeführt, der von der Funktion `write_complete_graph` in `io.cpp` in eine Textdatei geschrieben wird. $\alpha$ ist standardmäßig $0,6$, denn $\alpha$ variabel zu lassen würde den Vergleich unfair machen.
 
+_Laufzeit (in s):_
 
+| Instanz      | Knotenzahl | Cluster  | Blossom V |
+| ------------ | ---------- | -------- | --------- |
+| bhw12        | 94         | 3,77E-04 | 1,00E-03  |
+| muellabfuhr7 | 240        | 2,70E-03 | 7,00E-03  |
+| n240         | 412        | 6,40E-03 | 1,20E-02  |
+| n422         | 522        | 9,13E-03 | 2,30E-02  |
+| n883         | 762        | 1,93E-02 | 1,66E-01  |
+| n699         | 778        | 2,09E-02 | 1,87E-01  |
+
+_Matchingkosten:_
+
+| Instanz      | Knotenzahl | Cluster | Blossom V |
+| ------------ | ---------- | ------- | --------- |
+| bhw12        | 94         | 1139    | 1027      |
+| muellabfuhr7 | 240        | 1013091 | 1012528   |
+| n240         | 412        | 7326    | 6142      |
+| n422         | 522        | 5992    | 5265      |
+| n883         | 762        | 14045   | 11992     |
+| n699         | 778        | 12695   | 12429     |
 
 ## Quellcode
 
