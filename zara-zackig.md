@@ -79,7 +79,7 @@ $$
 
 Natürlich muss die Lösung noch zur nächsten ganzen Zahl gerundet werden. Weil diese Ableitung aber sehr lang, kompliziert und schwierig umzusetzen ist, wird eine Annäherung benutzt. Die Anforderungen sind, dass die Annäherung für $2 \leq k < 30$ und $3 < n < 255$ bis auf wenige Ausnahmen den gleichen Wert für $d$ wie die gerundete Lösung der zweiten Gleichung liefert. Nach einigen Experimenten im Grafikrechner stellte sich heraus, dass $d = \big \lceil \frac k2 \big \rceil$ dafür gut geeignet ist.
 
-![](komplexität-graph.png)
+![](grafiken/komplexitaet-graph.png)
 
 Beispiel: Graphische Darstellung der von $d$ abhängigen Zeitkomplexitätsfunktion $f_{n,k}(d)$ für $n=52, k=9$. violett: $f_{n,k}(d)$, grün: $f_{n,k}'(d)$, gelb: $d= \big \lceil \frac nk \big \rceil$. $d$ ist auf der x-Achse angetragen. In diesem Fall wäre das Minimum von $f_{n,k}(d)$ gerundet bei 5, genau wie $d= \big \lceil \frac nk \big \rceil$. Die verwendete GeoGebra Datei befindet sich ebenfalls im Projektordner.
 

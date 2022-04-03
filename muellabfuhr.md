@@ -499,9 +499,57 @@ Zeit:
 
 ### Andere Beispiele
 
-Um mein Programm an anderen großen Graphen außer den vorgegebenen testen zu können, habe ich mir Testinstanzen von sintef ([Literaturverzeichnis](#literaturverzeichnis) &rarr; Testinstanzen) herausgesucht. Sie sind zwar eigentlich für das _Capacitated Arc Routing Problem_ (CARP) bzw _Node, Edge and Arc Routing Problem_ (NEARP) gedacht, aber das stört nicht. Mit einem kleinen C++ Programm (`muellabfuhr/beispiele/convert_samples.cpp`) habe ich sie in das bekannte Format umgewandelt, wobei gerichtete Kanten als ungerichtet behandelt wurden. Ich habe die des BHW-Benchmarks und des DI-NEARP-Benchmarks verwendet. Insgesamt sind es 14 Instanzen mit $|V|$ von 11 bis 1120 und $|E|$ von 25 bis 1450.
+Um mein Programm an anderen großen Graphen außer den vorgegebenen testen zu können, habe ich mir Testinstanzen von sintef ([Literaturverzeichnis](#literaturverzeichnis) &rarr; Testinstanzen) herausgesucht. Sie sind zwar eigentlich für das _Capacitated Arc Routing Problem_ (CARP) bzw _Node, Edge and Arc Routing Problem_ (NEARP) gedacht, aber das stört nicht. Mit einem kleinen C++ Programm (`muellabfuhr/beispiele/convert_samples.cpp`) habe ich sie in das bekannte Format umgewandelt, wobei gerichtete Kanten als ungerichtet behandelt wurden. Ich habe die des BHW-Benchmarks und des DI-NEARP-Benchmarks verwendet. Insgesamt sind es 14 Instanzen mit $|V|$ von 11 bis 1120 und $|E|$ von 25 bis 1450. Nicht alle wurden für die folgenden Tests verwendet, weil dafür vor allem große Instanzen interessant sind, es wurde aber mit jeder die Lauffähigkeit und bei den kleinen auch die Korrektheit überprüft.
 
-Mit diesen wurden Tests zur Laufzeit und Lösungsqualität des gesamten Algorithmus durchgeführt. Die Laufzeit und Lösungsqualität des Matchingalgorithmus wurden außerdem separat betrachtetet, da dieser vollständig von mir entwickelt ist. Bei den Tests ist vor allem interessant, wie die Wahl von $\alpha$ das Ergebnis beeinflusst. Daher wird jeder Test mit $\alpha$ von $0.1$ bis $0.9$ in Schritten von $0.1$ durchgeführt. Wegen der großen Länge der Programmausgaben ist hier jeweils nur die Länge der längsten Tour abgedruckt, da das die zu optimierende Variable ist.
+Es wurden Tests zur Laufzeit und Lösungsqualität des gesamten Algorithmus durchgeführt. Die Laufzeit und Lösungsqualität des Matchingalgorithmus wurden außerdem separat betrachtetet, da dieser vollständig selbst entwickelt ist. Bei den Tests ist vor allem interessant, wie die Wahl von $\alpha$ das Ergebnis beeinflusst. Daher wird jeder Test mit $\alpha$ von $0.1$ bis $0.9$ in Schritten von $0.1$ durchgeführt. Wegen der großen Länge der Programmausgaben ist hier jeweils nur die Länge der längsten Tour abgedruckt, da das die entscheidende Größe ist. Für die Kosten von _muellabfuhr7_ gilt jeweil die rechte vertikale Achse, da die Kantengewichte bei dieser Instanz um einige Größenordnungen größer sind.
+
+_Laufzeit des gesamten Algorithmus (in s):_
+
+| Instanz \ $\alpha$ | 0.1      | 0.2      | 0.3      | 0.4      | 0.5      | 0.6      | 0.7      | 0.8      | 0.9      |
+| ------------------ | -------- | -------- | -------- | -------- | -------- | -------- | -------- | -------- | -------- |
+| n240               | 3,98E-02 | 4,01E-02 | 4,20E-02 | 4,23E-02 | 4,26E-02 | 4,36E-02 | 4,31E-02 | 4,75E-02 | 4,76E-02 |
+| n422               | 5,62E-02 | 5,71E-02 | 5,70E-02 | 5,71E-02 | 5,81E-02 | 5,79E-02 | 5,83E-02 | 5,84E-02 | 6,03E-02 |
+| n699               | 1,14E-01 | 1,14E-01 | 1,15E-01 | 1,13E-01 | 1,17E-01 | 1,17E-01 | 1,17E-01 | 1,20E-01 | 1,22E-01 |
+| n833               | 1,43E-01 | 1,44E-01 | 1,43E-01 | 1,44E-01 | 1,45E-01 | 1,45E-01 | 1,50E-01 | 1,53E-01 | 1,55E-01 |
+| muellabfuhr7       | 2,45E-02 | 2,45E-02 | 2,45E-02 | 2,48E-02 | 2,50E-02 | 2,52E-02 | 2,54E-02 | 2,55E-02 | 2,57E-02 |
+
+![](grafiken/laufzeit.png)
+
+_Kosten der längsten Tour:_
+
+| Instanz \ $\alpha$ | 0.1     | 0.2     | 0.3     | 0.4     | 0.5     | 0.6     | 0.7     | 0.8     | 0.9     |
+| ------------------ | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- |
+| n240               | 10080   | 8704    | 8716    | 8866    | 8667    | 8878    | 8878    | 8619    | 8619    |
+| n422               | 9773    | 8156    | 8087    | 7393    | 7491    | 7491    | 7409    | 7870    | 7654    |
+| n699               | 10668   | 9031    | 8562    | 8756    | 8046    | 7971    | 7971    | 7945    | 7945    |
+| n833               | 13637   | 11901   | 11993   | 11743   | 12151   | 12151   | 12204   | 11434   | 11434   |
+| muellabfuhr7       | 1051311 | 1034589 | 1002318 | 1002318 | 1002318 | 1052083 | 1041400 | 1039267 | 1039267 |
+
+![](grafiken/max-kosten.png)
+
+_Laufzeit des Matchingalgorithmus (in s):_
+
+| Instanz \ $\alpha$ | 0.1      | 0.2      | 0.3      | 0.4      | 0.5      | 0.6      | 0.7      | 0.8      | 0.9      |
+| ------------------ | -------- | -------- | -------- | -------- | -------- | -------- | -------- | -------- | -------- |
+| n240               | 4,88E-03 | 4,92E-03 | 5,01E-03 | 5,20E-03 | 5,31E-03 | 6,53E-03 | 6,44E-03 | 1,03E-02 | 1,03E-02 |
+| n422               | 8,01E-03 | 8,10E-03 | 8,22E-03 | 9,09E-03 | 9,37E-03 | 9,30E-03 | 9,60E-03 | 9,69E-03 | 1,16E-02 |
+| n699               | 1,73E-02 | 1,76E-02 | 1,81E-02 | 1,81E-02 | 2,12E-02 | 2,15E-02 | 2,14E-02 | 2,54E-02 | 2,55E-02 |
+| n833               | 1,71E-02 | 1,71E-02 | 1,75E-02 | 1,81E-02 | 1,97E-02 | 1,95E-02 | 2,53E-02 | 2,84E-02 | 2,88E-02 |
+| muellabfuhr7       | 2,61E-03 | 2,61E-03 | 2,64E-03 | 2,63E-03 | 2,66E-03 | 2,73E-03 | 2,85E-03 | 2,89E-03 | 2,84E-03 |
+
+![](grafiken/matching-laufzeit.png)
+
+_Matchingkosten:_
+
+| Instanz \ $\alpha$ | 0.1     | 0.2     | 0.3     | 0.4     | 0.5     | 0.6     | 0.7     | 0.8     | 0.9     |
+| ------------------ | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- | ------- |
+| n240               | 15349   | 8932    | 8797    | 8799    | 7642    | 7326    | 7326    | 7202    | 7202    |
+| n422               | 18467   | 9749    | 9181    | 6233    | 5992    | 5992    | 5755    | 6385    | 5311    |
+| n699               | 22777   | 15170   | 14548   | 14818   | 13639   | 12695   | 12695   | 12630   | 12630   |
+| n833               | 23605   | 16832   | 14385   | 14445   | 14045   | 14045   | 13854   | 12878   | 12878   |
+| muellabfuhr7       | 1759653 | 1510987 | 1261885 | 1261885 | 1261918 | 1013091 | 1012994 | 1012949 | 1012949 |
+
+![](grafiken/matching-kosten.png)
 
 ## Quellcode
 
