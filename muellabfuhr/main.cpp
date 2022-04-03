@@ -7,7 +7,7 @@
 
 int main(int argc, char* argv[]) {
     int k = 5;
-    float alpha = 0.3;
+    float alpha = 0.6;
     if (argc > 3) {
         std::cout << "Too many arguments. Run with: ./main < [input file] [k] [α]\n";
         exit(EXIT_FAILURE);
