@@ -3,7 +3,7 @@
 <p style="text-align: center;">Bearbeiter: Finn Rudolph</p>
 <p style="text-align: center;">19.03.2022</p>
 
-[TOC]
+
 
 ## Problembeschreibung
 
@@ -60,7 +60,7 @@ procedure FHK(G)
 
 ### Das Chinese Postman Problem / Briefträgerproblem
 
-Wie oben beschrieben, ist eine Lösung dieses Problems eine Voraussetzung für den FHK-Algorithmus. Eine optimale Lösung des Briefträgerproblems kann in polynomialer Zeit gefunden werden. Es gehört also, wie für Routingprobleme eher unüblich, der Komplexitätsklasse P an (Edmonds & Johnson, 1973).
+Wie oben beschrieben, ist eine Lösung dieses Problems eine Voraussetzung für den FHK-Algorithmus. Eine optimale Lösung des Briefträgerproblems kann in polynomieller Zeit gefunden werden. Es gehört also, wie für Routingprobleme eher unüblich, der Komplexitätsklasse P an (Edmonds & Johnson, 1973).
 
 Zuerst werden alle Knoten von ungeradem Grad $V_o$ ($o$ für odd) identifiziert und zwischen diesen ein [Minimales Perfektes Matching](#minimale-perfekte-matchings) $M$ berechnet. Als Kantengewichte dienen die kürzesten Pfade in $G$, implizit wird also ein vollständiger Graph als Grundlage für das Matching erstellt. Anschließend wird der Originalgraph mit den Kanten des perfekten Matchings zu einem Multigraphen $G_a$ augmentiert. Wenn ein kürzester Pfad zwischen zwei gematchten Knoten mehrere Kanten enthält, werde alle repliziert. In $G_a$ existiert ein Eulerkreis, weil jeder ungerade Knoten durch seinen Matching-Partner zu einem geraden Knoten gemacht wurde. $d(v)$ bezeichnet den Grad eines Knoten.
 
@@ -509,7 +509,7 @@ Zeit: 1,41E-01 s
 
 ### Andere Beispiele
 
-Um mein Programm an anderen großen Graphen außer den vorgegebenen testen zu können, habe ich mir Testinstanzen von sintef ([Literaturverzeichnis](#literaturverzeichnis) &rarr; Testinstanzen) herausgesucht. Sie sind zwar eigentlich für das _Capacitated Arc Routing Problem_ (CARP) bzw _Node, Edge and Arc Routing Problem_ (NEARP) gedacht, aber das stört nicht. Mit einem kleinen C++ Programm (`muellabfuhr/beispiele/convert_samples.cpp`) habe ich sie in das bekannte Format umgewandelt, wobei gerichtete Kanten als ungerichtet behandelt wurden. Ich habe die des BHW-Benchmarks und des DI-NEARP-Benchmarks verwendet. Insgesamt sind es 14 Instanzen mit $|V|$ von 11 bis 1120 und $|E|$ von 25 bis 1450. Nicht alle wurden für die folgenden Tests verwendet, es wurde aber mit jeder die Lauffähigkeit und bei den kleinen auch die Korrektheit überprüft. Große Instanzen eignen sich besser, da hier Faktoren, die nichts mit dem eigentlichen Algorithmus zu tun haben, nicht so stark ins Gewicht fallen. 
+Um mein Programm an anderen großen Graphen außer den vorgegebenen testen zu können, habe ich mir Testinstanzen von sintef ([Literaturverzeichnis](#literaturverzeichnis) &rarr; Testinstanzen) herausgesucht. Sie sind zwar eigentlich für das _Capacitated Arc Routing Problem_ (CARP) bzw _Node, Edge and Arc Routing Problem_ (NEARP) gedacht, aber das stört nicht. Mit einem kleinen C++ Programm (`muellabfuhr/beispiele/convert_samples.cpp`) habe ich sie in das bekannte Format umgewandelt, wobei gerichtete Kanten als ungerichtet behandelt wurden. Ich habe die des BHW-Benchmarks und des DI-NEARP-Benchmarks verwendet. Insgesamt sind es 14 Instanzen mit $|V|$ von 11 bis 1120 und $|E|$ von 25 bis 1450. Nicht alle wurden für die folgenden Tests verwendet, es wurde aber mit jeder die Lauffähigkeit und bei den kleinen auch die Korrektheit überprüft. Große Instanzen eignen sich besser, da hier Faktoren, die nichts mit dem eigentlichen Algorithmus zu tun haben, nicht so stark ins Gewicht fallen.
 
 Es wurden Tests zur Laufzeit und Lösungsqualität des gesamten Algorithmus durchgeführt. Die Laufzeit und Lösungsqualität des Matchingalgorithmus wurden außerdem separat betrachtetet, da dieser vollständig selbst entwickelt ist. Bei den Tests ist vor allem interessant, wie die Wahl von $\alpha$ das Ergebnis beeinflusst. Daher wird jeder Test mit $\alpha$ von $0.1$ bis $0.9$ in Schritten von $0.1$ durchgeführt. $k$ ist immer $5$. Wegen der großen Länge der Programmausgaben ist hier jeweils nur die Länge der längsten Tour abgedruckt, da das die entscheidende Größe ist. Für die Kosten von _muellabfuhr7_ gilt jeweil die rechte vertikale Achse, da die Kantengewichte bei dieser Instanz um einige Größenordnungen größer sind.
 
@@ -936,8 +936,7 @@ std::vector<edge> two_opt(matrix_2d &dis, std::vector<int> &vertex_set) {
 
 ```c++
 void exchange(matrix_2d &dis, std::vector<edge> &mat, int i, int j, bool swap_partner) {
-    edge e1 = mat[i];
-    edge e2 = mat[j];
+    edge e1 = mat[i], edge e2 = mat[j];
     mat[i] = { e1[0], e2[swap_partner], dis[e1[0]][e2[swap_partner]] };
     mat[j] = { e1[1], e2[!swap_partner], dis[e1[1]][e2[!swap_partner]] };
 }

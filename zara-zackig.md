@@ -377,21 +377,17 @@ Zeit: 1.63E-03 s
 
 Zeit: 5,06E+01 s
 
-#### Stapel 3
+#### Stapel 3 / Stapel 4
 
-```
+Wegen der großen Anzahl an Karten konnten die zwei Instanzen stapel3 und stapel4 nicht in annehmbarer Zeit gelöst werden. Das Hauptproblem ist, dass im Gegensatz zu stapel2 nicht genügend Arbeitsspeicher vorhanden ist, um $d = 5$ zu wählen, sodass $d = 4$ gewählt wird, was den Faktor $\binom n {k-d}$ in der Zeitkomplexität mit $k-d = 7$ sehr groß werden lässt. Daher wurden Laufzeiten kleinerer Instanzen gemessen, mit denen auf die erwartete Laufzeit geschlossen werden kann. Für jeden Messpunkt wurden 4 Testläufe mit dem weiter unten beschriebenen Testprogramm durchgeführt.
 
-```
+Zunächst die Laufzeit in Abhängigkeit von $k$ (logarithmische Skalierung der Zeitachse). Dass sie nur bei jeder zweiten Erhöhung von $k$ merklich ansteigt, liegt daran, dass für die Laufzeit immer $\max(d, k-d)$ entscheidend ist und $d= \lceil \frac k2 \rceil$. Bei $k=10$ reicht dafür der Arbeitsspeicher nicht mehr aus, sodass $k=4$ bleibt und $k-d = 6$ wird.
 
-Zeit:
+![](grafiken/k-t.png)
 
-#### Stapel 4
+Das eigentlich Interessante: Die Laufzeit in Abhängigkeit von $\max(d, k-d)$. Die gestrichelten Linien sind von Excel berechnete Annäherungen durch eine Exponentialfunktion (oben: $n = 181$, unten: $n=161$). Setzt man jeweils 7 ein, erhält man für $n=161$ eine erwartete Laufzeit von $31832s \approx 531m \approx 8,84h$ und für $n=181$ $57834s \approx 964m \approx 16,1h$. Zu beachten ist, dass das Mittelwerte sind. Das Programm könnte genauso nach einigen Minuten, aber auch erst nach deutlich längerer Zeit fertig werden. Mit mehr verfügbarem Arbeitsspeicher, sodass $d=5$, könnten die Instanzen wesentlich schneller (in der Größenordnung 1E+03s) gelöst werden, da $k-d=6$ wäre.
 
-```
-
-```
-
-Zeit:
+![](grafiken/maxkd-t.png)
 
 #### Stapel 5
 
@@ -417,7 +413,7 @@ Der Benutzer wird dann aufgefordert, $n, k$ und $m$ anzugeben, wobei dazwischen 
 
 Es wurden Tests für $n$ von 20 bis 255, $k$ von 2 bis und $m$ von 8 bis 128 durchgeführt. Das Programm wurde für jede Parameterwahl jeweils 6-mal ausgeführt, da die benötigte Zeit zum Durchsuchen der vorberechneten Zahlen variieren kann. Daher sind die Ergebnisse in Durchschnitt ± Standardabweichung angegeben.
 
-| n    | k    | m    | Zeit in Sekunden    | gewähltes d |
+| n    | k    | m    | Zeit in s           | gewähltes d |
 | ---- | ---- | ---- | ------------------- | ----------- |
 | 20   | 10   | 8    | 1,58E-03 ± 1,64E-04 | 5           |
 | 20   | 10   | 32   | 1.78E-03 ± 2,01E-04 | 5           |
@@ -426,10 +422,9 @@ Es wurden Tests für $n$ von 20 bis 255, $k$ von 2 bis und $m$ von 8 bis 128 dur
 | 100  | 14   | 32   | 5,31E+01 ± 2.13E+00 | 6           |
 | 100  | 12   | 128  | 7,99E+01 ± 5,10E+01 | 5           |
 | 180  | 10   | 64   | 3,02E+03 ± 4,12E+02 | 4           |
-| 180  | 9    | 128  |                     | 4           |
-| 255  |      | 64   |                     |             |
-| 255  |      | 128  |                     |             |
-| 255  |      | 128  |                     |             |
+| 180  | 9    | 128  | 1,28E+01 ± 6,11E+00 | 4           |
+| 255  | 8    | 64   | 1,06E+01 ± 4,57E+00 | 4           |
+| 255  | 8    | 128  | 1,12E+01 ± 2,21E+00 | 4           |
 
 ## Quellcode
 

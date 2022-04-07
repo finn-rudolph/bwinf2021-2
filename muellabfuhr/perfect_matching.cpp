@@ -16,8 +16,8 @@ std::vector<edge> two_opt(matrix_2d &dis, std::vector<int> &vertex_set) {
         int u = vertex_set[i], v = vertex_set[i + 1], w = dis[u][v];
         mat.push_back({ u, v, w });
     }
- 
-    next: 
+
+    next:
         for (int i = 0; i < mat.size(); i++) {
             for (int j = i + 1; j < mat.size(); j++) {
                 int curr_cost = mat[i][2] + mat[j][2];
@@ -32,7 +32,6 @@ std::vector<edge> two_opt(matrix_2d &dis, std::vector<int> &vertex_set) {
                 }
             }
         }
-        
     return mat;
 }
 
