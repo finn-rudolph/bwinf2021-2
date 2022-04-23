@@ -1,7 +1,7 @@
 <h1 style="text-align: center;">Bonusaufgabe: Zara Zackigs Zurückkehr</h1>
-<p style="text-align: center;">Teilnahme-ID: 00968</p>
+<p style="text-align: center;">Teilnahme-ID: 63302</p>
 <p style="text-align: center;">Bearbeiter: Finn Rudolph</p>
-<p style="text-align: center;">28.03.2022</p>
+<p style="text-align: center;">23.04.2022</p>
 
 [TOC]
 
@@ -413,18 +413,18 @@ Der Benutzer wird dann aufgefordert, $n, k$ und $m$ anzugeben, wobei dazwischen 
 
 Es wurden Tests für $n$ von 20 bis 255, $k$ von 2 bis und $m$ von 8 bis 128 durchgeführt. Das Programm wurde für jede Parameterwahl jeweils 6-mal ausgeführt, da die benötigte Zeit zum Durchsuchen der vorberechneten Zahlen variieren kann. Daher sind die Ergebnisse in Durchschnitt ± Standardabweichung angegeben.
 
-| n    | k    | m    | Zeit in s           | gewähltes d |
-| ---- | ---- | ---- | ------------------- | ----------- |
-| 20   | 10   | 8    | 1,58E-03 ± 1,64E-04 | 5           |
-| 20   | 10   | 32   | 1.78E-03 ± 2,01E-04 | 5           |
-| 60   | 15   | 16   | 1,06E+01 ± 1,90E-01 | 7           |
-| 60   | 15   | 64   | 3,28E+01 ± 2,34E+01 | 7           |
-| 100  | 14   | 32   | 5,31E+01 ± 2.13E+00 | 6           |
-| 100  | 12   | 128  | 7,99E+01 ± 5,10E+01 | 5           |
-| 180  | 10   | 64   | 3,02E+03 ± 4,12E+02 | 4           |
-| 180  | 9    | 128  | 1,28E+01 ± 6,11E+00 | 4           |
-| 255  | 8    | 64   | 1,06E+01 ± 4,57E+00 | 4           |
-| 255  | 8    | 128  | 1,12E+01 ± 2,21E+00 | 4           |
+| n   | k   | m   | Zeit in s           | gewähltes d |
+| --- | --- | --- | ------------------- | ----------- |
+| 20  | 10  | 8   | 1,58E-03 ± 1,64E-04 | 5           |
+| 20  | 10  | 32  | 1.78E-03 ± 2,01E-04 | 5           |
+| 60  | 15  | 16  | 1,06E+01 ± 1,90E-01 | 7           |
+| 60  | 15  | 64  | 3,28E+01 ± 2,34E+01 | 7           |
+| 100 | 14  | 32  | 5,31E+01 ± 2.13E+00 | 6           |
+| 100 | 12  | 128 | 7,99E+01 ± 5,10E+01 | 5           |
+| 180 | 10  | 64  | 3,02E+03 ± 4,12E+02 | 4           |
+| 180 | 9   | 128 | 1,28E+01 ± 6,11E+00 | 4           |
+| 255 | 8   | 64  | 1,06E+01 ± 4,57E+00 | 4           |
+| 255 | 8   | 128 | 1,12E+01 ± 2,21E+00 | 4           |
 
 ## Quellcode
 
