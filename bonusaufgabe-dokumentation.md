@@ -1,17 +1,19 @@
 <h1 style="text-align: center;">Bonusaufgabe: Zara Zackigs Zurückkehr</h1>
 <p style="text-align: center;">Teilnahme-ID: 63302</p>
 <p style="text-align: center;">Bearbeiter: Finn Rudolph</p>
-<p style="text-align: center;">23.04.2022</p>
+<p style="text-align: center;">24.04.2022</p>
+
+<u>**Inhaltsverzeichnis**</u>
 
 [TOC]
 
 ## Problembeschreibung
 
-Zunächst einige wichtige Eigenschaften des $\text{xor}$ Operators. Das exklusive Oder zweier gleicher Zahlen ist immer 0, weil sich bei diesen Zahlen kein Bit unterscheidet. Auch ist $\text{xor}$ kommutativ sowie assoziativ, d. h. die Anwendungsreihenfolge auf mehrere Operanden und Anordnung der Operanden sind irrelevant für das Ergebnis (Lewin, 2012). Die Aufgabenstellung verlangt es, aus einer Menge $S$, bestehend aus Binärzahlen, $k$ verschiedene Zahlen zu finden, deren $\text{xor}$ gleich irgendeiner anderen Zahl $\in S$ ist. Mit den oben genannten Eigenschaften kann das Problem umformuliert werden: Finde $k + 1$ Zahlen aus $S$, deren $\text{xor}$ gleich $0$ ist. Von hier an bezeichnet $k$ die Anzahl an Karten plus Schlüsselkarte, oder die Anzahl Zahlen, deren $\text{xor}$ gleich 0 sein soll, da das formale Beschreibungen deutlich vereinfacht.
+Zunächst einige wichtige Eigenschaften des $\text{xor}$ Operators. Das exklusive Oder zweier gleicher Zahlen ist immer 0, weil sich bei diesen Zahlen kein Bit unterscheidet. Auch ist $\text{xor}$ kommutativ sowie assoziativ, d. h. die Anwendungsreihenfolge auf mehrere Operanden und Anordnung der Operanden sind irrelevant für das Ergebnis (Lewin, 2012). Die Aufgabenstellung verlangt es, aus einer Menge $S$, bestehend aus Binärzahlen, $k$ verschiedene Zahlen zu finden, deren $\text{xor}$ gleich irgendeiner anderen Zahl $\in S$ ist. Mit den oben genannten Eigenschaften kann das Problem umformuliert werden: Finde $k + 1$ Zahlen aus $S$, deren $\text{xor}$ gleic1h $0$ ist. Von hier an bezeichnet $k$ die Anzahl an Karten plus Schlüsselkarte, oder die Anzahl Zahlen, deren $\text{xor}$ gleich 0 sein soll, da das formale Beschreibungen deutlich vereinfacht.
 
 Das Problem ist eine Variation des Teilsummenproblems, das ein Spezialfall des Rucksackproblems ist. Das Teilsummenproblem verlangt es, von einer Menge an ganzen Zahlen $S$ eine Teilmenge $T$ zu bestimmen, deren Summe gleich 0 ist. In diesem Fall wird statt des $+$ Operators der $\text{xor}$ Operator verwendet. Diese Eigenschaft allein würde das Problem, im Gegensatz zum Teilsummenproblem, in polynomialer Zeit lösbar machen (Jafargholi & Viola, 2018, S. 2). Aber da die Größe von $T$ mit $k$ ebenfalls vorgegeben ist, ist es NP-schwer, kann also nur in exponentieller Zeit optimal gelöst werden (S. 2), vorausgesetzt N $\neq$ NP.
 
-Formal ausgedrückt, soll eine Menge $T$ bestimmt werden, die folgende Eigenschaften erfüllt. $t_i$ bezeichnet die $i$´te Zahl in $T$.
+Formal ausgedrückt soll eine Menge $T$ bestimmt werden, die folgende Eigenschaften erfüllt. $t_i$ bezeichnet die $i$´te Zahl in $T$.
 
 $$
 t_1 \text{ xor } t_2 \text{ xor } \dots \text{ xor } t_k = 0 \\
@@ -45,7 +47,7 @@ L = \{s_1 \text{ xor } s_2 \space
 \forall \space (s_1, s_2 \in S \space | \space s_1 \neq s_2) \}
 $$
 
-Damit ist das Problem für $k = 4$ in $O(n^2 \log_2 n)$ lösbar, weil die Erstellung von $L$ in $O(n^2)$, und das Überprüfen der Existenz jedes $\text{xor}$-verknüpften Paares in $L$ in $O(n^2 )$ ausgeführt werden kann.
+Damit ist das Problem für $k = 4$ in $O(n^2 \log_2 n)$ lösbar, weil die Erstellung von $L$ in $O(n^2)$ und das Überprüfen der Existenz jedes $\text{xor}$-verknüpften Paares in $L$ in $O(n^2 )$ ausgeführt werden kann.
 
 Für allgemeine $k$ sei $d$ die Anzahl an Zahlen, die für einen Eintrag in $L$ mit $\text{xor}$ verknüpft werden (im obigen Fall $d = 2$). Um die Karten im Auge zu behalten, die für einen vorberechneten $\text{xor}$-Wert benutzt wurden, wird eine zweite Liste $Q$ angelegt, in der jeweils die Indizes in $S$ der verwendeten Karten gespeichert werden. $L$ und $Q$ können durch folgende Rekursion erzeugt werden. $\larr$ bedeutet die Zuweisung einer Variable.
 
@@ -81,7 +83,7 @@ Natürlich muss die Lösung noch zur nächsten ganzen Zahl gerundet werden. Weil
 
 ![](grafiken/komplexitaet-graph.png)
 
-Beispiel: Graphische Darstellung der von $d$ abhängigen Zeitkomplexitätsfunktion $f_{n,k}(d)$ für $n=52, k=9$. violett: $f_{n,k}(d)$, grün: $f_{n,k}'(d)$, gelb: $d= \big \lceil \frac nk \big \rceil$. $d$ ist auf der x-Achse angetragen. In diesem Fall wäre das Minimum von $f_{n,k}(d)$ gerundet bei 5, genau wie $d= \big \lceil \frac nk \big \rceil$. Die verwendete GeoGebra Datei befindet sich ebenfalls im Projektordner.
+Beispiel: Graphische Darstellung der von $d$ abhängigen Zeitkomplexitätsfunktion $f_{n,k}(d)$ für $n=52, k=9$. violett: $f_{n,k}(d)$, grün: $f_{n,k}'(d)$, gelb: $d= \big \lceil \frac nk \big \rceil$. $d$ ist auf der x-Achse angetragen. In diesem Fall wäre das Minimum von $f_{n,k}(d)$ gerundet bei 5, genau wie $d= \big \lceil \frac nk \big \rceil$.
 
 **Limitierung durch die Speicherkomplexität.** Bei großen Eingabedateien muss der Speicherverbrauch beachtet werden. Z. B. bei `stapel4.txt`: Mit $|L| = \binom {n}{d}$ müssten $\binom {181}{5} \approx 1,53 \cdot 10^9$ 128-Bit Zahlen gespeichert werden, was ungefähr 24,5 Gigabyte Arbeitsspeicher erfordern würde. Wenn der Computer nicht so viel Arbeitsspeicher besitzt, muss $d$ entsprechend verringert werden.
 
@@ -114,9 +116,9 @@ procedure XorNull(S, k)
 
 #### Radix Sort (MSD)
 
-Radix Sort eignet sich besonders, um Zahlen mit gleicher oder ähnlicher Länge zu sortieren, weil er in in $O(|L| \cdot m)$ Zeit läuft. Jeder vergleichsbasierte Sortieralgorithmus würde mindestens $O(|L| \log_2 |L|)$ Zeit benötigen, was asymptotisch schlechter ist, wenn man $m$ mit 128 begrenzt. Ich habe mich für die _Most Significant Digit (MSD)_ und _in-place_ Variante von Radix Sort entschieden, um keinen zusätzlichen Speicherplatz zu verbrauchen.
+Radix Sort eignet sich besonders, um Zahlen mit gleicher oder ähnlicher Länge zu sortieren, weil er in $O(|L| \cdot m)$ Zeit läuft. Jeder vergleichsbasierte Sortieralgorithmus würde mindestens $O(|L| \log_2 |L|)$ Zeit benötigen, was asymptotisch schlechter ist, wenn man $m$ mit 128 begrenzt. Ich habe mich für die _Most Significant Digit (MSD)_ und _in-place_ Variante von Radix Sort entschieden, um keinen zusätzlichen Speicherplatz zu verbrauchen.
 
-Die Zahlen werden sortiert, indem sie zunächst nach dem höchstwertigen Bit gruppiert werden. Die zwei entstehenden Gruppen werden dann rekursiv nach dem zweitwichtigsten Bit gruppiert usw., bis alle Bits ausgewertet wurden. Einer dieser Schritte, der die Liste nach dem $h$´ten Bit (vom niedrigstwertigen Bit aus gezählt, d. h. $h = m$ zu Beginn) gruppiert, läuft wie folgt ab: Zwei Indizes $u$ und $v$ werden mit dem Anfangs- und Endindex von $L$ initialisiert. Vor $u$ befinden sich alle Zahlen mit $h$´ten Bit $0$, nach $v$ alle Zahlen mit $h$´ten Bit $1$. Wenn der $h$´te Bit des $u$´ten Eintrags in $L$ $0$ ist, wird $u$ einfach um $1$ vergrößert (Z. 12). $l_u$ bezeichnet den $u$´ten Eintrag in $L$. Andernfalls wird $l_u$ dem Teil mit $h$´ten Bit $1$ hinzugefügt, indem es mit $l_v$ getauscht wird (Z. 8). Dann wird der $1$er-Abschnitt um $1$ vergrößert, indem $v$ um $1$ verringert wird. So werden alle Einträge der Liste betrachtet, bis $u$ und $v$ gleich sind. Bevor der 0- und 1-Abschnitt jeweils rekursiv sortiert werden können muss beachtet werden, dass $u$ am Ende des $0$-Abschnitts steht, falls der $h$´te Bit von $l_u$ beim letzten Iterationsschritt $1$ war. Damit das weitere Sortieren fehlerlos funktioniert, soll $u$ immer am Anfang des $1$-Abschnitts stehen, das wird in Z. 14 - 15 sichergestellt. Damit die Einträge in $Q$ nach dem Sortieren noch stimmen, wird jede Veränderung von $L$ auch für $Q$ übernommen (Z. 9).
+Die Zahlen werden sortiert, indem sie zunächst nach dem höchstwertigen Bit gruppiert werden. Die zwei entstehenden Gruppen werden dann rekursiv nach dem zweitwichtigsten Bit gruppiert usw., bis alle Bits ausgewertet wurden. Einer dieser Schritte, der die Liste nach dem $h$´ten Bit (vom niedrigstwertigen Bit aus gezählt, d. h. $h = m$ zu Beginn) gruppiert, läuft wie folgt ab: Zwei Indizes $u$ und $v$ werden mit dem Anfangs- und Endindex von $L$ initialisiert. Vor $u$ befinden sich alle Zahlen mit $h$´ten Bit $0$, nach $v$ alle Zahlen mit $h$´ten Bit $1$. Wenn der $h$´te Bit des $u$´ten Eintrags in $L$ $0$ ist, wird $u$ einfach um $1$ vergrößert (Z. 12). $l_u$ bezeichnet den $u$´ten Eintrag in $L$. Andernfalls wird $l_u$ dem Teil mit $h$´ten Bit $1$ hinzugefügt, indem es mit $l_v$ getauscht wird (Z. 8). Dann wird der $1$er-Abschnitt um $1$ vergrößert, indem $v$ um $1$ verringert wird. So werden alle Einträge der Liste betrachtet, bis $u$ und $v$ gleich sind. Bevor der 0- und 1-Abschnitt jeweils rekursiv sortiert werden können, muss beachtet werden, dass $u$ am Ende des $0$-Abschnitts steht, falls der $h$´te Bit von $l_u$ beim letzten Iterationsschritt $1$ war. Damit das weitere Sortieren fehlerlos funktioniert, soll $u$ immer am Anfang des $1$-Abschnitts stehen, das wird in Z. 14 - 15 sichergestellt. Damit die Einträge in $Q$ nach dem Sortieren noch stimmen, wird jede Veränderung von $L$ auch für $Q$ übernommen (Z. 9).
 
 ```pseudocode
 procedure RadixSort(L, M, h)
@@ -157,7 +159,7 @@ procedure BinarySearch(L, x)
 	return -1;
 ```
 
-Neben Binärsuche habe ich als Suchalgorithmus auch Interpolationssuche in Betracht gezogen. Weil eine Gleichverteilung der vorberechneten $\text{xor}$-Werte aber nicht garantiert werden kann bzw. unwahrscheinlich ist, benutze ich Binärsuche. Dass Binärsuche tatsächlich besser funktioniert, konnte ich durch kurze Tests bestätigen.
+Neben Binärsuche habe ich als Suchalgorithmus auch Interpolationssuche in Betracht gezogen. Weil eine Gleichverteilung der vorberechneten $\text{xor}$-Werte aber nicht garantiert werden kann bzw. unwahrscheinlich ist, benutze ich Binärsuche.
 
 ### Teilaufgabe b)
 
@@ -165,7 +167,7 @@ Damit Zara sicher weniger als zwei Fehlversuche benötigt, muss sie wissen, welc
 
 1. **Hinter der ausgwählten Karte.** Die ausgewählte Karte ist die richtige, da die Ordnung der Karten vor der Schlüsselkarte unberührt bleibt.
 2. **Vor der ausgewählten Karte. ** Die $i$´te Karte ist ein Fehlversuch. Die $i+1$´te Karte ist die richtige, da die Schlüsselkarte des Hauses durch die vorhergehende $\text{xor}$-Karte um eins nach hinten geschoben wurde.
-3. **Die $\text{xor}$-Karte ist die ausgewählte Karte.** Auch hier ist die $i$´te Karte ein Fehlversuch. Aber aufgrund der selben Logik wie bei 2. ist die $i+1$´te Karte die richtige.
+3. **Die $\text{xor}$-Karte ist die ausgewählte Karte.** Auch hier ist die $i$´te Karte ein Fehlversuch. Aber aufgrund derselben Logik wie bei 2. ist die $i+1$´te Karte die richtige.
 
 Zusammenfassend sind die Anweisungen für das $i$´te Haus also wie folgt:
 
@@ -181,15 +183,15 @@ Eine einfache und naheliegende Erweiterung ist, neben 32-, 64- und 128-Bit Zahle
 
 ## Implementierung
 
-Ich setzte die Lösungsidee in C++ mit dem Compiler clang um. Das Programm ist auf x86-64 Linux Systemen ausführbar. Es kann im Ordner `zara-zackig` folgendermaßen ausgeführt werden:
+Ich setzte die Lösungsidee in C++ mit dem Compiler clang um. Das Programm ist auf x86-64 Linux Systemen ausführbar. Es kann im Ordner `bonusaufgabe-implementierung` folgendermaßen ausgeführt werden:
 
 ```
 ./main < [Eingabedatei] [Arbeitsspeicherlimit in Megabyte]
 ```
 
-Das Arbeitsspeicherlimit ist optional, wird keines angegeben, rechnet das Programm mit dem gesamten vorhandenen Arbeitsspeicher minus 2 Gigabyte. Wenn nur ein Terminal geöffnet ist, passt das sehr gut, wenn noch andere Programme laufen, sollte ein Limit angegeben werden. Ein zu großes, manuell eingegebenes Limit kann zum Absturz des Programms führen. Das Programm gibt die $k$ Zahlen aus, deren $\text{xor } 0$ ist aufsteigend sortiert aus. Logischerweise sind alle nicht ausgegebenen Zahlen die von den Freunden hinzugefügten Karten.
+Das Arbeitsspeicherlimit ist optional, wird keines angegeben, rechnet das Programm mit dem gesamten vorhandenen Arbeitsspeicher minus 2 Gigabyte. Wenn nur ein Terminal geöffnet ist, passt das sehr gut, wenn noch andere Programme laufen, sollte ein Limit angegeben werden. Ein zu großes, manuell eingegebenes Limit kann zum Absturz des Programms führen. Das Programm gibt die $k$ Zahlen aus, deren $\text{xor } 0$ ist, aufsteigend sortiert aus. Logischerweise sind alle nicht ausgegebenen Zahlen die von den Freunden hinzugefügten Karten.
 
-Da Schlüsselwörter und Ähnliches in C++ englisch sind, schreibe ich meine Code auch auf Englisch. C++ eignet sich sehr gut für diese Aufgabe, weil $\text{xor}$ mit dem `^`-Operator und 128-Bit Zahlen nativ unterstützt werden. Auch werde ich den Code durch parametrischen Polymorphismus mit C++ Templates generisch halten, sodass er für alle Bitlängen funktioniert. Der Teil des Programms, der die Karten findet, ist in Funktionen unterteilt und steht in `k_xor.hpp`. Weil viele der Funktionen ein Templateargument benötigen, sind sie in eine Headerdatei geschrieben. In `main.cpp` wird anhand der Bitlänge $m$ der entsprechende Integertyp (`uint8_t` bis `__uint128_t`) ausgewählt, die Karten eingelesen und `xor_to_zero` mit dem Integertyp als Argument für den Templateparameter `T` aufgerufen (Z. 14 - 40). Ab hier läuft alles generisch ab, wobei `T` auch bei jeder anderen Funktion der zu $m$ zugehörige Integertyp ist.
+Da Schlüsselwörter und Ähnliches in C++ englisch sind, schreibe ich meine Code auch auf Englisch. C++ eignet sich sehr gut für diese Aufgabe, weil $\text{xor}$ mit dem `^`-Operator und 128-Bit Zahlen nativ unterstützt werden. Auch werde ich den Code durch parametrischen Polymorphismus mit C++ Templates generisch halten, sodass er für alle Bitlängen funktioniert. Der Teil des Programms, der die Karten findet, ist in Funktionen unterteilt und steht in `k_xor.hpp`. Weil viele der Funktionen ein Templateargument benötigen, sind sie in einer Headerdatei geschrieben. In `main.cpp` wird anhand der Bitlänge $m$ der entsprechende Integertyp (`uint8_t` bis `__uint128_t`) ausgewählt, die Karten eingelesen und `xor_to_zero` mit dem Integertyp als Argument für den Templateparameter `T` aufgerufen (Z. 14 - 40). Ab hier läuft alles generisch ab, wobei `T` auch bei jeder anderen Funktion der zu $m$ zugehörige Integertyp ist.
 
 Die Zeilenangaben beziehen sich im Weiteren immer auf die zugehörige Funktion im Abschnitt [_Quellcode_](#quellcode)
 
@@ -379,7 +381,7 @@ Zeit: 5,06E+01 s
 
 #### Stapel 3 / Stapel 4
 
-Wegen der großen Anzahl an Karten konnten die zwei Instanzen stapel3 und stapel4 nicht in annehmbarer Zeit gelöst werden. Das Hauptproblem ist, dass im Gegensatz zu stapel2 nicht genügend Arbeitsspeicher vorhanden ist, um $d = 5$ zu wählen, sodass $d = 4$ gewählt wird, was den Faktor $\binom n {k-d}$ in der Zeitkomplexität mit $k-d = 7$ sehr groß werden lässt. Daher wurden Laufzeiten kleinerer Instanzen gemessen, mit denen auf die erwartete Laufzeit geschlossen werden kann. Für jeden Messpunkt wurden 4 Testläufe mit dem weiter unten beschriebenen Testprogramm durchgeführt.
+Wegen der großen Anzahl an Karten konnten die zwei Instanzen stapel3 und stapel4 nicht in annehmbarer Zeit gelöst werden. Das Hauptproblem ist, dass im Gegensatz zu stapel2 nicht genügend Arbeitsspeicher vorhanden ist, um $d = 5$ zu wählen, sodass $d = 4$ gewählt wird, was den Faktor $\binom n {k-d}$ in der Zeitkomplexität mit $k-d = 7$ sehr groß werden lässt. Daher wurden Laufzeiten kleinerer Instanzen gemessen, mit denen auf die erwartete Laufzeit geschlossen werden kann. Für jeden Messpunkt wurden 4 Testläufe mit dem weiter unten beschriebenen [Testprogramm](#testprogram) durchgeführt.
 
 Zunächst die Laufzeit in Abhängigkeit von $k$ (logarithmische Skalierung der Zeitachse). Dass sie nur bei jeder zweiten Erhöhung von $k$ merklich ansteigt, liegt daran, dass für die Laufzeit immer $\max(d, k-d)$ entscheidend ist und $d= \lceil \frac k2 \rceil$. Bei $k=10$ reicht dafür der Arbeitsspeicher nicht mehr aus, sodass $k=4$ bleibt und $k-d = 6$ wird.
 
@@ -403,13 +405,13 @@ Zeit: 4,71E-02 s
 
 ### Testprogramm
 
-Damit das Programm einfach mit verschiedensten Kartensets getestet werden kann, habe ich ein Testprogramm in `test.cpp` geschrieben, dass ein zufälliges Kartenset generiert. Daraus werden $k$ Karten ausgewählt und eine Schlüsselkarte erstellt. Bevor damit dann [`xor_to_zero`]() aufgerufen wird, werden die Karten noch zufällig vertauscht. Dieses Programm kann aus dem Ordner `zara-zackig` wie folgt benutzt werden:
+Damit das Programm einfach mit verschiedensten Kartensets getestet werden kann, habe ich ein Testprogramm in `test.cpp` geschrieben, dass ein zufälliges Kartenset generiert. Daraus werden $k$ Karten ausgewählt und eine Schlüsselkarte erstellt. Bevor damit dann [`xor_to_zero`]() aufgerufen wird, werden die Karten noch zufällig vertauscht. Dieses Programm kann aus dem Ordner `bonusaufgabe-implementierung` wie folgt benutzt werden:
 
 ```
 ./test [Arbeitsspeicherlimit in Megabyte]
 ```
 
-Der Benutzer wird dann aufgefordert, $n, k$ und $m$ anzugeben, wobei dazwischen jeweils ein Leerzeichen sein sollte. Ausgegeben wird das generierte Kartenset und dann die errechnete Lösung.
+Der Benutzer wird dann aufgefordert, $n, k$ und $m$ anzugeben, wobei dazwischen jeweils ein Leerzeichen sein muss. Ausgegeben wird das generierte Kartenset und dann die errechnete Lösung.
 
 Es wurden Tests für $n$ von 20 bis 255, $k$ von 2 bis und $m$ von 8 bis 128 durchgeführt. Das Programm wurde für jede Parameterwahl jeweils 6-mal ausgeführt, da die benötigte Zeit zum Durchsuchen der vorberechneten Zahlen variieren kann. Daher sind die Ergebnisse in Durchschnitt ± Standardabweichung angegeben.
 
